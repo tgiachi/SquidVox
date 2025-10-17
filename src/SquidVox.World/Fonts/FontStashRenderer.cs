@@ -10,7 +10,7 @@ namespace SquidVox.World.Fonts;
 /// <summary>
 /// Implements font rendering using FontStashSharp and TrippyGL.
 /// </summary>
-public class FontStashRenderer : IFontStashRenderer
+public class FontStashRenderer : IFontStashRenderer, IDisposable
 {
     private readonly SimpleShaderProgram _shaderProgram;
     private readonly TextureBatcher _batch;
@@ -90,5 +90,13 @@ public class FontStashRenderer : IFontStashRenderer
             Vector2.Zero,
             depth
         );
+    }
+
+    public void Dispose()
+    {
+        _shaderProgram.Dispose();
+        _batch.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 }

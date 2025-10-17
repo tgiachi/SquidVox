@@ -1,4 +1,5 @@
 using DryIoc;
+using Serilog;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -16,6 +17,8 @@ namespace SquidVox.World;
 /// </summary>
 public class SquidVoxWorld : IDisposable
 {
+    private readonly ILogger _logger = Log.ForContext<SquidVoxWorld>();
+
     public delegate void OnUpdateHandler(GameTime gameTime);
 
     public delegate void OnRenderHandler();
@@ -36,6 +39,7 @@ public class SquidVoxWorld : IDisposable
 
     public SquidVoxWorld(IContainer container)
     {
+        _logger.Debug("Initializing world");
         _container = container;
 
         _container.Resolve<IAssetManagerService>();
@@ -50,12 +54,13 @@ public class SquidVoxWorld : IDisposable
         windowOpts.Title = "SquidVox World";
         windowOpts.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(3, 3));
 
-        SquidVoxGraphicContext.Window  = Window.Create(windowOpts);
-        SquidVoxGraphicContext.Window .Load += Window_Load;
-        SquidVoxGraphicContext.Window .Render += Window_Render;
-        SquidVoxGraphicContext.Window .FramebufferResize += Window_FramebufferResize;
-        SquidVoxGraphicContext.Window .Closing += Window_Closing;
+        SquidVoxGraphicContext.Window = Window.Create(windowOpts);
+        SquidVoxGraphicContext.Window.Load += Window_Load;
+        SquidVoxGraphicContext.Window.Render += Window_Render;
+        SquidVoxGraphicContext.Window.FramebufferResize += Window_FramebufferResize;
+        SquidVoxGraphicContext.Window.Closing += Window_Closing;
 
+        _logger.Debug("Running SquidVox World");
         SquidVoxGraphicContext.Window.Run();
     }
 
@@ -93,7 +98,6 @@ public class SquidVoxWorld : IDisposable
 
         ImGuiNET.ImGui.ShowDemoWindow();
 
-
         OnRender?.Invoke();
 
         SquidVoxGraphicContext.ImGuiController.Render();
@@ -117,7 +121,12 @@ public class SquidVoxWorld : IDisposable
     private void Window_Closing()
     {
         OnWindowClosing?.Invoke();
-        // Dispose all resources here
+
+        _logger.Debug("Disposing SquidVoxWorld resources.");
+
+        // Dispose all resources and close the window
+        SquidVoxGraphicContext.Dispose();
+        SquidVoxGraphicContext.Window.Close();
     }
 
     /// <summary>

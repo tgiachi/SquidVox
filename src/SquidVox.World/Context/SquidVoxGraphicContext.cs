@@ -47,11 +47,11 @@ public class SquidVoxGraphicContext
     /// </summary>
     public static void Dispose()
     {
-        Window.Dispose();
-        GraphicsDevice.Dispose();
-        GL.Dispose();
-        InputContext.Dispose();
-
+        ImGuiController?.Dispose();
+        GraphicsDevice?.Dispose();
+        InputContext?.Dispose();
+        GL?.Dispose();
+        Window?.Dispose();
     }
 
 }

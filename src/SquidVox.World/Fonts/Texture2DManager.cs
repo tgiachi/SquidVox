@@ -8,7 +8,7 @@ namespace SquidVox.World.Fonts;
 /// <summary>
 /// Manages Texture2D objects for FontStashSharp.
 /// </summary>
-internal class Texture2DManager : ITexture2DManager
+public class Texture2DManager : ITexture2DManager
 {
     /// <summary>
     /// Gets the graphics device.

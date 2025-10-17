@@ -36,5 +36,6 @@ public static class Program
 
         using var world = new SquidVoxWorld(container);
         world.Run();
+
     }
 }
