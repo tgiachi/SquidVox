@@ -1,3 +1,4 @@
+using DryIoc;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -11,12 +12,17 @@ namespace SquidVox.World;
 
 public class SquidVoxWorld : IDisposable
 {
+
+    private readonly IContainer _container;
+
+    public SquidVoxWorld(IContainer container)
+    {
+        _container = container;
+    }
+
     public delegate void OnUpdateHandler(GameTime gameTime);
-
     public delegate void OnRenderHandler();
-
     public delegate void OnWindowClosingHandler();
-
     public delegate void OnResizeHandler(Vector2D<int> size);
 
     public event OnUpdateHandler OnUpdate;
@@ -65,11 +71,12 @@ public class SquidVoxWorld : IDisposable
         SquidVoxGraphicContext.GraphicsDevice.Clear(ClearBuffers.Color);
 
         SquidVoxGraphicContext.ImGuiController.Update((float)delta);
-        
+
         ImGuiNET.ImGui.ShowDemoWindow();
 
 
         OnRender?.Invoke();
+
         SquidVoxGraphicContext.ImGuiController.Render();
     }
 
