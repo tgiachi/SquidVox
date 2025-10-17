@@ -1,53 +1,53 @@
-# Analisi del Progetto SquidVox e Proposta di Architettura dei Servizi
+# SquidVox Project Analysis and Service Architecture Proposal
 
-## Panoramica del Progetto
-SquidVox è un progetto di motore voxel scritto in C# utilizzando Silk.NET per la grafica OpenGL, TrippyGL come wrapper grafico e ImGui per l'interfaccia utente. L'obiettivo è creare un mondo basato su voxel, simile a Minecraft ma personalizzato. La struttura attuale include:
-- **SquidVox.Core**: Dati e utilità condivise (ad es., GameTime, ColorExtensions).
-- **SquidVox.World**: Ciclo principale del gioco, contesto grafico e servizi come FontStashRenderer e Texture2DManager.
-- **Tests**: Test unitari di base.
+## Project Overview
+SquidVox is a voxel engine project written in C# using Silk.NET for OpenGL graphics, TrippyGL as a graphics wrapper, and ImGui for UI. The goal is to create a voxel-based world, similar to Minecraft but customized. The current structure includes:
+- **SquidVox.Core**: Shared data and utilities (e.g., GameTime, ColorExtensions).
+- **SquidVox.World**: Main game loop, graphics context, and services like FontStashRenderer and Texture2DManager.
+- **Tests**: Basic unit tests.
 
-L'architettura utilizza un contesto grafico statico (SquidVoxGraphicContext) per risorse globali e un ciclo update/render basato su eventi in SquidVoxWorld.
+The architecture uses a static graphic context (SquidVoxGraphicContext) for global resources and an event-driven update/render loop in SquidVoxWorld.
 
-## Proposta di Architettura dei Servizi
-Per strutturare servizi come AssetManagerService, consiglio di utilizzare **Dependency Injection (IoC)** con Microsoft.Extensions.DependencyInjection. Questo fornisce flessibilità, testabilità e disaccoppiamento senza la rigidità dei singleton o la complessità dei pattern GameObject (che sono migliori per entità nel mondo).
+## Proposed Service Architecture
+For structuring services like AssetManagerService, I recommend using **Dependency Injection (IoC)** with DryIoc. This provides flexibility, testability, and decoupling without the rigidity of singletons or the complexity of GameObject patterns (which are better for in-world entities).
 
-### Perché IoC?
-- **Flessibilità**: Facile scambiare implementazioni (ad es., servizi mock per test).
-- **Disaccoppiamento**: I servizi non dipendono da stato globale.
-- **Scalabilità**: Adatto per un motore voxel con molteplici sistemi (rendering, generazione mondo, asset).
-- Alternative considerate:
-  - **Singleton**: Semplice ma porta a accoppiamento stretto e codice difficile da testare.
-  - **GameObject**: Non ideale per servizi globali; meglio per entità voxel o componenti.
+### Why IoC?
+- **Flexibility**: Easy to swap implementations (e.g., mock services for testing).
+- **Decoupling**: Services don't depend on global state.
+- **Scalability**: Suitable for a voxel engine with multiple systems (rendering, world generation, assets).
+- Alternatives considered:
+  - **Singleton**: Simple but leads to tight coupling and hard-to-test code.
+  - **GameObject**: Not ideal for global services; better for voxel entities or components.
 
-### Passi di Implementazione
-1. Aggiungi Microsoft.Extensions.DependencyInjection alle dipendenze del progetto.
-2. Crea interfacce per i servizi (ad es., IAssetManagerService).
-3. Registra i servizi in un ServiceCollection durante l'inizializzazione.
-4. Inietta i servizi nelle classi che ne hanno bisogno (ad es., tramite iniezione costruttore in SquidVoxWorld o sottosistemi).
-5. Per servizi specifici ai voxel, considera di aggiungere IVoxelRenderer, IWorldGenerator, ecc., seguendo lo stesso pattern.
+### Implementation Steps
+1. Add DryIoc to project dependencies.
+2. Create interfaces for services (e.g., IAssetManagerService).
+3. Register services in a Container during initialization.
+4. Inject services into classes that need them (e.g., via constructor injection in SquidVoxWorld or subsystems).
+5. For voxel-specific services, consider adding IVoxelRenderer, IWorldGenerator, etc., following the same pattern.
 
-Questa struttura supporterà la costruzione di un mondo voxel robusto mantenendo il codice base manutenibile.
+This structure will support building a robust voxel world while keeping the codebase maintainable.
 
-### Esempio di Implementazione
-Ecco un esempio semplice di come registrare e utilizzare un servizio AssetManagerService.
+### Implementation Example
+Here's a simple example of how to register and use an AssetManagerService.
 
-Prima, aggiungi al file .csproj di SquidVox.World:
+First, add to SquidVox.World.csproj:
 ```xml
-<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+<PackageReference Include="DryIoc" Version="5.4.3" />
 ```
 
-Crea un'interfaccia in SquidVox.Core/Services/IAssetManagerService.cs:
+Create an interface in SquidVox.Core/Services/IAssetManagerService.cs:
 ```csharp
 namespace SquidVox.Core.Services;
 
 public interface IAssetManagerService
 {
     void LoadAsset(string assetName);
-    // Altri metodi...
+    // Other methods...
 }
 ```
 
-Implementa il servizio in SquidVox.World/Services/AssetManagerService.cs:
+Implement the service in SquidVox.World/Services/AssetManagerService.cs:
 ```csharp
 using SquidVox.Core.Services;
 
@@ -57,15 +57,15 @@ public class AssetManagerService : IAssetManagerService
 {
     public void LoadAsset(string assetName)
     {
-        // Logica per caricare l'asset
+        // Asset loading logic
         Console.WriteLine($"Loading asset: {assetName}");
     }
 }
 ```
 
-Modifica Program.cs per registrare i servizi:
+Modify Program.cs to register services:
 ```csharp
-using Microsoft.Extensions.DependencyInjection;
+using DryIoc;
 using SquidVox.Core.Services;
 using SquidVox.World.Services;
 
@@ -75,21 +75,19 @@ public static class Program
 {
     public static void Main()
     {
-        var services = new ServiceCollection();
-        services.AddSingleton<IAssetManagerService, AssetManagerService>();
-        // Registra altri servizi qui...
+        var container = new Container();
+        container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
+        // Register other services here...
 
-        var serviceProvider = services.BuildServiceProvider();
-
-        using var world = new SquidVoxWorld(serviceProvider);
+        using var world = new SquidVoxWorld(container);
         world.Run();
     }
 }
 ```
 
-Modifica SquidVoxWorld.cs per accettare IServiceProvider e iniettare i servizi:
+Modify SquidVoxWorld.cs to accept IContainer and inject services:
 ```csharp
-using Microsoft.Extensions.DependencyInjection;
+using DryIoc;
 using SquidVox.Core.Services;
 
 namespace SquidVox.World;
@@ -98,14 +96,19 @@ public class SquidVoxWorld : IDisposable
 {
     private readonly IAssetManagerService _assetManager;
 
-    public SquidVoxWorld(IServiceProvider serviceProvider)
+    public SquidVoxWorld(IContainer container)
     {
-        _assetManager = serviceProvider.GetRequiredService<IAssetManagerService>();
-        // Inizializza altri servizi...
+        _assetManager = container.Resolve<IAssetManagerService>();
+        // Initialize other services...
     }
 
-    // Resto del codice...
+    // Rest of the code...
 }
 ```
 
-Questo permette di iniettare servizi dove necessario, mantenendo il codice disaccoppiato.
+This allows injecting services where needed, keeping the code decoupled.
+
+### Registered Custom Commands
+- **/format**: Comments C# files lacking standard /// comments in English (adds missing XML comments to classes, methods, etc.).
+- **/csfix**: Checks that each C# file contains exactly one class, struct, or record (reports violations).
+- **/go**: Runs /format and /csfix in parallel on all project files.

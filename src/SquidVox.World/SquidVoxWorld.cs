@@ -11,8 +11,27 @@ using TrippyGL;
 
 namespace SquidVox.World;
 
+/// <summary>
+/// Represents the main world class for SquidVox, handling the game loop and window management.
+/// </summary>
 public class SquidVoxWorld : IDisposable
 {
+    public delegate void OnUpdateHandler(GameTime gameTime);
+
+    public delegate void OnRenderHandler();
+
+    public delegate void OnWindowClosingHandler();
+
+    public delegate void OnResizeHandler(Vector2D<int> size);
+
+    public event OnUpdateHandler OnUpdate;
+
+    public event OnRenderHandler OnRender;
+
+    public event OnWindowClosingHandler OnWindowClosing;
+
+    public event OnResizeHandler OnResize;
+
     private readonly IContainer _container;
 
     public SquidVoxWorld(IContainer container)
@@ -20,36 +39,29 @@ public class SquidVoxWorld : IDisposable
         _container = container;
 
         _container.Resolve<IAssetManagerService>();
-
     }
 
-    public delegate void OnUpdateHandler(GameTime gameTime);
-    public delegate void OnRenderHandler();
-    public delegate void OnWindowClosingHandler();
-    public delegate void OnResizeHandler(Vector2D<int> size);
-
-    public event OnUpdateHandler OnUpdate;
-    public event OnRenderHandler OnRender;
-    public event OnWindowClosingHandler OnWindowClosing;
-    public event OnResizeHandler OnResize;
-
+    /// <summary>
+    /// Starts the game loop and runs the application.
+    /// </summary>
     public void Run()
     {
         WindowOptions windowOpts = WindowOptions.Default;
         windowOpts.Title = "SquidVox World";
         windowOpts.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(3, 3));
 
-        using IWindow myWindow = Window.Create(windowOpts);
-        myWindow.Load += Window_Load;
-        myWindow.Render += Window_Render;
-        myWindow.FramebufferResize += Window_FramebufferResize;
-        myWindow.Closing += Window_Closing;
+        SquidVoxGraphicContext.Window  = Window.Create(windowOpts);
+        SquidVoxGraphicContext.Window .Load += Window_Load;
+        SquidVoxGraphicContext.Window .Render += Window_Render;
+        SquidVoxGraphicContext.Window .FramebufferResize += Window_FramebufferResize;
+        SquidVoxGraphicContext.Window .Closing += Window_Closing;
 
-        SquidVoxGraphicContext.Window = myWindow;
-
-        myWindow.Run();
+        SquidVoxGraphicContext.Window.Run();
     }
 
+    /// <summary>
+    /// Handles the window load event, initializing graphics resources.
+    /// </summary>
     private void Window_Load()
     {
         SquidVoxGraphicContext.GL = SquidVoxGraphicContext.Window.CreateOpenGL();
@@ -64,6 +76,10 @@ public class SquidVoxWorld : IDisposable
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);
     }
 
+    /// <summary>
+    /// Handles the window render event, updating and rendering the game.
+    /// </summary>
+    /// <param name="delta">The time elapsed since the last frame.</param>
     private void Window_Render(double delta)
     {
         SquidVoxGraphicContext.GameTime.Update(delta);
@@ -83,6 +99,10 @@ public class SquidVoxWorld : IDisposable
         SquidVoxGraphicContext.ImGuiController.Render();
     }
 
+    /// <summary>
+    /// Handles the window framebuffer resize event.
+    /// </summary>
+    /// <param name="size">The new size of the framebuffer.</param>
     private void Window_FramebufferResize(Vector2D<int> size)
     {
         SquidVoxGraphicContext.GraphicsDevice.SetViewport(0, 0, (uint)size.X, (uint)size.Y);
@@ -91,12 +111,18 @@ public class SquidVoxWorld : IDisposable
         // Resize code here
     }
 
+    /// <summary>
+    /// Handles the window closing event.
+    /// </summary>
     private void Window_Closing()
     {
         OnWindowClosing?.Invoke();
         // Dispose all resources here
     }
 
+    /// <summary>
+    /// Disposes of resources used by the SquidVoxWorld.
+    /// </summary>
     public void Dispose()
     {
         SquidVoxGraphicContext.Dispose();

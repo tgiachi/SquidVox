@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using DryIoc;
 using Serilog;
 using SquidVox.Core.Data.Directories;
@@ -8,8 +8,14 @@ using SquidVox.World.Services;
 
 namespace SquidVox.World;
 
+/// <summary>
+/// Contains the entry point for the application.
+/// </summary>
 public static class Program
 {
+    /// <summary>
+    /// The main entry point for the application.
+    /// </summary>
     public static void Main()
     {
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
