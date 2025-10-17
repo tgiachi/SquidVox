@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using SquidVox.Core.Data.Graphics;
+using SquidVox.Core.Interfaces.Services;
 using SquidVox.World.Context;
 using TrippyGL;
 
@@ -12,12 +13,14 @@ namespace SquidVox.World;
 
 public class SquidVoxWorld : IDisposable
 {
-
     private readonly IContainer _container;
 
     public SquidVoxWorld(IContainer container)
     {
         _container = container;
+
+        _container.Resolve<IAssetManagerService>();
+
     }
 
     public delegate void OnUpdateHandler(GameTime gameTime);

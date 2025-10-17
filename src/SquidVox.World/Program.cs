@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using DryIoc;
 using Serilog;
+using SquidVox.Core.Data.Directories;
+using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.World.Services;
 
@@ -10,11 +12,17 @@ public static class Program
 {
     public static void Main()
     {
-        var container = new Container();
-
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
             .WriteTo.Console(formatProvider: CultureInfo.DefaultThreadCurrentCulture)
             .CreateLogger();
+
+        var rootDirectory = Path.Combine(Directory.GetCurrentDirectory(), "SquidVoxData");
+
+        var directoriesConfig = new DirectoriesConfig(rootDirectory, Enum.GetNames<DirectoryType>());
+
+        var container = new Container();
+
+        container.RegisterInstance(directoriesConfig);
 
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
