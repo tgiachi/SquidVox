@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Silk.NET.Core" Version="2.22.0"/>
+        <PackageReference Include="TrippyGL" Version="1.2.2"/>
+        <PackageReference Include="Silk.NET.Maths" Version="2.22.0"/>
+    </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
+</Project>

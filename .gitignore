@@ -578,3 +578,4 @@ docs/log.txt
 .docfx/
 **/.manifest
 docs/**/*
+.tools
