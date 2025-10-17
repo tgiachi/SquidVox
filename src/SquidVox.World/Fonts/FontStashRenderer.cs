@@ -92,6 +92,9 @@ public class FontStashRenderer : IFontStashRenderer, IDisposable
         );
     }
 
+    /// <summary>
+    /// Disposes of the FontStashRenderer resources.
+    /// </summary>
     public void Dispose()
     {
         _shaderProgram.Dispose();

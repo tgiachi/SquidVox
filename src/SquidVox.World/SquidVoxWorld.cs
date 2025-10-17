@@ -19,6 +19,9 @@ public class SquidVoxWorld : IDisposable
 {
     private readonly ILogger _logger = Log.ForContext<SquidVoxWorld>();
 
+
+    private TextureBatcher _textureBatcher;
+
     public delegate void OnUpdateHandler(GameTime gameTime);
 
     public delegate void OnRenderHandler();
@@ -61,6 +64,7 @@ public class SquidVoxWorld : IDisposable
         SquidVoxGraphicContext.Window.Closing += Window_Closing;
 
         _logger.Debug("Running SquidVox World");
+
         SquidVoxGraphicContext.Window.Run();
     }
 
@@ -77,6 +81,8 @@ public class SquidVoxWorld : IDisposable
             SquidVoxGraphicContext.Window,
             SquidVoxGraphicContext.InputContext
         );
+
+        _textureBatcher = new TextureBatcher(SquidVoxGraphicContext.GraphicsDevice, 512U);
 
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);
     }
@@ -99,6 +105,8 @@ public class SquidVoxWorld : IDisposable
         ImGuiNET.ImGui.ShowDemoWindow();
 
         OnRender?.Invoke();
+
+
 
         SquidVoxGraphicContext.ImGuiController.Render();
     }

@@ -68,6 +68,9 @@ public class DirectoriesConfig
         return path;
     }
 
+    /// <summary>
+    /// Initializes the directories configuration.
+    /// </summary>
     private void Init()
     {
         if (!Directory.Exists(Root))

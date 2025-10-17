@@ -67,6 +67,11 @@ public class AssetManagerService : IAssetManagerService
         return null;
     }
 
+    /// <summary>
+    /// Gets a shader program by name.
+    /// </summary>
+    /// <param name="name">The name of the shader program.</param>
+    /// <returns>The shader program if found, otherwise null.</returns>
     public ShaderProgram GetShader(string name)
     {
         if (_shaderPrograms.TryGetValue(name, out var shaderProgram))
@@ -157,6 +162,12 @@ public class AssetManagerService : IAssetManagerService
         _logger.Information("Loaded texture {Name} from {File}", name, fileName);
     }
 
+    /// <summary>
+    /// Loads a shader from file.
+    /// </summary>
+    /// <param name="filaNames">The file names for the shader.</param>
+    /// <param name="shaderType">The type of shader.</param>
+    /// <param name="name">The name to assign to the shader.</param>
     public void LoadShaderFromFile(string filaNames, ShaderType shaderType, string name)
     {
         var vertexFileName = filaNames + ".vert";

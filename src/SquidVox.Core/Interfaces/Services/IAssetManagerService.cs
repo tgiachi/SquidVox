@@ -25,6 +25,11 @@ public interface IAssetManagerService : IDisposable
     /// <returns>The texture if found, otherwise null.</returns>
     Texture2D GetTexture(string name);
 
+    /// <summary>
+    /// Gets a shader program by name.
+    /// </summary>
+    /// <param name="name">The name of the shader program.</param>
+    /// <returns>The shader program if found, otherwise null.</returns>
     ShaderProgram GetShader(string name);
 
 
@@ -60,5 +65,14 @@ public interface IAssetManagerService : IDisposable
     /// <param name="name">The name to assign to the shader.</param>
     void LoadShaderFromFile(string filaNames, ShaderType shaderType, string name);
 
+    /// <summary>
+    /// Loads a texture atlas from file and splits it into individual tiles.
+    /// </summary>
+    /// <param name="fileName">The file name of the texture atlas.</param>
+    /// <param name="name">The name to assign to the atlas.</param>
+    /// <param name="tileWidth">The width of each tile in pixels.</param>
+    /// <param name="tileHeight">The height of each tile in pixels.</param>
+    /// <param name="spacing">The spacing between tiles in pixels.</param>
+    /// <param name="margin">The margin around the atlas in pixels.</param>
     void LoadTextureAtlasFromFile(string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0);
 }
