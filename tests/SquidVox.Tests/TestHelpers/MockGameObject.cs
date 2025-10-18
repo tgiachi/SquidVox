@@ -1,5 +1,5 @@
-using System.Numerics;
 using FontStashSharp.Interfaces;
+using Silk.NET.Maths;
 using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.GameObjects;
 using TrippyGL;
@@ -15,8 +15,8 @@ public class MockGameObject : ISVox2dDrawableGameObject
     public int ZIndex { get; set; }
     public bool IsEnabled { get; set; } = true;
     public bool IsVisible { get; set; } = true;
-    public Vector2 Position { get; set; } = Vector2.Zero;
-    public Vector2 Scale { get; set; } = Vector2.One;
+    public Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
+    public Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
     public float Rotation { get; set; }
     public IEnumerable<ISVoxObject> Children => _children;
     public ISVoxObject? Parent { get; set; }

@@ -1,6 +1,6 @@
-using System.Numerics;
 using FontStashSharp.Interfaces;
 using Silk.NET.Input;
+using Silk.NET.Maths;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Extensions.Collections;
@@ -39,12 +39,12 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// <summary>
     /// Gets or sets the local position of the game object (relative to parent).
     /// </summary>
-    public virtual Vector2 Position { get; set; } = Vector2.Zero;
+    public virtual Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
 
     /// <summary>
     /// Gets or sets the scale of the game object.
     /// </summary>
-    public virtual Vector2 Scale { get; set; } = Vector2.One;
+    public virtual Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
 
     /// <summary>
     /// Gets or sets the rotation of the game object in radians.
@@ -71,14 +71,14 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// This considers the position of all parent objects in the hierarchy.
     /// </summary>
     /// <returns>The absolute position in world space.</returns>
-    public Vector2 GetAbsolutePosition()
+    public Vector2D<float> GetAbsolutePosition()
     {
         if (Parent == null)
         {
             return Position;
         }
 
-        // If parent is a BaseGameObject, use its GetAbsolutePosition
+        // If parent is a Base2dGameObject, use its GetAbsolutePosition
         if (Parent is Base2dGameObject parentGameObject)
         {
             return Position + parentGameObject.GetAbsolutePosition();
@@ -99,14 +99,14 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// This considers the scale of all parent objects in the hierarchy.
     /// </summary>
     /// <returns>The absolute scale in world space.</returns>
-    public Vector2 GetAbsoluteScale()
+    public Vector2D<float> GetAbsoluteScale()
     {
         if (Parent == null)
         {
             return Scale;
         }
 
-        // If parent is a BaseGameObject, use its GetAbsoluteScale
+        // If parent is a Base2dGameObject, use its GetAbsoluteScale
         if (Parent is Base2dGameObject parentGameObject)
         {
             return Scale * parentGameObject.GetAbsoluteScale();

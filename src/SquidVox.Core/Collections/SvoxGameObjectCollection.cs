@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using SquidVox.Core.Interfaces.GameObjects;
 
 namespace SquidVox.Core.Collections;
@@ -7,7 +8,7 @@ namespace SquidVox.Core.Collections;
 /// High-performance sorted collection for ISVox2dDrawableGameObject objects, automatically sorted by ZIndex.
 /// </summary>
 /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
-public class SvoxGameObjectCollection<T> : IEnumerable<T>
+public class SvoxGameObjectCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T> : IEnumerable<T>
     where T : class, ISVox2dDrawableGameObject
 {
     private readonly List<T> _gameObjects;
@@ -344,6 +345,8 @@ public class SvoxGameObjectCollection<T> : IEnumerable<T>
         }
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2075:UnrecognizedReflectionPattern",
+        Justification = "T is constrained to ISVox2dDrawableGameObject, so GetInterfaces() will always have the required interfaces available. This is used for type caching only.")]
     private void EnsureTypeCacheUpdated()
     {
         if (!_isTypeCacheDirty)

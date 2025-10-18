@@ -1,5 +1,5 @@
-using System.Numerics;
 using FontStashSharp.Interfaces;
+using Silk.NET.Maths;
 using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.Scenes;
 using TrippyGL;
@@ -14,12 +14,12 @@ public abstract class SceneTransition : ISVoxSceneTransition
     /// <summary>
     /// Gets or sets the position (not used for transitions, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2 Position { get; set; } = Vector2.Zero;
+    public virtual Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
 
     /// <summary>
     /// Gets or sets the scale (not used for transitions, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2 Scale { get; set; } = Vector2.One;
+    public virtual Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
 
     /// <summary>
     /// Gets or sets the rotation (not used for transitions, included for ISVox2dRenderable compliance).
