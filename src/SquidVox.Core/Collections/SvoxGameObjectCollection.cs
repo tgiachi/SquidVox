@@ -356,26 +356,28 @@ public class SvoxGameObjectCollection<T> : IEnumerable<T>
         foreach (var gameObject in _gameObjects)
         {
             var gameObjectType = gameObject.GetType();
+            List<T>? typeList;
 
             // Add the exact type
-            if (!_gameObjectsByType.ContainsKey(gameObjectType))
+            if (!_gameObjectsByType.TryGetValue(gameObjectType, out typeList))
             {
-                _gameObjectsByType[gameObjectType] = new List<T>();
+                typeList = new List<T>();
+                _gameObjectsByType[gameObjectType] = typeList;
             }
 
-            _gameObjectsByType[gameObjectType].Add(gameObject);
+            typeList.Add(gameObject);
 
             // Add all base types and interfaces that are assignable from T
             var currentType = gameObjectType.BaseType;
             while (currentType != null && typeof(T).IsAssignableFrom(currentType))
             {
-                if (!_gameObjectsByType.TryGetValue(currentType, out List<T>? value))
+                if (!_gameObjectsByType.TryGetValue(currentType, out typeList))
                 {
-                    value = new List<T>();
-                    _gameObjectsByType[currentType] = value;
+                    typeList = new List<T>();
+                    _gameObjectsByType[currentType] = typeList;
                 }
 
-                value.Add(gameObject);
+                typeList.Add(gameObject);
                 currentType = currentType.BaseType;
             }
 
@@ -384,13 +386,13 @@ public class SvoxGameObjectCollection<T> : IEnumerable<T>
             {
                 if (typeof(T).IsAssignableFrom(interfaceType))
                 {
-                    if (!_gameObjectsByType.TryGetValue(interfaceType, out List<T>? value))
+                    if (!_gameObjectsByType.TryGetValue(interfaceType, out typeList))
                     {
-                        value = new List<T>();
-                        _gameObjectsByType[interfaceType] = value;
+                        typeList = new List<T>();
+                        _gameObjectsByType[interfaceType] = typeList;
                     }
 
-                    value.Add(gameObject);
+                    typeList.Add(gameObject);
                 }
             }
         }
