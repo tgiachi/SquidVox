@@ -32,23 +32,17 @@ public interface IAssetManagerService : IDisposable
     /// <returns>The shader program if found, otherwise null.</returns>
     ShaderProgram GetShader(string name);
 
-    
+
 
     /// <summary>
-
     /// Gets a tile from a texture atlas by index.
-
     /// </summary>
-
     /// <param name="atlasName">The name of the texture atlas.</param>
-
     /// <param name="tileIndex">The index of the tile.</param>
-
     /// <returns>The texture tile if found, otherwise null.</returns>
-
     Texture2D GetTextureAtlasTile(string atlasName, int tileIndex);
 
-    
+
 
     /// <summary>
     /// Gets a font by name and size.
@@ -66,11 +60,25 @@ public interface IAssetManagerService : IDisposable
     void LoadFontFromFile(string fileName, string name);
 
     /// <summary>
+    /// Loads a font from a byte array.
+    /// </summary>
+    /// <param name="data">The byte array containing the font data.</param>
+    /// <param name="name">The name to assign to the font.</param>
+    void LoadFontFromBytes(ReadOnlySpan<byte> data, string name);
+
+    /// <summary>
     /// Loads a texture from file.
     /// </summary>
     /// <param name="fileName">The file name of the texture.</param>
     /// <param name="name">The name to assign to the texture.</param>
     void LoadTextureFromFile(string fileName, string name);
+
+    /// <summary>
+    /// Loads a texture from a byte array.
+    /// </summary>
+    /// <param name="data">The byte array containing the image data.</param>
+    /// <param name="name">The name to assign to the texture.</param>
+    void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name);
 
     /// <summary>
     /// Loads a shader from file.
@@ -79,6 +87,15 @@ public interface IAssetManagerService : IDisposable
     /// <param name="shaderType">The type of shader.</param>
     /// <param name="name">The name to assign to the shader.</param>
     void LoadShaderFromFile(string filaNames, ShaderType shaderType, string name);
+
+    /// <summary>
+    /// Loads a shader from byte arrays.
+    /// </summary>
+    /// <param name="vertexShaderSource">The vertex shader source code as byte array.</param>
+    /// <param name="fragmentShaderSource">The fragment shader source code as byte array.</param>
+    /// <param name="shaderType">The type of shader.</param>
+    /// <param name="name">The name to assign to the shader.</param>
+    void LoadShaderFromBytes(ReadOnlySpan<byte> vertexShaderSource, ReadOnlySpan<byte> fragmentShaderSource, ShaderType shaderType, string name);
 
     /// <summary>
     /// Loads a texture atlas from file and splits it into individual tiles.
@@ -90,4 +107,15 @@ public interface IAssetManagerService : IDisposable
     /// <param name="spacing">The spacing between tiles in pixels.</param>
     /// <param name="margin">The margin around the atlas in pixels.</param>
     void LoadTextureAtlasFromFile(string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0);
+
+    /// <summary>
+    /// Loads a texture atlas from a byte array and splits it into individual tiles.
+    /// </summary>
+    /// <param name="data">The byte array containing the atlas image data.</param>
+    /// <param name="name">The name to assign to the atlas.</param>
+    /// <param name="tileWidth">The width of each tile in pixels.</param>
+    /// <param name="tileHeight">The height of each tile in pixels.</param>
+    /// <param name="spacing">The spacing between tiles in pixels.</param>
+    /// <param name="margin">The margin around the atlas in pixels.</param>
+    void LoadTextureAtlasFromBytes(ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0);
 }

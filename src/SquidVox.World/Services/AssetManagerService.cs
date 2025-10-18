@@ -138,16 +138,29 @@ public class AssetManagerService : IAssetManagerService
     /// <param name="name">The name to assign to the font.</param>
     public void LoadFontFromFile(string fileName, string name)
     {
-        var fontSystem = new FontSystem();
-        fontSystem.AddFont(File.ReadAllBytes(fileName));
-        _fontSystems[name] = fontSystem;
+        var fontData = File.ReadAllBytes(fileName);
+        LoadFontFromBytes(fontData, name);
         _logger.Information("Loaded font {Name} from {File}", name, fileName);
+    }
+
+    /// <summary>
+    /// Loads a font from a byte array.
+    /// </summary>
+    /// <param name="data">The byte array containing the font data.</param>
+    /// <param name="name">The name to assign to the font.</param>
+    public void LoadFontFromBytes(ReadOnlySpan<byte> data, string name)
+    {
+        var fontSystem = new FontSystem();
+        fontSystem.AddFont(data.ToArray()); // FontSystem.AddFont requires byte[]
+        _fontSystems[name] = fontSystem;
 
         foreach (var size in _initialFontSize)
         {
             _logger.Debug("Preloading {Name} font: {Size} ", name, size);
             _loadedFonts[$"{name}_{size}"] = fontSystem.GetFont(size);
         }
+
+        _logger.Information("Loaded font {Name} from byte array", name);
     }
 
     /// <summary>
@@ -160,6 +173,19 @@ public class AssetManagerService : IAssetManagerService
         var texture = Texture2DExtensions.FromFile(SquidVoxGraphicContext.GraphicsDevice, fileName, true);
         _textures[name] = texture;
         _logger.Information("Loaded texture {Name} from {File}", name, fileName);
+    }
+
+    /// <summary>
+    /// Loads a texture from a byte array.
+    /// </summary>
+    /// <param name="data">The byte array containing the image data.</param>
+    /// <param name="name">The name to assign to the texture.</param>
+    public void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name)
+    {
+        using var image = Image.Load<Rgba32>(data);
+        var texture = Texture2DExtensions.FromImage(SquidVoxGraphicContext.GraphicsDevice, image, true);
+        _textures[name] = texture;
+        _logger.Information("Loaded texture {Name} from byte array ({Width}x{Height})", name, image.Width, image.Height);
     }
 
     /// <summary>
@@ -204,6 +230,42 @@ public class AssetManagerService : IAssetManagerService
     }
 
     /// <summary>
+    /// Loads a shader from byte arrays.
+    /// </summary>
+    /// <param name="vertexShaderSource">The vertex shader source code as byte array.</param>
+    /// <param name="fragmentShaderSource">The fragment shader source code as byte array.</param>
+    /// <param name="shaderType">The type of shader.</param>
+    /// <param name="name">The name to assign to the shader.</param>
+    public void LoadShaderFromBytes(ReadOnlySpan<byte> vertexShaderSource, ReadOnlySpan<byte> fragmentShaderSource, ShaderType shaderType, string name)
+    {
+        var vertexSource = System.Text.Encoding.UTF8.GetString(vertexShaderSource);
+        var fragmentSource = System.Text.Encoding.UTF8.GetString(fragmentShaderSource);
+
+        ShaderProgram shaderProgram = null;
+
+        if (shaderType == ShaderType.VertexColor)
+        {
+            shaderProgram = ShaderProgram.FromCode<VertexColor>(
+                SquidVoxGraphicContext.GraphicsDevice,
+                vertexSource,
+                fragmentSource
+            );
+        }
+
+        if (shaderType == ShaderType.VertexColorTexture)
+        {
+            shaderProgram = ShaderProgram.FromCode<VertexColorTexture>(
+                SquidVoxGraphicContext.GraphicsDevice,
+                vertexSource,
+                fragmentSource
+            );
+        }
+
+        _shaderPrograms[name] = shaderProgram;
+        _logger.Information("Loaded shader program {Name} from byte array of type {Type}", name, shaderType);
+    }
+
+    /// <summary>
     /// Loads a texture atlas from file and splits it into individual tiles.
     /// </summary>
     /// <param name="fileName">The file name of the texture atlas.</param>
@@ -215,7 +277,33 @@ public class AssetManagerService : IAssetManagerService
     public void LoadTextureAtlasFromFile(string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0)
     {
         using var image = Image.Load<Rgba32>(fileName);
+        var tiles = ProcessTextureAtlas(image, name, tileWidth, tileHeight, spacing, margin);
+        _textureAtlases[name] = tiles;
+        _logger.Information("Loaded texture atlas {Name} from {File} with {Count} tiles", name, fileName, tiles.Count);
+    }
 
+    /// <summary>
+    /// Loads a texture atlas from a byte array and splits it into individual tiles.
+    /// </summary>
+    /// <param name="data">The byte array containing the atlas image data.</param>
+    /// <param name="name">The name to assign to the atlas.</param>
+    /// <param name="tileWidth">The width of each tile in pixels.</param>
+    /// <param name="tileHeight">The height of each tile in pixels.</param>
+    /// <param name="spacing">The spacing between tiles in pixels.</param>
+    /// <param name="margin">The margin around the atlas in pixels.</param>
+    public void LoadTextureAtlasFromBytes(ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0)
+    {
+        using var image = Image.Load<Rgba32>(data);
+        var tiles = ProcessTextureAtlas(image, name, tileWidth, tileHeight, spacing, margin);
+        _textureAtlases[name] = tiles;
+        _logger.Information("Loaded texture atlas {Name} from byte array with {Count} tiles", name, tiles.Count);
+    }
+
+    /// <summary>
+    /// Processes a texture atlas image and splits it into individual tiles.
+    /// </summary>
+    private List<Texture2D> ProcessTextureAtlas(Image<Rgba32> image, string name, int tileWidth, int tileHeight, int spacing, int margin)
+    {
         var tilesX = (image.Width - margin * 2 + spacing) / (tileWidth + spacing);
         var tilesY = (image.Height - margin * 2 + spacing) / (tileHeight + spacing);
 
@@ -254,9 +342,10 @@ public class AssetManagerService : IAssetManagerService
             }
         }
 
-        _textureAtlases[name] = tiles;
-        _logger.Information("Loaded texture atlas {Name} from {File} with {Count} tiles ({TilesX}x{TilesY})",
-            name, fileName, tiles.Count, tilesX, tilesY);
+        _logger.Debug("Processed texture atlas {Name} into {Count} tiles ({TilesX}x{TilesY})",
+            name, tiles.Count, tilesX, tilesY);
+
+        return tiles;
     }
 
 
