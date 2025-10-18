@@ -210,6 +210,18 @@ public static partial class ResourceUtils
         return memoryStream.ToArray();
     }
 
+    /// <summary>
+
+    /// Converts a resource name to a file path format.
+
+    /// </summary>
+
+    /// <param name="resourceName">The resource name to convert.</param>
+
+    /// <param name="baseNamespace">The base namespace to remove.</param>
+
+    /// <returns>The file path.</returns>
+
     public static string ConvertResourceNameToPath(string resourceName, string baseNamespace)
     {
         if (!resourceName.StartsWith(baseNamespace + ".", StringComparison.Ordinal))

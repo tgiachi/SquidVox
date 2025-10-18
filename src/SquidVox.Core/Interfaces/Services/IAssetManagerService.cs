@@ -32,8 +32,23 @@ public interface IAssetManagerService : IDisposable
     /// <returns>The shader program if found, otherwise null.</returns>
     ShaderProgram GetShader(string name);
 
+    
+
+    /// <summary>
+
+    /// Gets a tile from a texture atlas by index.
+
+    /// </summary>
+
+    /// <param name="atlasName">The name of the texture atlas.</param>
+
+    /// <param name="tileIndex">The index of the tile.</param>
+
+    /// <returns>The texture tile if found, otherwise null.</returns>
 
     Texture2D GetTextureAtlasTile(string atlasName, int tileIndex);
+
+    
 
     /// <summary>
     /// Gets a font by name and size.
