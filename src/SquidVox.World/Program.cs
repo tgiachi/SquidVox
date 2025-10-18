@@ -4,6 +4,7 @@ using DryIoc;
 using Serilog;
 using SquidVox.Core.Data.Directories;
 using SquidVox.Core.Enums;
+using SquidVox.Core.Extensions.Directories;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Json;
 using SquidVox.Lua.Scripting.Context;
@@ -24,6 +25,8 @@ await ConsoleApp.RunAsync(
             .WriteTo.Console(formatProvider: CultureInfo.DefaultThreadCurrentCulture)
             .CreateLogger();
 
+        rootDirectory = rootDirectory.ResolvePathAndEnvs();
+
         rootDirectory ??= Path.Combine(Directory.GetCurrentDirectory(), "SquidVoxData");
 
         var directoriesConfig = new DirectoriesConfig(rootDirectory, Enum.GetNames<DirectoryType>());
@@ -32,12 +35,13 @@ await ConsoleApp.RunAsync(
 
         container.RegisterInstance(directoriesConfig);
 
-        container.AddLuaScriptModule<ConsoleModule>();
+        container
+            .AddLuaScriptModule<ConsoleModule>()
+            .AddLuaScriptModule<WindowModule>()
+            ;
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
-
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
-
         container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
 
         using var world = new SquidVoxWorld(container);

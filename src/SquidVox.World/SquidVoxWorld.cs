@@ -28,8 +28,6 @@ public class SquidVoxWorld : IDisposable
     private FontStashRenderer _fontRenderer;
     private ImGuiRenderLayer _imguiLayer;
 
-    private readonly RenderLayerCollection _renderLayers = new();
-
     /// <summary>
     /// Delegate for handling update events.
     /// </summary>
@@ -95,14 +93,14 @@ public class SquidVoxWorld : IDisposable
     /// <param name="layer">The layer to register.</param>
     public void RegisterRenderLayer(IRenderableLayer layer)
     {
-        _renderLayers.Add(layer);
+        RenderLayers.Add(layer);
         _logger.Debug("Registered render layer at priority {Layer}", layer.Layer);
     }
 
     /// <summary>
     /// Gets the render layer collection.
     /// </summary>
-    public RenderLayerCollection RenderLayers => _renderLayers;
+    public RenderLayerCollection RenderLayers { get; } = new();
 
     /// <summary>
     /// Starts the game loop and runs the application.
@@ -150,12 +148,11 @@ public class SquidVoxWorld : IDisposable
         // Initialize default render layers
         InitializeRenderLayers();
 
-        Task.Run(async () =>
-            {
-                var scriptEngine = _container.Resolve<IScriptEngineService>();
-                scriptEngine.StartAsync();
-            }
-        );
+        var scriptEngine = _container.Resolve<IScriptEngineService>();
+
+        scriptEngine.StartAsync().GetAwaiter().GetResult();
+
+
 
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);
     }
@@ -175,7 +172,7 @@ public class SquidVoxWorld : IDisposable
         RegisterRenderLayer(_imguiLayer);
 
         _logger.Information("Initialized {Count} render layers ({Enabled} enabled)",
-            _renderLayers.Count, _renderLayers.GetEnabledCount());
+            RenderLayers.Count, RenderLayers.GetEnabledCount());
     }
 
     /// <summary>
@@ -184,6 +181,7 @@ public class SquidVoxWorld : IDisposable
     /// <param name="delta">The time elapsed since the last frame.</param>
     private void Window_Render(double delta)
     {
+
         // Update phase
         SquidVoxGraphicContext.GameTime.Update(delta);
 
@@ -202,7 +200,7 @@ public class SquidVoxWorld : IDisposable
         SquidVoxGraphicContext.GraphicsDevice.Clear(ClearBuffers.Color);
 
         // Render all layers in priority order
-        _renderLayers.RenderAll(_textureBatcher, _fontRenderer);
+        RenderLayers.RenderAll(_textureBatcher, _fontRenderer);
 
         // Custom render event (for backward compatibility)
         OnRender?.Invoke();

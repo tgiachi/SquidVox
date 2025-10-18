@@ -11,6 +11,12 @@ public enum RenderLayer
     /// </summary>
     Background = 0,
 
+
+    /// <summary>
+    ///  3D world layer - terrain, models.
+    /// </summary>
+    World3D = 50,
+
     /// <summary>
     /// 2D world layer - game objects, sprites, tiles.
     /// </summary>
