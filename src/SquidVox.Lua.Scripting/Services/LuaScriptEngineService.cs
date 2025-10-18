@@ -521,12 +521,12 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     {
         return dynValue.Type switch
         {
-            DataType.Nil     => null,
+            DataType.Nil => null,
             DataType.Boolean => dynValue.Boolean,
-            DataType.Number  => Convert.ChangeType(dynValue.Number, targetType, CultureInfo.InvariantCulture),
-            DataType.String  => dynValue.String,
-            DataType.Table   => dynValue.ToObject(),
-            _                => dynValue.ToObject()
+            DataType.Number => Convert.ChangeType(dynValue.Number, targetType, CultureInfo.InvariantCulture),
+            DataType.String => dynValue.String,
+            DataType.Table => dynValue.ToObject(),
+            _ => dynValue.ToObject()
         };
     }
 

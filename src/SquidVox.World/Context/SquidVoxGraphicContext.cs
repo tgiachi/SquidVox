@@ -12,6 +12,9 @@ namespace SquidVox.World.Context;
 /// </summary>
 public static class SquidVoxGraphicContext
 {
+
+    public static Color4b ClearColor { get; set; } = Color4b.CornflowerBlue;
+
     /// <summary>
     /// Gets or sets the graphics device.
     /// </summary>

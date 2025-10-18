@@ -36,8 +36,9 @@ await ConsoleApp.RunAsync(
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
 
-        container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
+        container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
 
+        container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
 
         using var world = new SquidVoxWorld(container);
         world.Run();

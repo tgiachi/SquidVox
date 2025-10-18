@@ -9,7 +9,8 @@
         <WarningsAsErrors/>
         <WarningsNotAsErrors/>
         <LangVersion>latest</LangVersion>
-        <NoWarn>CA1707</NoWarn>
+        <NoWarn>CA1707;CA1711</NoWarn>
+
     </PropertyGroup>
 
     <!-- Code Analysis -->

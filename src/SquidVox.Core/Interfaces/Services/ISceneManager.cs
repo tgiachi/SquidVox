@@ -1,11 +1,15 @@
+using FontStashSharp.Interfaces;
+using Silk.NET.Input;
+using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.Scenes;
+using TrippyGL;
 
 namespace SquidVox.Core.Interfaces.Services;
 
 /// <summary>
 /// Defines the contract for scene management services.
 /// </summary>
-public interface ISVoxSceneManager : IDisposable
+public interface ISceneManager : IDisposable
 {
     /// <summary>
     /// Gets the currently active scene.
@@ -67,4 +71,31 @@ public interface ISVoxSceneManager : IDisposable
     /// <param name="scene">The scene to change to.</param>
     /// <param name="transition">The transition to use.</param>
     void ChangeScene(ISVoxScene scene, ISVoxSceneTransition transition);
+
+    /// <summary>
+    /// Updates the current scene or transition.
+    /// </summary>
+    /// <param name="gameTime">Game timing information.</param>
+    void Update(GameTime gameTime);
+
+    /// <summary>
+    /// Renders the current scene or transition.
+    /// </summary>
+    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
+    /// <param name="fontRenderer">Font renderer for drawing text.</param>
+    void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer);
+
+    /// <summary>
+    /// Handles keyboard input for the current scene.
+    /// </summary>
+    /// <param name="keyboard">The keyboard device.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    void HandleKeyboard(IKeyboard keyboard, GameTime gameTime);
+
+    /// <summary>
+    /// Handles mouse input for the current scene.
+    /// </summary>
+    /// <param name="mouse">The mouse device.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    void HandleMouse(IMouse mouse, GameTime gameTime);
 }

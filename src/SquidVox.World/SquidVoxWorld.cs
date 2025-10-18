@@ -5,10 +5,14 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
+using SquidVox.Core.Collections;
 using SquidVox.Core.Data.Graphics;
+using SquidVox.Core.Interfaces.Rendering;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.World.Context;
+using SquidVox.World.Fonts;
+using SquidVox.World.Rendering;
 using TrippyGL;
 
 namespace SquidVox.World;
@@ -20,8 +24,11 @@ public class SquidVoxWorld : IDisposable
 {
     private readonly ILogger _logger = Log.ForContext<SquidVoxWorld>();
 
-
     private TextureBatcher _textureBatcher;
+    private FontStashRenderer _fontRenderer;
+    private ImGuiRenderLayer _imguiLayer;
+
+    private readonly RenderLayerCollection _renderLayers = new();
 
     /// <summary>
     /// Delegate for handling update events.
@@ -73,11 +80,29 @@ public class SquidVoxWorld : IDisposable
     {
         var assetsManager = _container.Resolve<IAssetManagerService>();
 
-        var defaultFont =  ResourceUtils.GetEmbeddedResourceContent("Assets.Fonts.Monocraft.ttf", typeof(SquidVoxWorld).Assembly);
+        var defaultFont = ResourceUtils.GetEmbeddedResourceContent(
+            "Assets.Fonts.Monocraft.ttf",
+            typeof(SquidVoxWorld).Assembly
+        );
 
         assetsManager.LoadFontFromBytes(defaultFont, "Monocraft");
-
     }
+
+    /// <summary>
+    /// Registers a custom render layer.
+    /// Layers are automatically sorted by their Layer priority.
+    /// </summary>
+    /// <param name="layer">The layer to register.</param>
+    public void RegisterRenderLayer(IRenderableLayer layer)
+    {
+        _renderLayers.Add(layer);
+        _logger.Debug("Registered render layer at priority {Layer}", layer.Layer);
+    }
+
+    /// <summary>
+    /// Gets the render layer collection.
+    /// </summary>
+    public RenderLayerCollection RenderLayers => _renderLayers;
 
     /// <summary>
     /// Starts the game loop and runs the application.
@@ -120,14 +145,37 @@ public class SquidVoxWorld : IDisposable
         SquidVoxGraphicContext.WhitePixel.SetData<Color4b>(whitePixelData);
 
         _textureBatcher = new TextureBatcher(SquidVoxGraphicContext.GraphicsDevice, 512U);
+        _fontRenderer = new FontStashRenderer(SquidVoxGraphicContext.GraphicsDevice);
 
-        Task.Run( async () =>
-        {
-            var scriptEngine = _container.Resolve<IScriptEngineService>();
-            scriptEngine.StartAsync();
-        });
+        // Initialize default render layers
+        InitializeRenderLayers();
+
+        Task.Run(async () =>
+            {
+                var scriptEngine = _container.Resolve<IScriptEngineService>();
+                scriptEngine.StartAsync();
+            }
+        );
 
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);
+    }
+
+    /// <summary>
+    /// Initializes the default render layers.
+    /// </summary>
+    private void InitializeRenderLayers()
+    {
+        // Scene layer (World2D priority)
+        var sceneManager = _container.Resolve<ISceneManager>();
+        var sceneLayer = new SceneRenderLayer(sceneManager);
+        RegisterRenderLayer(sceneLayer);
+
+        // ImGui layer (DebugUI priority - always on top)
+        _imguiLayer = new ImGuiRenderLayer();
+        RegisterRenderLayer(_imguiLayer);
+
+        _logger.Information("Initialized {Count} render layers ({Enabled} enabled)",
+            _renderLayers.Count, _renderLayers.GetEnabledCount());
     }
 
     /// <summary>
@@ -136,22 +184,28 @@ public class SquidVoxWorld : IDisposable
     /// <param name="delta">The time elapsed since the last frame.</param>
     private void Window_Render(double delta)
     {
+        // Update phase
         SquidVoxGraphicContext.GameTime.Update(delta);
+
+        // Update scene manager
+        var sceneManager = _container.Resolve<ISceneManager>();
+        sceneManager.Update(SquidVoxGraphicContext.GameTime);
+
+        // Custom update event
         OnUpdate?.Invoke(SquidVoxGraphicContext.GameTime);
 
-        SquidVoxGraphicContext.GraphicsDevice.ClearColor = Color4b.CornflowerBlue;
+        // Update ImGui layer with delta time
+        _imguiLayer.Update((float)delta);
 
+        // Render phase - clear buffer
+        SquidVoxGraphicContext.GraphicsDevice.ClearColor = SquidVoxGraphicContext.ClearColor;
         SquidVoxGraphicContext.GraphicsDevice.Clear(ClearBuffers.Color);
 
-        SquidVoxGraphicContext.ImGuiController.Update((float)delta);
+        // Render all layers in priority order
+        _renderLayers.RenderAll(_textureBatcher, _fontRenderer);
 
-        ImGuiNET.ImGui.ShowDemoWindow();
-
+        // Custom render event (for backward compatibility)
         OnRender?.Invoke();
-
-
-
-        SquidVoxGraphicContext.ImGuiController.Render();
     }
 
     /// <summary>
