@@ -15,6 +15,7 @@ public class MockGameObject : ISVox2dDrawableGameObject
     public int ZIndex { get; set; }
     public bool IsEnabled { get; set; } = true;
     public bool IsVisible { get; set; } = true;
+    public Vector2 Position { get; set; } = Vector2.Zero;
     public Vector2 Scale { get; set; } = Vector2.One;
     public float Rotation { get; set; }
     public IEnumerable<ISVoxObject> Children => _children;

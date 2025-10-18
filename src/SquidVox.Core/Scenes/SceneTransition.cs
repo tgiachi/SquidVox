@@ -1,3 +1,4 @@
+using System.Numerics;
 using FontStashSharp.Interfaces;
 using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.Scenes;
@@ -10,6 +11,21 @@ namespace SquidVox.Core.Scenes;
 /// </summary>
 public abstract class SceneTransition : ISVoxSceneTransition
 {
+    /// <summary>
+    /// Gets or sets the position (not used for transitions, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual Vector2 Position { get; set; } = Vector2.Zero;
+
+    /// <summary>
+    /// Gets or sets the scale (not used for transitions, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual Vector2 Scale { get; set; } = Vector2.One;
+
+    /// <summary>
+    /// Gets or sets the rotation (not used for transitions, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual float Rotation { get; set; }
+
     /// <summary>
     /// Gets the scene being transitioned from.
     /// </summary>

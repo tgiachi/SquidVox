@@ -28,16 +28,6 @@ public interface ISVoxObject
     bool IsVisible { get; set; }
 
     /// <summary>
-    /// Gets or sets the scale of the game object.
-    /// </summary>
-    Vector2 Scale { get; set; }
-
-    /// <summary>
-    /// Gets or sets the rotation of the game object in radians.
-    /// </summary>
-    float Rotation { get; set; }
-
-    /// <summary>
     /// Gets the children of this game object.
     /// </summary>
     IEnumerable<ISVoxObject> Children { get; }

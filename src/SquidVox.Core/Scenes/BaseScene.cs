@@ -1,3 +1,4 @@
+using System.Numerics;
 using FontStashSharp.Interfaces;
 using Silk.NET.Input;
 using SquidVox.Core.Collections;
@@ -18,6 +19,21 @@ public abstract class BaseScene : ISVoxScene
     /// Gets or sets the name of the scene.
     /// </summary>
     public virtual string Name { get; protected set; } = "Unnamed Scene";
+
+    /// <summary>
+    /// Gets or sets the position (not used for scenes, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual Vector2 Position { get; set; } = Vector2.Zero;
+
+    /// <summary>
+    /// Gets or sets the scale (not used for scenes, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual Vector2 Scale { get; set; } = Vector2.One;
+
+    /// <summary>
+    /// Gets or sets the rotation (not used for scenes, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual float Rotation { get; set; }
 
     /// <summary>
     /// Gets the collection of game objects in this scene.
