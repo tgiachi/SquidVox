@@ -35,6 +35,7 @@ await ConsoleApp.RunAsync(
         container.AddLuaScriptModule<ConsoleModule>();
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
+
         container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
 
 

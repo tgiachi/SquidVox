@@ -7,6 +7,7 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.Services;
+using SquidVox.Core.Utils;
 using SquidVox.World.Context;
 using TrippyGL;
 
@@ -65,6 +66,17 @@ public class SquidVoxWorld : IDisposable
 
         _container.Resolve<IAssetManagerService>();
 
+        InitDefaultAssets();
+    }
+
+    private void InitDefaultAssets()
+    {
+        var assetsManager = _container.Resolve<IAssetManagerService>();
+
+        var defaultFont =  ResourceUtils.GetEmbeddedResourceContent("Assets.Fonts.Monocraft.ttf", typeof(SquidVoxWorld).Assembly);
+
+        assetsManager.LoadFontFromBytes(defaultFont, "Monocraft");
+
     }
 
     /// <summary>
@@ -109,7 +121,11 @@ public class SquidVoxWorld : IDisposable
 
         _textureBatcher = new TextureBatcher(SquidVoxGraphicContext.GraphicsDevice, 512U);
 
-        _container.Resolve<IScriptEngineService>();
+        Task.Run( async () =>
+        {
+            var scriptEngine = _container.Resolve<IScriptEngineService>();
+            scriptEngine.StartAsync();
+        });
 
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);
     }
