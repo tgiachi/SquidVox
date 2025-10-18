@@ -18,6 +18,7 @@ public class MockGameObject : ISVox2dDrawableGameObject
     public Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
     public Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
     public float Rotation { get; set; }
+    public Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
     public IEnumerable<ISVoxObject> Children => _children;
     public ISVoxObject? Parent { get; set; }
 

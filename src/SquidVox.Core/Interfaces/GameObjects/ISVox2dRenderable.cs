@@ -25,6 +25,12 @@ public interface ISVox2dRenderable
     float Rotation { get; set; }
 
     /// <summary>
+    /// Gets or sets the size of the 2D object (used for scissor clipping).
+    /// If Zero, no scissor clipping is applied.
+    /// </summary>
+    Vector2D<float> Size { get; set; }
+
+    /// <summary>
     /// use fontRenderer to draw text and textureBatcher to draw textures
     /// </summary>
     /// <param name="textureBatcher"></param>

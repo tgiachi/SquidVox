@@ -36,6 +36,11 @@ public abstract class BaseScene : ISVoxScene
     public virtual float Rotation { get; set; }
 
     /// <summary>
+    /// Gets or sets the size (not used for scenes, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
+
+    /// <summary>
     /// Gets the collection of game objects in this scene.
     /// </summary>
     public SvoxGameObjectCollection<ISVox2dDrawableGameObject> Components { get; }

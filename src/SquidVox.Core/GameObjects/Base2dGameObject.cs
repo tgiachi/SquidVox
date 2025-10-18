@@ -1,6 +1,7 @@
 using FontStashSharp.Interfaces;
 using Silk.NET.Input;
 using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Extensions.Collections;
@@ -50,6 +51,12 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// Gets or sets the rotation of the game object in radians.
     /// </summary>
     public virtual float Rotation { get; set; }
+
+    /// <summary>
+    /// Gets or sets the size of the game object (used for scissor clipping).
+    /// If Zero, no scissor clipping is applied.
+    /// </summary>
+    public virtual Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
 
     /// <summary>
     /// Gets the children of this game object.
@@ -226,10 +233,62 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
             return;
         }
 
-        OnRender(textureBatcher, fontRenderer);
+        // Apply scissor test if Size is set
+        bool useScissor = Size.X > 0 && Size.Y > 0;
+        bool wasScissorEnabled = false;
+        Span<int> previousScissor = stackalloc int[4];
 
-        // Render all visible children using our optimized collection
-        _children.RenderAll(textureBatcher, fontRenderer);
+        if (useScissor)
+        {
+            var gl = textureBatcher.GraphicsDevice.GL;
+
+            // Save previous scissor state
+            wasScissorEnabled = gl.IsEnabled(EnableCap.ScissorTest);
+            if (wasScissorEnabled)
+            {
+                gl.GetInteger(GetPName.ScissorBox, previousScissor);
+            }
+
+            // Calculate absolute position for scissor rectangle
+            var absolutePos = GetAbsolutePosition();
+            var viewport = textureBatcher.GraphicsDevice.Viewport;
+
+            // Convert from top-left to bottom-left coordinate system
+            int x = (int)absolutePos.X;
+            int y = (int)(viewport.Height - absolutePos.Y - Size.Y);
+            int width = (int)Size.X;
+            int height = (int)Size.Y;
+
+            // Enable and set scissor test
+            gl.Enable(EnableCap.ScissorTest);
+            gl.Scissor(x, y, (uint)width, (uint)height);
+        }
+
+        try
+        {
+            OnRender(textureBatcher, fontRenderer);
+
+            // Render all visible children using our optimized collection
+            _children.RenderAll(textureBatcher, fontRenderer);
+        }
+        finally
+        {
+            // Restore previous scissor state
+            if (useScissor)
+            {
+                var gl = textureBatcher.GraphicsDevice.GL;
+
+                if (wasScissorEnabled)
+                {
+                    gl.Scissor(previousScissor[0], previousScissor[1],
+                              (uint)previousScissor[2], (uint)previousScissor[3]);
+                }
+                else
+                {
+                    gl.Disable(EnableCap.ScissorTest);
+                }
+            }
+        }
     }
 
     /// <summary>

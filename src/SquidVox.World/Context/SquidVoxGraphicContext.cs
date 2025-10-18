@@ -10,12 +10,17 @@ namespace SquidVox.World.Context;
 /// <summary>
 /// Provides static access to graphics context resources such as window, GL, and input.
 /// </summary>
-public class SquidVoxGraphicContext
+public static class SquidVoxGraphicContext
 {
     /// <summary>
     /// Gets or sets the graphics device.
     /// </summary>
     public static GraphicsDevice GraphicsDevice { get; set; }
+
+    /// <summary>
+    /// Gets or sets the 1x1 white pixel texture (useful for drawing solid color rectangles).
+    /// </summary>
+    public static Texture2D WhitePixel { get; set; }
 
     /// <summary>
     /// Gets or sets the window.
@@ -48,6 +53,7 @@ public class SquidVoxGraphicContext
     public static void Dispose()
     {
         ImGuiController?.Dispose();
+        WhitePixel?.Dispose();
         GraphicsDevice?.Dispose();
         InputContext?.Dispose();
         GL?.Dispose();

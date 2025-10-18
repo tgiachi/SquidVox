@@ -82,6 +82,12 @@ public class SquidVoxWorld : IDisposable
             SquidVoxGraphicContext.InputContext
         );
 
+        // Create 1x1 white pixel texture for drawing solid color rectangles
+        SquidVoxGraphicContext.WhitePixel = new Texture2D(SquidVoxGraphicContext.GraphicsDevice, 1, 1);
+        Span<Color4b> whitePixelData = stackalloc Color4b[1];
+        whitePixelData[0] = Color4b.White;
+        SquidVoxGraphicContext.WhitePixel.SetData<Color4b>(whitePixelData);
+
         _textureBatcher = new TextureBatcher(SquidVoxGraphicContext.GraphicsDevice, 512U);
 
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);

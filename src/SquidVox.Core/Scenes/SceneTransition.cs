@@ -27,6 +27,11 @@ public abstract class SceneTransition : ISVoxSceneTransition
     public virtual float Rotation { get; set; }
 
     /// <summary>
+    /// Gets or sets the size (not used for transitions, included for ISVox2dRenderable compliance).
+    /// </summary>
+    public virtual Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
+
+    /// <summary>
     /// Gets the scene being transitioned from.
     /// </summary>
     public ISVoxScene? FromScene { get; protected set; }
