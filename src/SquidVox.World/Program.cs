@@ -4,6 +4,9 @@ using Serilog;
 using SquidVox.Core.Data.Directories;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
+using SquidVox.Core.Json;
+using SquidVox.Lua.Scripting.Context;
+using SquidVox.Lua.Scripting.Services;
 using SquidVox.World.Services;
 
 namespace SquidVox.World;
@@ -18,6 +21,8 @@ public static class Program
     /// </summary>
     public static void Main()
     {
+        JsonUtils.RegisterJsonContext(SquidVoxLuaScriptJsonContext.Default);
+
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
             .WriteTo.Console(formatProvider: CultureInfo.DefaultThreadCurrentCulture)
             .CreateLogger();
@@ -32,6 +37,7 @@ public static class Program
 
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
+        container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
 
 
         using var world = new SquidVoxWorld(container);

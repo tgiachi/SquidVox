@@ -7,10 +7,15 @@ namespace SquidVox.Core.Interfaces.Services;
 /// </summary>
 public interface IScriptEngineService
 {
+    Task StartAsync(CancellationToken cancellationToken = default);
+
+    Task StopAsync(CancellationToken cancellationToken = default);
+
     /// <summary>
     ///     Event raised when a script error occurs
     /// </summary>
     event EventHandler<ScriptErrorInfo>? OnScriptError;
+
     /// <summary>
     ///     Adds a script to be executed during engine initialization.
     /// </summary>

@@ -70,7 +70,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         LuaScript = CreateOptimizedEngine();
     }
 
-    public MoonSharp.Interpreter.Script LuaScript { get; }
+    public Script LuaScript { get; }
 
     public void Dispose()
     {
@@ -120,7 +120,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(script);
 
-        var stopwatch = Stopwatch.StartNew();
+        var stopwatch = Stopwatch.GetTimestamp();
 
         try
         {
@@ -137,11 +137,12 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
             }
 
             LuaScript.DoString(script);
-            _logger.Debug("Script executed successfully in {ElapsedMs}ms", stopwatch.ElapsedMilliseconds);
+            var elapsedMs = Stopwatch.GetElapsedTime(stopwatch);
+            _logger.Debug("Script executed successfully in {ElapsedMs}ms", elapsedMs);
+
         }
         catch (ScriptRuntimeException luaEx)
         {
-            stopwatch.Stop();
             var errorInfo = CreateErrorInfo(luaEx, script);
             OnScriptError?.Invoke(this, errorInfo);
 
@@ -156,7 +157,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
         catch (Exception e)
         {
-            stopwatch.Stop();
+            var elapsedMs = Stopwatch.GetElapsedTime(stopwatch);
             _logger.Error(
                 e,
                 "Error executing script: {ScriptPreview}",

@@ -18,6 +18,9 @@ public class SvoxGameObjectCollection<[DynamicallyAccessedMembers(DynamicallyAcc
     private bool _isDirty;
     private bool _isTypeCacheDirty;
 
+    /// <summary>
+    /// Initializes a new instance of the SvoxGameObjectCollection class.
+    /// </summary>
     public SvoxGameObjectCollection()
     {
         _gameObjects = [];
@@ -28,6 +31,10 @@ public class SvoxGameObjectCollection<[DynamicallyAccessedMembers(DynamicallyAcc
         _isTypeCacheDirty = false;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the SvoxGameObjectCollection class with the specified capacity.
+    /// </summary>
+    /// <param name="capacity">The initial capacity of the collection.</param>
     public SvoxGameObjectCollection(int capacity)
     {
         _gameObjects = new List<T>(capacity);

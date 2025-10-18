@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\SquidVox.Core\SquidVox.Core.csproj" />
+      <ProjectReference Include="..\SquidVox.Lua.Scripting\SquidVox.Lua.Scripting.csproj" />
     </ItemGroup>
 
 </Project>

@@ -22,12 +22,26 @@ public class SquidVoxWorld : IDisposable
 
     private TextureBatcher _textureBatcher;
 
+    /// <summary>
+    /// Delegate for handling update events.
+    /// </summary>
+    /// <param name="gameTime">The current game time.</param>
     public delegate void OnUpdateHandler(GameTime gameTime);
 
+    /// <summary>
+    /// Delegate for handling render events.
+    /// </summary>
     public delegate void OnRenderHandler();
 
+    /// <summary>
+    /// Delegate for handling window closing events.
+    /// </summary>
     public delegate void OnWindowClosingHandler();
 
+    /// <summary>
+    /// Delegate for handling resize events.
+    /// </summary>
+    /// <param name="size">The new size of the window.</param>
     public delegate void OnResizeHandler(Vector2D<int> size);
 
     public event OnUpdateHandler OnUpdate;
@@ -40,12 +54,17 @@ public class SquidVoxWorld : IDisposable
 
     private readonly IContainer _container;
 
+    /// <summary>
+    /// Initializes a new instance of the SquidVoxWorld class.
+    /// </summary>
+    /// <param name="container">The dependency injection container.</param>
     public SquidVoxWorld(IContainer container)
     {
         _logger.Debug("Initializing world");
         _container = container;
 
         _container.Resolve<IAssetManagerService>();
+
     }
 
     /// <summary>
@@ -89,6 +108,8 @@ public class SquidVoxWorld : IDisposable
         SquidVoxGraphicContext.WhitePixel.SetData<Color4b>(whitePixelData);
 
         _textureBatcher = new TextureBatcher(SquidVoxGraphicContext.GraphicsDevice, 512U);
+
+        _container.Resolve<IScriptEngineService>();
 
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);
     }

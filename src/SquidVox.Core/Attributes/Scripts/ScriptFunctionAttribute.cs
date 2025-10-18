@@ -8,6 +8,12 @@ namespace SquidVox.Core.Attributes.Scripts;
 [AttributeUsage(AttributeTargets.Method)]
 public class ScriptFunctionAttribute(string? functionName = null, string? helpText = null) : Attribute
 {
+    /// <summary>
+    /// Gets the optional name override for the script function.
+    /// </summary>
     public string? FunctionName { get; } = functionName;
+    /// <summary>
+    /// Gets the optional help text describing the function's purpose.
+    /// </summary>
     public string? HelpText { get; } = helpText;
 }
