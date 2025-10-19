@@ -98,4 +98,25 @@ public interface IScriptEngineService
     ///     This is exposed as object to avoid tight coupling to specific engine implementations.
     /// </summary>
     object Engine { get; }
+
+    /// <summary>
+    ///     Registers a global function that can be called from scripts.
+    /// </summary>
+    /// <param name="name">The name of the global function in scripts.</param>
+    /// <param name="func">The delegate to register as a global function.</param>
+    void RegisterGlobalFunction(string name, Delegate func);
+
+    /// <summary>
+    ///     Registers a global object/value accessible from scripts.
+    /// </summary>
+    /// <param name="name">The name of the global in scripts.</param>
+    /// <param name="value">The object/value to register.</param>
+    void RegisterGlobal(string name, object value);
+
+    /// <summary>
+    ///     Unregisters a global function or value.
+    /// </summary>
+    /// <param name="name">The name of the global to unregister.</param>
+    /// <returns>True if the global was found and removed, false otherwise.</returns>
+    bool UnregisterGlobal(string name);
 }

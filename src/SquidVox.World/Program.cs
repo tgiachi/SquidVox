@@ -1,7 +1,9 @@
 using System.Globalization;
 using ConsoleAppFramework;
 using DryIoc;
+using MoonSharp.Interpreter;
 using Serilog;
+using Silk.NET.Maths;
 using SquidVox.Core.Data.Directories;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Directories;
@@ -39,6 +41,11 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<ConsoleModule>()
             .AddLuaScriptModule<WindowModule>()
             ;
+
+
+        // register custom userType for LUA
+
+        UserData.RegisterType<Vector2D<int>>();
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);

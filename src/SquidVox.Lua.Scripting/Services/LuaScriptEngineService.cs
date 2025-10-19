@@ -354,14 +354,48 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _logger.Information("Script cache cleared");
     }
 
+    public void RegisterGlobalFunction(string name, Delegate func)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(func);
+
+        LuaScript.Globals[name] = func;
+        _logger.Debug("Global function registered: {Name}", name);
+    }
+
+    public void RegisterGlobal(string name, object value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(value);
+
+        LuaScript.Globals[name] = value;
+        _logger.Debug("Global registered: {Name} (Type: {Type})", name, value.GetType().Name);
+    }
+
+    public bool UnregisterGlobal(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        var existingValue = LuaScript.Globals.Get(name);
+        if (existingValue.Type != DataType.Nil)
+        {
+            LuaScript.Globals[name] = DynValue.Nil;
+            _logger.Debug("Global unregistered: {Name}", name);
+            return true;
+        }
+
+        _logger.Warning("Attempted to unregister non-existent global: {Name}", name);
+        return false;
+    }
+
     private void ExecuteBootFunction()
     {
         try
         {
-            var onReadyFunc = LuaScript.Globals.Get("onReady");
+            var onReadyFunc = LuaScript.Globals.Get("OnReady");
             if (onReadyFunc.Type == DataType.Nil)
             {
-                _logger.Warning("No onReady function defined in scripts");
+                _logger.Warning("No OnReady function defined in scripts");
                 return;
             }
 
@@ -575,6 +609,8 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         });
 
         LuaScript.Globals["log"] = (Action<object>)(message => { _logger.Information("Lua: {Message}", message); });
+
+        LuaScript.Globals["toString"] = (Func<object, string>)(obj => obj?.ToString() ?? "nil");
     }
 
     [RequiresUnreferencedCode(
