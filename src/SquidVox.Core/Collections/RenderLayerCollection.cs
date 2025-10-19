@@ -9,11 +9,12 @@ namespace SquidVox.Core.Collections;
 /// <summary>
 /// High-performance collection for managing render layers.
 /// Optimized for fast iteration (every frame) with minimal allocations.
+/// Supports multiple layers with the same priority.
 /// </summary>
 public class RenderLayerCollection
 {
     private readonly List<IRenderableLayer> _layers;
-    private readonly Dictionary<RenderLayer, IRenderableLayer> _layersByEnum;
+    private readonly Dictionary<RenderLayer, List<IRenderableLayer>> _layersByEnum;
     private bool _isDirty;
 
     /// <summary>
@@ -27,7 +28,7 @@ public class RenderLayerCollection
     public RenderLayerCollection()
     {
         _layers = new List<IRenderableLayer>(Enum.GetValues<RenderLayer>().Length); // Pre-allocate for common case
-        _layersByEnum = new Dictionary<RenderLayer, IRenderableLayer>(Enum.GetValues<RenderLayer>().Length);
+        _layersByEnum = new Dictionary<RenderLayer, List<IRenderableLayer>>(Enum.GetValues<RenderLayer>().Length);
         _isDirty = false;
     }
 
@@ -38,41 +39,47 @@ public class RenderLayerCollection
     public RenderLayerCollection(int capacity)
     {
         _layers = new List<IRenderableLayer>(capacity);
-        _layersByEnum = new Dictionary<RenderLayer, IRenderableLayer>(capacity);
+        _layersByEnum = new Dictionary<RenderLayer, List<IRenderableLayer>>(capacity);
         _isDirty = false;
     }
 
     /// <summary>
     /// Adds a render layer to the collection.
+    /// Multiple layers with the same priority are allowed.
     /// </summary>
     /// <param name="layer">The layer to add.</param>
     /// <exception cref="ArgumentNullException">Thrown when layer is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when a layer with the same RenderLayer enum already exists.</exception>
     public void Add(IRenderableLayer layer)
     {
         ArgumentNullException.ThrowIfNull(layer);
 
-        if (_layersByEnum.ContainsKey(layer.Layer))
+        _layers.Add(layer);
+
+        if (!_layersByEnum.TryGetValue(layer.Layer, out var layerList))
         {
-            throw new InvalidOperationException($"A render layer with priority {layer.Layer} already exists.");
+            layerList = new List<IRenderableLayer>();
+            _layersByEnum[layer.Layer] = layerList;
         }
 
-        _layers.Add(layer);
-        _layersByEnum[layer.Layer] = layer;
+        layerList.Add(layer);
         _isDirty = true;
     }
 
     /// <summary>
-    /// Removes a render layer by its RenderLayer enum.
+    /// Removes all render layers with the specified RenderLayer enum.
     /// </summary>
-    /// <param name="layerEnum">The RenderLayer enum of the layer to remove.</param>
-    /// <returns>True if the layer was removed, false if not found.</returns>
+    /// <param name="layerEnum">The RenderLayer enum of the layers to remove.</param>
+    /// <returns>True if at least one layer was removed, false if not found.</returns>
     public bool Remove(RenderLayer layerEnum)
     {
-        if (_layersByEnum.TryGetValue(layerEnum, out var layer))
+        if (_layersByEnum.TryGetValue(layerEnum, out var layerList))
         {
-            _layers.Remove(layer);
+            foreach (var layer in layerList)
+            {
+                _layers.Remove(layer);
+            }
             _layersByEnum.Remove(layerEnum);
+            _isDirty = true;
             return true;
         }
 
@@ -80,7 +87,7 @@ public class RenderLayerCollection
     }
 
     /// <summary>
-    /// Removes a render layer from the collection.
+    /// Removes a specific render layer from the collection.
     /// </summary>
     /// <param name="layer">The layer to remove.</param>
     /// <returns>True if the layer was removed, false if not found.</returns>
@@ -90,7 +97,15 @@ public class RenderLayerCollection
 
         if (_layers.Remove(layer))
         {
-            _layersByEnum.Remove(layer.Layer);
+            if (_layersByEnum.TryGetValue(layer.Layer, out var layerList))
+            {
+                layerList.Remove(layer);
+                if (layerList.Count == 0)
+                {
+                    _layersByEnum.Remove(layer.Layer);
+                }
+            }
+            _isDirty = true;
             return true;
         }
 
@@ -98,46 +113,73 @@ public class RenderLayerCollection
     }
 
     /// <summary>
-    /// Gets a render layer by its RenderLayer enum.
+    /// Gets the first render layer with the specified RenderLayer enum.
     /// </summary>
     /// <param name="layerEnum">The RenderLayer enum.</param>
-    /// <returns>The layer if found, otherwise null.</returns>
+    /// <returns>The first layer if found, otherwise null.</returns>
     public IRenderableLayer? GetLayer(RenderLayer layerEnum)
     {
-        return _layersByEnum.TryGetValue(layerEnum, out var layer) ? layer : null;
+        if (_layersByEnum.TryGetValue(layerEnum, out var layerList) && layerList.Count > 0)
+        {
+            return layerList[0];
+        }
+        return null;
     }
 
     /// <summary>
-    /// Checks if a layer with the specified RenderLayer enum exists.
-    /// </summary>
-    /// <param name="layerEnum">The RenderLayer enum to check.</param>
-    /// <returns>True if the layer exists, false otherwise.</returns>
-    public bool Contains(RenderLayer layerEnum)
-    {
-        return _layersByEnum.ContainsKey(layerEnum);
-    }
-
-    /// <summary>
-    /// Tries to get a render layer by its RenderLayer enum.
+    /// Gets all render layers with the specified RenderLayer enum.
     /// </summary>
     /// <param name="layerEnum">The RenderLayer enum.</param>
-    /// <param name="layer">The layer if found, otherwise null.</param>
-    /// <returns>True if the layer was found, false otherwise.</returns>
-    public bool TryGetLayer(RenderLayer layerEnum, out IRenderableLayer? layer)
+    /// <returns>List of layers with the specified priority, or empty list if none found.</returns>
+    public IReadOnlyList<IRenderableLayer> GetLayers(RenderLayer layerEnum)
     {
-        return _layersByEnum.TryGetValue(layerEnum, out layer);
+        if (_layersByEnum.TryGetValue(layerEnum, out var layerList))
+        {
+            return layerList.AsReadOnly();
+        }
+        return Array.Empty<IRenderableLayer>();
     }
 
     /// <summary>
-    /// Enables a render layer.
+    /// Checks if at least one layer with the specified RenderLayer enum exists.
     /// </summary>
-    /// <param name="layerEnum">The RenderLayer enum of the layer to enable.</param>
-    /// <returns>True if the layer was found and enabled, false otherwise.</returns>
+    /// <param name="layerEnum">The RenderLayer enum to check.</param>
+    /// <returns>True if at least one layer exists, false otherwise.</returns>
+    public bool Contains(RenderLayer layerEnum)
+    {
+        return _layersByEnum.ContainsKey(layerEnum) && _layersByEnum[layerEnum].Count > 0;
+    }
+
+    /// <summary>
+    /// Tries to get the first render layer with the specified RenderLayer enum.
+    /// </summary>
+    /// <param name="layerEnum">The RenderLayer enum.</param>
+    /// <param name="layer">The first layer if found, otherwise null.</param>
+    /// <returns>True if at least one layer was found, false otherwise.</returns>
+    public bool TryGetLayer(RenderLayer layerEnum, out IRenderableLayer? layer)
+    {
+        if (_layersByEnum.TryGetValue(layerEnum, out var layerList) && layerList.Count > 0)
+        {
+            layer = layerList[0];
+            return true;
+        }
+        layer = null;
+        return false;
+    }
+
+    /// <summary>
+    /// Enables all render layers with the specified RenderLayer enum.
+    /// </summary>
+    /// <param name="layerEnum">The RenderLayer enum of the layers to enable.</param>
+    /// <returns>True if at least one layer was found and enabled, false otherwise.</returns>
     public bool Enable(RenderLayer layerEnum)
     {
-        if (_layersByEnum.TryGetValue(layerEnum, out var layer))
+        if (_layersByEnum.TryGetValue(layerEnum, out var layerList))
         {
-            layer.Enabled = true;
+            foreach (var layer in layerList)
+            {
+                layer.Enabled = true;
+            }
             return true;
         }
 
@@ -145,15 +187,18 @@ public class RenderLayerCollection
     }
 
     /// <summary>
-    /// Disables a render layer without removing it.
+    /// Disables all render layers with the specified RenderLayer enum without removing them.
     /// </summary>
-    /// <param name="layerEnum">The RenderLayer enum of the layer to disable.</param>
-    /// <returns>True if the layer was found and disabled, false otherwise.</returns>
+    /// <param name="layerEnum">The RenderLayer enum of the layers to disable.</param>
+    /// <returns>True if at least one layer was found and disabled, false otherwise.</returns>
     public bool Disable(RenderLayer layerEnum)
     {
-        if (_layersByEnum.TryGetValue(layerEnum, out var layer))
+        if (_layersByEnum.TryGetValue(layerEnum, out var layerList))
         {
-            layer.Enabled = false;
+            foreach (var layer in layerList)
+            {
+                layer.Enabled = false;
+            }
             return true;
         }
 

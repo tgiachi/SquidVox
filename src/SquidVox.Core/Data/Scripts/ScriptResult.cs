@@ -1,5 +1,8 @@
 namespace SquidVox.Core.Data.Scripts;
 
+/// <summary>
+/// Represents the result of a script execution.
+/// </summary>
 public class ScriptResult
 {
     public bool Success { get; set; }
@@ -7,6 +10,9 @@ public class ScriptResult
     public object? Data { get; set; }
 }
 
+/// <summary>
+/// Builder class for creating ScriptResult instances.
+/// </summary>
 public class ScriptResultBuilder
 {
     private object? _data;

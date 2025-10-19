@@ -4,6 +4,9 @@ using SquidVox.World.Context;
 
 namespace SquidVox.World.Modules;
 
+/// <summary>
+/// Module for managing the game window.
+/// </summary>
 [ScriptModule("window", "Provides functions to create and manage in-game windows.")]
 public class WindowModule
 {

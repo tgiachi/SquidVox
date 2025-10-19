@@ -7,6 +7,9 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace SquidVox.Core.Json;
 
+/// <summary>
+/// Provides utility methods for JSON serialization and deserialization.
+/// </summary>
 public static class JsonUtils
 {
     private static readonly ConcurrentBag<IJsonTypeInfoResolver> JsonSerializerContexts = new();

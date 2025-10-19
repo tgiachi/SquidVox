@@ -1,3 +1,4 @@
+using DryIoc;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
@@ -12,6 +13,8 @@ namespace SquidVox.World.Context;
 /// </summary>
 public static class SquidVoxGraphicContext
 {
+
+    public static IContainer Container { get; set; }
 
     public static Color4b ClearColor { get; set; } = Color4b.CornflowerBlue;
 

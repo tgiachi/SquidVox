@@ -7,6 +7,8 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Data.Graphics;
+using SquidVox.Core.Extensions.Collections;
+using SquidVox.Core.Interfaces.GameObjects;
 using SquidVox.Core.Interfaces.Rendering;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
@@ -27,6 +29,7 @@ public class SquidVoxWorld : IDisposable
     private TextureBatcher _textureBatcher;
     private FontStashRenderer _fontRenderer;
     private ImGuiRenderLayer _imguiLayer;
+    private readonly SvoxGameObjectCollection<ISVox2dDrawableGameObject> _gameObjects = new();
 
     /// <summary>
     /// Delegate for handling update events.
@@ -103,6 +106,12 @@ public class SquidVoxWorld : IDisposable
     public RenderLayerCollection RenderLayers { get; } = new();
 
     /// <summary>
+    /// Gets the game object collection for managing 2D game objects.
+    /// Game objects added to this collection will be automatically updated and rendered.
+    /// </summary>
+    public SvoxGameObjectCollection<ISVox2dDrawableGameObject> GameObjects => _gameObjects;
+
+    /// <summary>
     /// Starts the game loop and runs the application.
     /// </summary>
     public void Run()
@@ -167,6 +176,10 @@ public class SquidVoxWorld : IDisposable
         var sceneLayer = new SceneRenderLayer(sceneManager);
         RegisterRenderLayer(sceneLayer);
 
+        // Game objects layer (World2D priority)
+        var gameObjectLayer = new GameObjectRenderLayer(_gameObjects);
+        RegisterRenderLayer(gameObjectLayer);
+
         // ImGui layer (DebugUI priority - always on top)
         _imguiLayer = new ImGuiRenderLayer();
         RegisterRenderLayer(_imguiLayer);
@@ -188,6 +201,9 @@ public class SquidVoxWorld : IDisposable
         // Update scene manager
         var sceneManager = _container.Resolve<ISceneManager>();
         sceneManager.Update(SquidVoxGraphicContext.GameTime);
+
+        // Update all game objects
+        _gameObjects.UpdateAll(SquidVoxGraphicContext.GameTime);
 
         // Custom update event
         OnUpdate?.Invoke(SquidVoxGraphicContext.GameTime);

@@ -13,6 +13,7 @@ using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
 using SquidVox.World;
+using SquidVox.World.Context;
 using SquidVox.World.Modules;
 using SquidVox.World.Services;
 
@@ -33,8 +34,9 @@ await ConsoleApp.RunAsync(
 
         var directoriesConfig = new DirectoriesConfig(rootDirectory, Enum.GetNames<DirectoryType>());
 
-        var container = new Container();
 
+        var container = new Container();
+        SquidVoxGraphicContext.Container = container;
         container.RegisterInstance(directoriesConfig);
 
         container
