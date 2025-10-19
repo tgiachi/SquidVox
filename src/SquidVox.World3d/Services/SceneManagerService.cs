@@ -1,12 +1,11 @@
-using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Serilog;
-using Silk.NET.Input;
-using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.Scenes;
 using SquidVox.Core.Interfaces.Services;
-using TrippyGL;
 
-namespace SquidVox.World.Services;
+namespace SquidVox.World3d.Services;
 
 /// <summary>
 /// Implements the scene management service.
@@ -141,8 +140,11 @@ public class SceneManagerService : ISceneManager
             return;
         }
 
-        _logger.Information("Changing scene from {From} to {To} with transition",
-            CurrentScene?.Name ?? "none", scene.Name);
+        _logger.Information(
+            "Changing scene from {From} to {To} with transition",
+            CurrentScene?.Name ?? "none",
+            scene.Name
+        );
 
         IsTransitioning = true;
         CurrentTransition = transition;
@@ -178,15 +180,15 @@ public class SceneManagerService : ISceneManager
     /// </summary>
     /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
     /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    public void Render(SpriteBatch spriteBatch)
     {
         if (IsTransitioning && CurrentTransition != null)
         {
-            CurrentTransition.Render(textureBatcher, fontRenderer);
+            CurrentTransition.Render(spriteBatch);
         }
         else if (CurrentScene != null)
         {
-            CurrentScene.Render(textureBatcher, fontRenderer);
+            CurrentScene.Render(spriteBatch);
         }
     }
 
@@ -195,7 +197,7 @@ public class SceneManagerService : ISceneManager
     /// </summary>
     /// <param name="keyboard">The keyboard device.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public void HandleKeyboard(IKeyboard keyboard, GameTime gameTime)
+    public void HandleKeyboard(KeyboardState keyboard, GameTime gameTime)
     {
         // Don't handle input during transitions
         if (!IsTransitioning && CurrentScene != null)
@@ -209,7 +211,7 @@ public class SceneManagerService : ISceneManager
     /// </summary>
     /// <param name="mouse">The mouse device.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public void HandleMouse(IMouse mouse, GameTime gameTime)
+    public void HandleMouse(MouseState mouse, GameTime gameTime)
     {
         // Don't handle input during transitions
         if (!IsTransitioning && CurrentScene != null)

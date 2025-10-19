@@ -1,10 +1,10 @@
-using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Rendering;
 using SquidVox.Core.Interfaces.Services;
-using TrippyGL;
 
-namespace SquidVox.World.Rendering;
+namespace SquidVox.World3d.Rendering;
 
 /// <summary>
 /// Render layer for the scene manager.
@@ -24,6 +24,16 @@ public class SceneRenderLayer : IRenderableLayer
     /// </summary>
     public bool Enabled { get; set; } = true;
 
+    public void Render(SpriteBatch spriteBatch)
+    {
+        _sceneManager.Render(spriteBatch);
+    }
+
+    public void Update(GameTime gameTime)
+    {
+        _sceneManager.Update(gameTime);
+    }
+
     /// <summary>
     /// Initializes a new instance of the SceneRenderLayer class.
     /// </summary>
@@ -33,13 +43,4 @@ public class SceneRenderLayer : IRenderableLayer
         _sceneManager = sceneManager;
     }
 
-    /// <summary>
-    /// Renders the current scene or transition.
-    /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
-    {
-        _sceneManager.Render(textureBatcher, fontRenderer);
-    }
 }

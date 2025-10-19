@@ -1,12 +1,13 @@
 using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Collections;
 using SquidVox.Core.Interfaces.GameObjects;
 using SquidVox.Core.Interfaces.Rendering;
-using TrippyGL;
 
-namespace SquidVox.World.Rendering;
+namespace SquidVox.World3d.Rendering;
 
 /// <summary>
 /// Render layer for game objects.
@@ -36,18 +37,21 @@ public class GameObjectRenderLayer : IRenderableLayer
         _gameObjects = gameObjects;
     }
 
-    /// <summary>
-    /// Renders all visible game objects from the collection.
-    /// Uses the optimized RenderAll extension method for best performance.
-    /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+
+    public void Render(SpriteBatch spriteBatch)
     {
         // Check for ZIndex changes before rendering
         _gameObjects.CheckForZIndexChanges();
 
         // Render all visible game objects using the optimized extension method
-        _gameObjects.RenderAll(textureBatcher, fontRenderer);
+        _gameObjects.RenderAll(spriteBatch);
+    }
+
+    public void Update(GameTime gameTime)
+    {
+        // Check for ZIndex changes before updatating
+        _gameObjects.CheckForZIndexChanges();
+
+        _gameObjects.UpdateAll(gameTime);
     }
 }

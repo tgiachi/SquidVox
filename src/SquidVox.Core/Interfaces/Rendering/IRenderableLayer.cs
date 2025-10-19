@@ -1,4 +1,5 @@
 using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Enums;
 
@@ -25,4 +26,7 @@ public interface IRenderableLayer
     /// </summary>
     /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
     void Render(SpriteBatch spriteBatch);
+
+
+    void Update(GameTime gameTime);
 }

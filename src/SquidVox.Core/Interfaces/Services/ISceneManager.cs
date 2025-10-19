@@ -1,7 +1,6 @@
-using FontStashSharp.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Silk.NET.Input;
+using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Interfaces.Scenes;
 
 namespace SquidVox.Core.Interfaces.Services;
@@ -89,12 +88,12 @@ public interface ISceneManager : IDisposable
     /// </summary>
     /// <param name="keyboard">The keyboard device.</param>
     /// <param name="gameTime">Game timing information.</param>
-    void HandleKeyboard(IKeyboard keyboard, GameTime gameTime);
+    void HandleKeyboard(KeyboardState keyboard, GameTime gameTime);
 
     /// <summary>
     /// Handles mouse input for the current scene.
     /// </summary>
     /// <param name="mouse">The mouse device.</param>
     /// <param name="gameTime">Game timing information.</param>
-    void HandleMouse(IMouse mouse, GameTime gameTime);
+    void HandleMouse(MouseState mouse, GameTime gameTime);
 }

@@ -1,7 +1,7 @@
 using FontStashSharp;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Graphics;
 using SquidVox.Core.Enums;
-using ShaderType = SquidVox.Core.Enums.ShaderType;
 
 namespace SquidVox.Core.Interfaces.Services;
 
@@ -33,7 +33,7 @@ public interface IAssetManagerService : IDisposable
     /// <param name="atlasName">The name of the texture atlas.</param>
     /// <param name="tileIndex">The index of the tile.</param>
     /// <returns>The texture tile if found, otherwise null.</returns>
-    Texture2D GetTextureAtlasTile(string atlasName, int tileIndex);
+    Texture2DRegion GetTextureAtlasTile(string atlasName, int tileIndex);
 
 
 
@@ -73,22 +73,6 @@ public interface IAssetManagerService : IDisposable
     /// <param name="name">The name to assign to the texture.</param>
     void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name);
 
-    /// <summary>
-    /// Loads a shader from file.
-    /// </summary>
-    /// <param name="filaNames">The file names for the shader.</param>
-    /// <param name="shaderType">The type of shader.</param>
-    /// <param name="name">The name to assign to the shader.</param>
-    void LoadShaderFromFile(string filaNames, ShaderType shaderType, string name);
-
-    /// <summary>
-    /// Loads a shader from byte arrays.
-    /// </summary>
-    /// <param name="vertexShaderSource">The vertex shader source code as byte array.</param>
-    /// <param name="fragmentShaderSource">The fragment shader source code as byte array.</param>
-    /// <param name="shaderType">The type of shader.</param>
-    /// <param name="name">The name to assign to the shader.</param>
-    void LoadShaderFromBytes(ReadOnlySpan<byte> vertexShaderSource, ReadOnlySpan<byte> fragmentShaderSource, ShaderType shaderType, string name);
 
     /// <summary>
     /// Loads a texture atlas from file and splits it into individual tiles.

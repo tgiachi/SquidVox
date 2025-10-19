@@ -2,7 +2,7 @@ using System.Globalization;
 using Serilog;
 using SquidVox.Core.Attributes.Scripts;
 
-namespace SquidVox.World.Modules;
+namespace SquidVox.World3d.Modules;
 
 /// <summary>
 ///     Console API implementation (console.log, console.error, etc.)

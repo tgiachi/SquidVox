@@ -15,13 +15,9 @@
         <PackageReference Include="MonoGame.Library.OpenAL" Version="1.24.3.2" />
         <PackageReference Include="MonoGame.Library.SDL" Version="2.32.10.1" />
         <PackageReference Include="NVorbis" Version="0.10.5" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-        <PackageReference Include="Silk.NET.Input" Version="2.21.0" />
-        <PackageReference Include="Silk.NET.Maths" Version="2.21.0" />
         <PackageReference Include="System.Memory" Version="4.6.3" />
         <PackageReference Include="System.ValueTuple" Version="4.6.1" />
-        <PackageReference Include="FontStashSharp.MonoGame" Version="1.4.1" />
-        <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
+        <PackageReference Include="FontStashSharp.MonoGame" Version="1.4.1"/>
     </ItemGroup>
 
 

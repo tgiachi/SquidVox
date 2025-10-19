@@ -1,5 +1,5 @@
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Silk.NET.Maths;
 
 namespace SquidVox.Core.Interfaces.GameObjects;
 
@@ -11,17 +11,17 @@ public interface ISVox3dRenderable
     /// <summary>
     /// Gets or sets the position of the 3D object (local position relative to parent).
     /// </summary>
-    Vector3D<float> Position { get; set; }
+    Vector3 Position { get; set; }
 
     /// <summary>
     /// Gets or sets the scale of the 3D object.
     /// </summary>
-    Vector3D<float> Scale { get; set; }
+    Vector3 Scale { get; set; }
 
     /// <summary>
     /// Gets or sets the rotation of the 3D object as a quaternion.
     /// </summary>
-    Quaternion<float> Rotation { get; set; }
+    Quaternion Rotation { get; set; }
 
     /// <summary>
     /// Renders the 3D object using the provided graphics device.

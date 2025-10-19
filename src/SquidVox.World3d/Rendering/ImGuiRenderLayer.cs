@@ -1,11 +1,11 @@
-using FontStashSharp.Interfaces;
 using ImGuiNET;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Rendering;
-using SquidVox.World.Context;
-using TrippyGL;
+using SquidVox.World3d.Context;
 
-namespace SquidVox.World.Rendering;
+namespace SquidVox.World3d.Rendering;
 
 /// <summary>
 /// Render layer for ImGui debug UI.
@@ -28,32 +28,31 @@ public class ImGuiRenderLayer : IRenderableLayer
     /// </summary>
     public bool ShowDemoWindow { get; set; } = true;
 
-    private float _deltaTime;
 
-    /// <summary>
-    /// Updates the ImGui layer with the current delta time.
-    /// Call this before rendering to ensure proper ImGui state.
-    /// </summary>
-    /// <param name="deltaTime">Time elapsed since last frame in seconds.</param>
-    public void Update(float deltaTime)
-    {
-        _deltaTime = deltaTime;
-    }
+    private GameTime _gameTime;
+
 
     /// <summary>
     /// Renders the ImGui debug UI.
     /// </summary>
     /// <param name="textureBatcher">TextureBatcher (not used by ImGui).</param>
     /// <param name="fontRenderer">Font renderer (not used by ImGui).</param>
-    public void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    public void Render(SpriteBatch spriteBatch)
     {
-        SquidVoxGraphicContext.ImGuiController.Update(_deltaTime);
+        SquidVoxGraphicContext.ImGuiRenderer.BeginLayout(_gameTime);
 
         if (ShowDemoWindow)
         {
             ImGui.ShowDemoWindow();
         }
 
-        SquidVoxGraphicContext.ImGuiController.Render();
+        SquidVoxGraphicContext.ImGuiRenderer.EndLayout();
+
+    }
+
+    public void Update(GameTime gameTime)
+    {
+        _gameTime = gameTime;
+
     }
 }

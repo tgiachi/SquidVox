@@ -1,9 +1,10 @@
+﻿
 using System.Globalization;
 using ConsoleAppFramework;
 using DryIoc;
+using Microsoft.Xna.Framework;
 using MoonSharp.Interpreter;
 using Serilog;
-using Silk.NET.Maths;
 using SquidVox.Core.Data.Directories;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Directories;
@@ -12,11 +13,9 @@ using SquidVox.Core.Json;
 using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
-using SquidVox.World;
-using SquidVox.World.Context;
-using SquidVox.World.Modules;
-using SquidVox.World.Services;
-
+using SquidVox.World3d.Context;
+using SquidVox.World3d.Modules;
+using SquidVox.World3d.Services;
 
 await ConsoleApp.RunAsync(
     args,
@@ -47,13 +46,16 @@ await ConsoleApp.RunAsync(
 
         // register custom userType for LUA
 
-        UserData.RegisterType<Vector2D<int>>();
+        UserData.RegisterType<Vector2>();
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
         container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
 
-        using var world = new SquidVoxWorld(container);
-        world.Run();
+
+        using var game = new SquidVox.World3d.SquidVoxWorld(container);
+        game.Run();
     }
 );
+
+
