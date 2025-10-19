@@ -170,7 +170,8 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
         {
             throw new ArgumentException(
                 $"BaseGameObject can only accept children of type ISVox2dDrawableGameObject. Received: {child.GetType().Name}",
-                nameof(child));
+                nameof(child)
+            );
         }
 
         if (_children.Contains(drawableChild))
@@ -280,8 +281,12 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
 
                 if (wasScissorEnabled)
                 {
-                    gl.Scissor(previousScissor[0], previousScissor[1],
-                              (uint)previousScissor[2], (uint)previousScissor[3]);
+                    gl.Scissor(
+                        previousScissor[0],
+                        previousScissor[1],
+                        (uint)previousScissor[2],
+                        (uint)previousScissor[3]
+                    );
                 }
                 else
                 {

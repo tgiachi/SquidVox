@@ -14,6 +14,7 @@ using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.World.Context;
 using SquidVox.World.Fonts;
+using SquidVox.World.GameObjects;
 using SquidVox.World.Rendering;
 using TrippyGL;
 
@@ -151,7 +152,10 @@ public class SquidVoxWorld : IDisposable
         whitePixelData[0] = Color4b.White;
         SquidVoxGraphicContext.WhitePixel.SetData<Color4b>(whitePixelData);
 
+
+
         _textureBatcher = new TextureBatcher(SquidVoxGraphicContext.GraphicsDevice, 512U);
+
         _fontRenderer = new FontStashRenderer(SquidVoxGraphicContext.GraphicsDevice);
 
         // Initialize default render layers
@@ -161,9 +165,11 @@ public class SquidVoxWorld : IDisposable
 
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
-
+        _gameObjects.Add(new TextGameObject() { Position = Vector2D<float>.One, FontSize = 30});
 
         Window_FramebufferResize(SquidVoxGraphicContext.Window.FramebufferSize);
+
+
     }
 
     /// <summary>
@@ -184,8 +190,11 @@ public class SquidVoxWorld : IDisposable
         _imguiLayer = new ImGuiRenderLayer();
         RegisterRenderLayer(_imguiLayer);
 
-        _logger.Information("Initialized {Count} render layers ({Enabled} enabled)",
-            RenderLayers.Count, RenderLayers.GetEnabledCount());
+        _logger.Information(
+            "Initialized {Count} render layers ({Enabled} enabled)",
+            RenderLayers.Count,
+            RenderLayers.GetEnabledCount()
+        );
     }
 
     /// <summary>
@@ -194,7 +203,6 @@ public class SquidVoxWorld : IDisposable
     /// <param name="delta">The time elapsed since the last frame.</param>
     private void Window_Render(double delta)
     {
-
         // Update phase
         SquidVoxGraphicContext.GameTime.Update(delta);
 
@@ -215,11 +223,15 @@ public class SquidVoxWorld : IDisposable
         SquidVoxGraphicContext.GraphicsDevice.ClearColor = SquidVoxGraphicContext.ClearColor;
         SquidVoxGraphicContext.GraphicsDevice.Clear(ClearBuffers.Color);
 
+        _fontRenderer.Begin();
+      //  _textureBatcher.Begin();
         // Render all layers in priority order
         RenderLayers.RenderAll(_textureBatcher, _fontRenderer);
 
         // Custom render event (for backward compatibility)
         OnRender?.Invoke();
+   //     _textureBatcher.End();
+        _fontRenderer.End();
     }
 
     /// <summary>
@@ -230,8 +242,12 @@ public class SquidVoxWorld : IDisposable
     {
         SquidVoxGraphicContext.GraphicsDevice.SetViewport(0, 0, (uint)size.X, (uint)size.Y);
 
+
+
+        // Update font renderer viewport
+        _fontRenderer?.OnViewportChanged();
+
         OnResize?.Invoke(size);
-        // Resize code here
     }
 
     /// <summary>
@@ -253,6 +269,8 @@ public class SquidVoxWorld : IDisposable
     /// </summary>
     public void Dispose()
     {
+        _textureBatcher?.Dispose();
+        _fontRenderer?.Dispose();
         SquidVoxGraphicContext.Dispose();
         GC.SuppressFinalize(this);
     }
