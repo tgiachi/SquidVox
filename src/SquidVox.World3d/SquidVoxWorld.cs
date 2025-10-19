@@ -2,8 +2,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SquidVox.Core.Collections;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
+using SquidVox.World3d.Context;
 
 namespace SquidVox.World3d;
 
@@ -12,10 +14,14 @@ public class SquidVoxWorld : Game
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private readonly IContainer _container;
+    private readonly RenderLayerCollection _renderLayers = new();
 
     public SquidVoxWorld(IContainer container)
     {
         _graphics = new GraphicsDeviceManager(this);
+        SquidVoxGraphicContext.GraphicsDeviceManager = _graphics;
+
+        SquidVoxGraphicContext.Window = Window;
         Content.RootDirectory = "Content";
         _container = container;
         IsMouseVisible = true;
@@ -56,12 +62,18 @@ public class SquidVoxWorld : Game
 
         // TODO: Add your update logic here
 
+        _renderLayers.UpdateAll(gameTime);
+
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
+
+        _spriteBatch.Begin();
+        _renderLayers.RenderAll(_spriteBatch);
+        _spriteBatch.End();
 
         // TODO: Add your drawing code here
 

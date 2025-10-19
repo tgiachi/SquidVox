@@ -17,7 +17,12 @@ public static class SquidVoxGraphicContext
     /// <summary>
     /// Gets or sets the graphics device.
     /// </summary>
-    public static GraphicsDevice GraphicsDevice { get; set; }
+    public static GraphicsDevice GraphicsDevice => GraphicsDeviceManager.GraphicsDevice;
+
+    public static GraphicsDeviceManager GraphicsDeviceManager { get; set; }
+
+
+    public static GameWindow Window { get; set; }
 
     /// <summary>
     /// Gets or sets the 1x1 white pixel texture (useful for drawing solid color rectangles).

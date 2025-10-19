@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Rendering;
@@ -225,6 +226,23 @@ public class RenderLayerCollection
         {
             _layers.Sort((a, b) => a.Layer.CompareTo(b.Layer));
             _isDirty = false;
+        }
+    }
+
+    /// <summary>
+    /// Updates all enabled layers in priority order.
+    /// </summary>
+    /// <param name="gameTime">Game timing information.</param>
+    public void UpdateAll(GameTime gameTime)
+    {
+        EnsureSorted();
+
+        foreach (var layer in _layers)
+        {
+            if (layer.Enabled)
+            {
+                layer.Update(gameTime);
+            }
         }
     }
 
