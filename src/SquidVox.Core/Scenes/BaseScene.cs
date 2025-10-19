@@ -1,12 +1,11 @@
 using FontStashSharp.Interfaces;
-using Silk.NET.Input;
-using Silk.NET.Maths;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Collections;
-using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Extensions.Collections;
 using SquidVox.Core.Interfaces.GameObjects;
 using SquidVox.Core.Interfaces.Scenes;
-using TrippyGL;
 
 namespace SquidVox.Core.Scenes;
 
@@ -23,12 +22,12 @@ public abstract class BaseScene : ISVoxScene
     /// <summary>
     /// Gets or sets the position (not used for scenes, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
+    public virtual Vector2 Position { get; set; } = Vector2.Zero;
 
     /// <summary>
     /// Gets or sets the scale (not used for scenes, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
+    public virtual Vector2 Scale { get; set; } = Vector2.One;
 
     /// <summary>
     /// Gets or sets the rotation (not used for scenes, included for ISVox2dRenderable compliance).
@@ -38,7 +37,7 @@ public abstract class BaseScene : ISVoxScene
     /// <summary>
     /// Gets or sets the size (not used for scenes, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
+    public virtual Vector2 Size { get; set; } = Vector2.Zero;
 
     /// <summary>
     /// Gets the collection of game objects in this scene.
@@ -97,7 +96,7 @@ public abstract class BaseScene : ISVoxScene
     /// Updates the scene and all its components.
     /// </summary>
     /// <param name="gameTime">Game timing information.</param>
-    public virtual void Update(GameTime gameTime)
+    public virtual void Update(Microsoft.Xna.Framework.GameTime gameTime)
     {
         if (!IsLoaded)
         {
@@ -111,50 +110,49 @@ public abstract class BaseScene : ISVoxScene
     /// <summary>
     /// Renders the scene and all its components.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public virtual void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    public virtual void Render(SpriteBatch spriteBatch)
     {
         if (!IsLoaded)
         {
             return;
         }
 
-        OnRenderBegin(textureBatcher, fontRenderer);
-        Components.RenderAll(textureBatcher, fontRenderer);
-        OnRenderEnd(textureBatcher, fontRenderer);
+        OnRenderBegin(spriteBatch);
+        Components.RenderAll(spriteBatch);
+        OnRenderEnd(spriteBatch);
     }
 
     /// <summary>
     /// Handles keyboard input when the scene has focus.
     /// </summary>
-    /// <param name="keyboard">The keyboard device.</param>
+    /// <param name="keyboardState">The current keyboard state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public virtual void HandleKeyboard(IKeyboard keyboard, GameTime gameTime)
+    public virtual void HandleKeyboard(KeyboardState keyboardState, GameTime gameTime)
     {
         if (!HasFocus || !IsLoaded)
         {
             return;
         }
 
-        OnHandleKeyboard(keyboard, gameTime);
-        Components.HandleKeyboardInput(keyboard, gameTime);
+        OnHandleKeyboard(keyboardState, gameTime);
+        Components.HandleKeyboardInput(keyboardState, gameTime);
     }
 
     /// <summary>
     /// Handles mouse input when the scene has focus.
     /// </summary>
-    /// <param name="mouse">The mouse device.</param>
+    /// <param name="mouseState">The current mouse state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public virtual void HandleMouse(IMouse mouse, GameTime gameTime)
+    public virtual void HandleMouse(MouseState mouseState, GameTime gameTime)
     {
         if (!HasFocus || !IsLoaded)
         {
             return;
         }
 
-        OnHandleMouse(mouse, gameTime);
-        Components.HandleMouseInput(mouse, gameTime);
+        OnHandleMouse(mouseState, gameTime);
+        Components.HandleMouseInput(mouseState, gameTime);
     }
 
     /// <summary>
@@ -178,7 +176,7 @@ public abstract class BaseScene : ISVoxScene
     /// Override this to add custom update logic.
     /// </summary>
     /// <param name="gameTime">Game timing information.</param>
-    protected virtual void OnUpdate(GameTime gameTime)
+    protected virtual void OnUpdate(Microsoft.Xna.Framework.GameTime gameTime)
     {
     }
 
@@ -186,9 +184,8 @@ public abstract class BaseScene : ISVoxScene
     /// Called during Render() before components are rendered.
     /// Override this to add custom rendering logic that should appear behind components.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    protected virtual void OnRenderBegin(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    protected virtual void OnRenderBegin(SpriteBatch spriteBatch)
     {
     }
 
@@ -196,9 +193,8 @@ public abstract class BaseScene : ISVoxScene
     /// Called during Render() after components are rendered.
     /// Override this to add custom rendering logic that should appear in front of components.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    protected virtual void OnRenderEnd(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    protected virtual void OnRenderEnd(SpriteBatch spriteBatch)
     {
     }
 
@@ -206,9 +202,9 @@ public abstract class BaseScene : ISVoxScene
     /// Called during HandleKeyboard() before components handle keyboard input.
     /// Override this to add custom keyboard handling logic.
     /// </summary>
-    /// <param name="keyboard">The keyboard device.</param>
+    /// <param name="keyboardState">The current keyboard state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    protected virtual void OnHandleKeyboard(IKeyboard keyboard, GameTime gameTime)
+    protected virtual void OnHandleKeyboard(KeyboardState keyboardState, Microsoft.Xna.Framework.GameTime gameTime)
     {
     }
 
@@ -216,9 +212,9 @@ public abstract class BaseScene : ISVoxScene
     /// Called during HandleMouse() before components handle mouse input.
     /// Override this to add custom mouse handling logic.
     /// </summary>
-    /// <param name="mouse">The mouse device.</param>
+    /// <param name="mouseState">The current mouse state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    protected virtual void OnHandleMouse(IMouse mouse, GameTime gameTime)
+    protected virtual void OnHandleMouse(MouseState mouseState, Microsoft.Xna.Framework.GameTime gameTime)
     {
     }
 }

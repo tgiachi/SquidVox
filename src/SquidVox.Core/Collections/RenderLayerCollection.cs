@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
 using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Rendering;
-using TrippyGL;
 
 namespace SquidVox.Core.Collections;
 
@@ -137,7 +137,7 @@ public class RenderLayerCollection
         {
             return layerList.AsReadOnly();
         }
-        return Array.Empty<IRenderableLayer>();
+        return [];
     }
 
     /// <summary>
@@ -231,9 +231,8 @@ public class RenderLayerCollection
     /// <summary>
     /// Renders all enabled layers in priority order.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public void RenderAll(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    /// <param name="spriteBatcher">SpriteBatcher for rendering textures.</param>
+    public void RenderAll(SpriteBatch spriteBatcher)
     {
         EnsureSorted();
 
@@ -241,7 +240,7 @@ public class RenderLayerCollection
         {
             if (layer.Enabled)
             {
-                layer.Render(textureBatcher, fontRenderer);
+                layer.Render(spriteBatcher);
             }
         }
     }

@@ -1,4 +1,4 @@
-using SquidVox.Core.Data.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace SquidVox.Core.Interfaces.GameObjects;
 

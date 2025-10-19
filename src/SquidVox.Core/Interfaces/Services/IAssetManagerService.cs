@@ -1,6 +1,6 @@
 using FontStashSharp;
+using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Enums;
-using TrippyGL;
 using ShaderType = SquidVox.Core.Enums.ShaderType;
 
 namespace SquidVox.Core.Interfaces.Services;
@@ -24,13 +24,6 @@ public interface IAssetManagerService : IDisposable
     /// <param name="name">The name of the texture.</param>
     /// <returns>The texture if found, otherwise null.</returns>
     Texture2D GetTexture(string name);
-
-    /// <summary>
-    /// Gets a shader program by name.
-    /// </summary>
-    /// <param name="name">The name of the shader program.</param>
-    /// <returns>The shader program if found, otherwise null.</returns>
-    ShaderProgram GetShader(string name);
 
 
 

@@ -1,6 +1,6 @@
 using FontStashSharp.Interfaces;
-using Silk.NET.Maths;
-using TrippyGL;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace SquidVox.Core.Interfaces.GameObjects;
 
@@ -12,12 +12,12 @@ public interface ISVox2dRenderable
     /// <summary>
     /// Gets or sets the position of the 2D object (local position relative to parent).
     /// </summary>
-    Vector2D<float> Position { get; set; }
+    Vector2 Position { get; set; }
 
     /// <summary>
     /// Gets or sets the scale of the 2D object.
     /// </summary>
-    Vector2D<float> Scale { get; set; }
+    Vector2 Scale { get; set; }
 
     /// <summary>
     /// Gets or sets the rotation of the 2D object in radians.
@@ -28,12 +28,11 @@ public interface ISVox2dRenderable
     /// Gets or sets the size of the 2D object (used for scissor clipping).
     /// If Zero, no scissor clipping is applied.
     /// </summary>
-    Vector2D<float> Size { get; set; }
+    Vector2 Size { get; set; }
 
     /// <summary>
-    /// use fontRenderer to draw text and textureBatcher to draw textures
+    /// use spriteBatch to draw textures
     /// </summary>
-    /// <param name="textureBatcher"></param>
-    /// <param name="fontRenderer"></param>
-    void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer);
+    /// <param name="spriteBatch"></param>
+    void Render(SpriteBatch spriteBatch);
 }

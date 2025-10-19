@@ -1,5 +1,5 @@
 using FontStashSharp.Interfaces;
-using TrippyGL;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace SquidVox.Core.Scenes.Transitions;
 
@@ -22,9 +22,8 @@ public class CrossFadeTransition : SceneTransition
     /// <summary>
     /// Renders the cross-fade transition.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public override void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    public override void Render(SpriteBatch spriteBatch)
     {
         // Simple cross-fade: just render the new scene
         // For a proper cross-fade, you would need:
@@ -36,6 +35,6 @@ public class CrossFadeTransition : SceneTransition
         // The easing function provides smooth transition feel
         var easedProgress = EaseInOut(Progress);
 
-        ToScene?.Render(textureBatcher, fontRenderer);
+        ToScene?.Render(spriteBatch);
     }
 }

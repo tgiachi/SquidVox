@@ -1,6 +1,6 @@
 using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Enums;
-using TrippyGL;
 
 namespace SquidVox.Core.Interfaces.Rendering;
 
@@ -23,7 +23,6 @@ public interface IRenderableLayer
     /// <summary>
     /// Renders the layer content.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer);
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    void Render(SpriteBatch spriteBatch);
 }

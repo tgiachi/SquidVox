@@ -1,9 +1,9 @@
 using FontStashSharp.Interfaces;
-using Silk.NET.Input;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Collections;
-using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.GameObjects;
-using TrippyGL;
 
 namespace SquidVox.Core.Extensions.Collections;
 
@@ -18,7 +18,7 @@ public static class SvoxGameObjectCollectionExtensions
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public static void UpdateAll<T>(this SvoxGameObjectCollection<T> collection, GameTime gameTime)
+    public static void UpdateAll<T>(this SvoxGameObjectCollection<T> collection, Microsoft.Xna.Framework.GameTime gameTime)
         where T : class, ISVox2dDrawableGameObject
     {
         collection.CheckForZIndexChanges();
@@ -38,12 +38,10 @@ public static class SvoxGameObjectCollectionExtensions
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
     public static void RenderAll<T>(
         this SvoxGameObjectCollection<T> collection,
-        TextureBatcher textureBatcher,
-        IFontStashRenderer fontRenderer
+        SpriteBatch spriteBatch
     )
         where T : class, ISVox2dDrawableGameObject
     {
@@ -54,7 +52,7 @@ public static class SvoxGameObjectCollectionExtensions
             var gameObject = collection[i];
             if (gameObject.IsVisible)
             {
-                gameObject.Render(textureBatcher, fontRenderer);
+                gameObject.Render(spriteBatch);
             }
         }
     }
@@ -65,13 +63,11 @@ public static class SvoxGameObjectCollectionExtensions
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
     /// <param name="gameTime">Game timing information.</param>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
     public static void UpdateAndRenderAll<T>(
         this SvoxGameObjectCollection<T> collection,
         GameTime gameTime,
-        TextureBatcher textureBatcher,
-        IFontStashRenderer fontRenderer
+        SpriteBatch spriteBatch
     )
         where T : class, ISVox2dDrawableGameObject
     {
@@ -88,7 +84,7 @@ public static class SvoxGameObjectCollectionExtensions
 
             if (gameObject.IsVisible)
             {
-                gameObject.Render(textureBatcher, fontRenderer);
+                gameObject.Render(spriteBatch);
             }
         }
     }
@@ -103,7 +99,7 @@ public static class SvoxGameObjectCollectionExtensions
     /// <param name="maxZIndex">Maximum ZIndex (inclusive).</param>
     public static void UpdateRange<T>(
         this SvoxGameObjectCollection<T> collection,
-        GameTime gameTime,
+        Microsoft.Xna.Framework.GameTime gameTime,
         int minZIndex,
         int maxZIndex
     )
@@ -126,14 +122,12 @@ public static class SvoxGameObjectCollectionExtensions
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
     /// <param name="minZIndex">Minimum ZIndex (inclusive).</param>
     /// <param name="maxZIndex">Maximum ZIndex (inclusive).</param>
     public static void RenderRange<T>(
         this SvoxGameObjectCollection<T> collection,
-        TextureBatcher textureBatcher,
-        IFontStashRenderer fontRenderer,
+        SpriteBatch spriteBatch,
         int minZIndex,
         int maxZIndex
     )
@@ -146,7 +140,7 @@ public static class SvoxGameObjectCollectionExtensions
             var gameObject = collection[i];
             if (gameObject.IsVisible && gameObject.ZIndex >= minZIndex && gameObject.ZIndex <= maxZIndex)
             {
-                gameObject.Render(textureBatcher, fontRenderer);
+                gameObject.Render(spriteBatch);
             }
         }
     }
@@ -344,7 +338,7 @@ public static class SvoxGameObjectCollectionExtensions
     /// <param name="collection">Collection of game objects.</param>
     /// <param name="gameTime">Game timing information.</param>
     /// <param name="zIndex">Exact ZIndex to update.</param>
-    public static void UpdateLayer<T>(this SvoxGameObjectCollection<T> collection, GameTime gameTime, int zIndex)
+    public static void UpdateLayer<T>(this SvoxGameObjectCollection<T> collection, Microsoft.Xna.Framework.GameTime gameTime, int zIndex)
         where T : class, ISVox2dDrawableGameObject
     {
         collection.CheckForZIndexChanges();
@@ -364,13 +358,11 @@ public static class SvoxGameObjectCollectionExtensions
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
     /// <param name="zIndex">Exact ZIndex to render.</param>
     public static void RenderLayer<T>(
         this SvoxGameObjectCollection<T> collection,
-        TextureBatcher textureBatcher,
-        IFontStashRenderer fontRenderer,
+        SpriteBatch spriteBatch,
         int zIndex
     )
         where T : class, ISVox2dDrawableGameObject
@@ -382,7 +374,7 @@ public static class SvoxGameObjectCollectionExtensions
             var gameObject = collection[i];
             if (gameObject.IsVisible && gameObject.ZIndex == zIndex)
             {
-                gameObject.Render(textureBatcher, fontRenderer);
+                gameObject.Render(spriteBatch);
             }
         }
     }
@@ -652,16 +644,16 @@ public static class SvoxGameObjectCollectionExtensions
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
-    /// <param name="keyboard">The keyboard device.</param>
+    /// <param name="keyboardState">The current keyboard state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public static void HandleKeyboardInput<T>(this SvoxGameObjectCollection<T> collection, IKeyboard keyboard, GameTime gameTime)
+    public static void HandleKeyboardInput<T>(this SvoxGameObjectCollection<T> collection, KeyboardState keyboardState, Microsoft.Xna.Framework.GameTime gameTime)
         where T : class, ISVox2dDrawableGameObject
     {
         for (var i = 0; i < collection.Count; i++)
         {
             if (collection[i] is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
             {
-                inputReceiver.HandleKeyboard(keyboard, gameTime);
+                inputReceiver.HandleKeyboard(keyboardState, gameTime);
             }
         }
     }
@@ -671,16 +663,16 @@ public static class SvoxGameObjectCollectionExtensions
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
-    /// <param name="mouse">The mouse device.</param>
+    /// <param name="mouseState">The current mouse state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public static void HandleMouseInput<T>(this SvoxGameObjectCollection<T> collection, IMouse mouse, GameTime gameTime)
+    public static void HandleMouseInput<T>(this SvoxGameObjectCollection<T> collection, MouseState mouseState, Microsoft.Xna.Framework.GameTime gameTime)
         where T : class, ISVox2dDrawableGameObject
     {
         for (var i = 0; i < collection.Count; i++)
         {
             if (collection[i] is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
             {
-                inputReceiver.HandleMouse(mouse, gameTime);
+                inputReceiver.HandleMouse(mouseState, gameTime);
             }
         }
     }
@@ -690,14 +682,14 @@ public static class SvoxGameObjectCollectionExtensions
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
-    /// <param name="keyboard">The keyboard device.</param>
-    /// <param name="mouse">The mouse device.</param>
+    /// <param name="keyboardState">The current keyboard state.</param>
+    /// <param name="mouseState">The current mouse state.</param>
     /// <param name="gameTime">Game timing information.</param>
     public static void HandleInput<T>(
         this SvoxGameObjectCollection<T> collection,
-        IKeyboard keyboard,
-        IMouse mouse,
-        GameTime gameTime
+        KeyboardState keyboardState,
+        MouseState mouseState,
+        Microsoft.Xna.Framework.GameTime gameTime
     )
         where T : class, ISVox2dDrawableGameObject
     {
@@ -705,8 +697,8 @@ public static class SvoxGameObjectCollectionExtensions
         {
             if (collection[i] is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
             {
-                inputReceiver.HandleKeyboard(keyboard, gameTime);
-                inputReceiver.HandleMouse(mouse, gameTime);
+                inputReceiver.HandleKeyboard(keyboardState, gameTime);
+                inputReceiver.HandleMouse(mouseState, gameTime);
             }
         }
     }

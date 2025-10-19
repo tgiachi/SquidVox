@@ -1,6 +1,6 @@
 using System.Drawing;
 using System.Numerics;
-using TrippyGL;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace SquidVox.Core;
 
@@ -29,13 +29,5 @@ public static class ColorExtensions
         return new Rectangle(r.X, r.Y, (int)r.Width, (int)r.Height);
     }
 
-    /// <summary>
-    /// Converts a Rectangle to a Viewport.
-    /// </summary>
-    /// <param name="r">The rectangle to convert.</param>
-    /// <returns>A Viewport representation of the rectangle.</returns>
-    public static Viewport ToTrippy(this Rectangle r)
-    {
-        return new Viewport(r);
-    }
+
 }

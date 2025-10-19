@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using SquidVox.Core.Collections;
-using SquidVox.Core.Data.Graphics;
+using Microsoft.Xna.Framework;
 using SquidVox.Core.Extensions.Collections;
 using SquidVox.Tests.TestHelpers;
 

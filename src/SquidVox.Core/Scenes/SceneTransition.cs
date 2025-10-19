@@ -1,8 +1,7 @@
 using FontStashSharp.Interfaces;
-using Silk.NET.Maths;
-using SquidVox.Core.Data.Graphics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.Interfaces.Scenes;
-using TrippyGL;
 
 namespace SquidVox.Core.Scenes;
 
@@ -14,12 +13,12 @@ public abstract class SceneTransition : ISVoxSceneTransition
     /// <summary>
     /// Gets or sets the position (not used for transitions, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
+    public virtual Vector2 Position { get; set; } = Vector2.Zero;
 
     /// <summary>
     /// Gets or sets the scale (not used for transitions, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
+    public virtual Vector2 Scale { get; set; } = Vector2.One;
 
     /// <summary>
     /// Gets or sets the rotation (not used for transitions, included for ISVox2dRenderable compliance).
@@ -29,7 +28,7 @@ public abstract class SceneTransition : ISVoxSceneTransition
     /// <summary>
     /// Gets or sets the size (not used for transitions, included for ISVox2dRenderable compliance).
     /// </summary>
-    public virtual Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
+    public virtual Vector2 Size { get; set; } = Vector2.Zero;
 
     /// <summary>
     /// Gets the scene being transitioned from.
@@ -102,7 +101,7 @@ public abstract class SceneTransition : ISVoxSceneTransition
             return;
         }
 
-        _elapsedTime += (float)gameTime.DeltaTime;
+        _elapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
         Progress = Math.Clamp(_elapsedTime / Duration, 0f, 1f);
 
         OnUpdate(gameTime);
@@ -118,9 +117,8 @@ public abstract class SceneTransition : ISVoxSceneTransition
     /// <summary>
     /// Renders the transition.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public abstract void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer);
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    public abstract void Render(SpriteBatch spriteBatch);
 
     /// <summary>
     /// Disposes of resources used by the transition.

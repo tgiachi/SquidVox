@@ -1,5 +1,5 @@
-using Silk.NET.Input;
-using SquidVox.Core.Data.Graphics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace SquidVox.Core.Interfaces.GameObjects;
 
@@ -16,14 +16,14 @@ public interface ISVoxInputReceiver
     /// <summary>
     /// Handles keyboard input when the object has focus.
     /// </summary>
-    /// <param name="keyboard">The keyboard device.</param>
+    /// <param name="keyboardState">The current keyboard state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    void HandleKeyboard(IKeyboard keyboard, GameTime gameTime);
+    void HandleKeyboard(KeyboardState keyboardState, GameTime gameTime);
 
     /// <summary>
     /// Handles mouse input when the object has focus.
     /// </summary>
-    /// <param name="mouse">The mouse device.</param>
+    /// <param name="mouseState">The current mouse state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    void HandleMouse(IMouse mouse, GameTime gameTime);
+    void HandleMouse(MouseState mouseState, GameTime gameTime);
 }

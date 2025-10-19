@@ -1,8 +1,8 @@
 using FontStashSharp.Interfaces;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Silk.NET.Input;
-using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Interfaces.Scenes;
-using TrippyGL;
 
 namespace SquidVox.Core.Interfaces.Services;
 
@@ -81,9 +81,8 @@ public interface ISceneManager : IDisposable
     /// <summary>
     /// Renders the current scene or transition.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer);
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    void Render(SpriteBatch spriteBatch);
 
     /// <summary>
     /// Handles keyboard input for the current scene.

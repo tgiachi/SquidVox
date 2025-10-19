@@ -1,12 +1,10 @@
 using FontStashSharp.Interfaces;
-using Silk.NET.Input;
-using Silk.NET.Maths;
-using Silk.NET.OpenGL;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Collections;
-using SquidVox.Core.Data.Graphics;
 using SquidVox.Core.Extensions.Collections;
 using SquidVox.Core.Interfaces.GameObjects;
-using TrippyGL;
 
 namespace SquidVox.Core.GameObjects;
 
@@ -38,14 +36,14 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     public virtual bool IsVisible { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the local position of the game object (relative to parent).
+    /// Gets or sets the position of the game object (local position relative to parent).
     /// </summary>
-    public virtual Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
+    public virtual Vector2 Position { get; set; } = Vector2.Zero;
 
     /// <summary>
     /// Gets or sets the scale of the game object.
     /// </summary>
-    public virtual Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
+    public virtual Vector2 Scale { get; set; } = Vector2.One;
 
     /// <summary>
     /// Gets or sets the rotation of the game object in radians.
@@ -56,7 +54,7 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// Gets or sets the size of the game object (used for scissor clipping).
     /// If Zero, no scissor clipping is applied.
     /// </summary>
-    public virtual Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
+    public virtual Vector2 Size { get; set; } = Vector2.Zero;
 
     /// <summary>
     /// Gets the children of this game object.
@@ -78,7 +76,7 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// This considers the position of all parent objects in the hierarchy.
     /// </summary>
     /// <returns>The absolute position in world space.</returns>
-    public Vector2D<float> GetAbsolutePosition()
+    public Vector2 GetAbsolutePosition()
     {
         if (Parent == null)
         {
@@ -106,7 +104,7 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// This considers the scale of all parent objects in the hierarchy.
     /// </summary>
     /// <returns>The absolute scale in world space.</returns>
-    public Vector2D<float> GetAbsoluteScale()
+    public Vector2 GetAbsoluteScale()
     {
         if (Parent == null)
         {
@@ -209,7 +207,7 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// Updates the game object and all its children.
     /// </summary>
     /// <param name="gameTime">Game timing information.</param>
-    public virtual void Update(GameTime gameTime)
+    public virtual void Update(Microsoft.Xna.Framework.GameTime gameTime)
     {
         if (!IsEnabled)
         {
@@ -225,9 +223,8 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// <summary>
     /// Renders the game object and all its visible children.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    public virtual void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    public virtual void Render(SpriteBatch spriteBatch)
     {
         if (!IsVisible)
         {
@@ -236,100 +233,85 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
 
         // Apply scissor test if Size is set
         bool useScissor = Size.X > 0 && Size.Y > 0;
-        bool wasScissorEnabled = false;
-        Span<int> previousScissor = stackalloc int[4];
+        Rectangle previousScissorRect = Rectangle.Empty;
+        RasterizerState previousRasterizerState = null!;
 
         if (useScissor)
         {
-            var gl = textureBatcher.GraphicsDevice.GL;
+            var graphicsDevice = spriteBatch.GraphicsDevice;
 
             // Save previous scissor state
-            wasScissorEnabled = gl.IsEnabled(EnableCap.ScissorTest);
-            if (wasScissorEnabled)
-            {
-                gl.GetInteger(GetPName.ScissorBox, previousScissor);
-            }
+            previousScissorRect = graphicsDevice.ScissorRectangle;
+            previousRasterizerState = graphicsDevice.RasterizerState;
 
             // Calculate absolute position for scissor rectangle
             var absolutePos = GetAbsolutePosition();
-            var viewport = textureBatcher.GraphicsDevice.Viewport;
+            var viewport = graphicsDevice.Viewport;
 
-            // Convert from top-left to bottom-left coordinate system
+            // In MonoGame, scissor is top-left
             int x = (int)absolutePos.X;
-            int y = (int)(viewport.Height - absolutePos.Y - Size.Y);
+            int y = (int)absolutePos.Y;
             int width = (int)Size.X;
             int height = (int)Size.Y;
 
-            // Enable and set scissor test
-            gl.Enable(EnableCap.ScissorTest);
-            gl.Scissor(x, y, (uint)width, (uint)height);
+            // Set scissor rectangle
+            graphicsDevice.ScissorRectangle = new Rectangle(x, y, width, height);
+            graphicsDevice.RasterizerState = new RasterizerState { ScissorTestEnable = true };
         }
 
         try
         {
-            OnRender(textureBatcher, fontRenderer);
+            OnRender(spriteBatch);
 
             // Render all visible children using our optimized collection
-            _children.RenderAll(textureBatcher, fontRenderer);
+            _children.RenderAll(spriteBatch);
         }
         finally
         {
             // Restore previous scissor state
             if (useScissor)
             {
-                var gl = textureBatcher.GraphicsDevice.GL;
-
-                if (wasScissorEnabled)
-                {
-                    gl.Scissor(
-                        previousScissor[0],
-                        previousScissor[1],
-                        (uint)previousScissor[2],
-                        (uint)previousScissor[3]
-                    );
-                }
-                else
-                {
-                    gl.Disable(EnableCap.ScissorTest);
-                }
+                var graphicsDevice = spriteBatch.GraphicsDevice;
+                graphicsDevice.ScissorRectangle = previousScissorRect;
+                graphicsDevice.RasterizerState = previousRasterizerState;
             }
         }
     }
 
     /// <summary>
-    /// Handles keyboard input for this game object and its children.
+    /// Handles keyboard input when the game object has focus.
     /// </summary>
-    /// <param name="keyboard">The keyboard device.</param>
+    /// <param name="keyboardState">The current keyboard state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public virtual void HandleKeyboard(IKeyboard keyboard, GameTime gameTime)
+    public virtual void HandleKeyboard(KeyboardState keyboardState, Microsoft.Xna.Framework.GameTime gameTime)
     {
         if (!HasFocus || !IsEnabled)
         {
             return;
         }
 
-        OnHandleKeyboard(keyboard, gameTime);
+        OnHandleKeyboard(keyboardState, gameTime);
 
         // Propagate input to children using our optimized collection
-        _children.HandleKeyboardInput(keyboard, gameTime);
+        _children.HandleKeyboardInput(keyboardState, gameTime);
     }
 
     /// <summary>
     /// Handles mouse input for this game object and its children.
     /// </summary>
-    /// <param name="mouse">The mouse device.</param>
+    /// <param name="mouseState">The current mouse state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    public virtual void HandleMouse(IMouse mouse, GameTime gameTime)
+    public virtual void HandleMouse(MouseState mouseState, Microsoft.Xna.Framework.GameTime gameTime)
     {
         if (!HasFocus || !IsEnabled)
         {
             return;
         }
 
-        OnHandleMouse(mouse, gameTime);
+        OnHandleMouse(mouseState, gameTime);
 
         // Propagate input to children using our optimized collection
-        _children.HandleMouseInput(mouse, gameTime);
+        _children.HandleMouseInput(mouseState, gameTime);
     }
 
     /// <summary>
@@ -345,9 +327,8 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// Called during Render() before children are rendered.
     /// Override this to add custom rendering logic.
     /// </summary>
-    /// <param name="textureBatcher">TextureBatcher for rendering textures.</param>
-    /// <param name="fontRenderer">Font renderer for drawing text.</param>
-    protected virtual void OnRender(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
+    protected virtual void OnRender(SpriteBatch spriteBatch)
     {
     }
 
@@ -355,9 +336,9 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// Called during HandleKeyboard() before children handle keyboard input.
     /// Override this to add custom keyboard handling logic.
     /// </summary>
-    /// <param name="keyboard">The keyboard device.</param>
+    /// <param name="keyboardState">The current keyboard state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    protected virtual void OnHandleKeyboard(IKeyboard keyboard, GameTime gameTime)
+    protected virtual void OnHandleKeyboard(KeyboardState keyboardState, Microsoft.Xna.Framework.GameTime gameTime)
     {
     }
 
@@ -365,9 +346,9 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     /// Called during HandleMouse() before children handle mouse input.
     /// Override this to add custom mouse handling logic.
     /// </summary>
-    /// <param name="mouse">The mouse device.</param>
+    /// <param name="mouseState">The current mouse state.</param>
     /// <param name="gameTime">Game timing information.</param>
-    protected virtual void OnHandleMouse(IMouse mouse, GameTime gameTime)
+    protected virtual void OnHandleMouse(MouseState mouseState, Microsoft.Xna.Framework.GameTime gameTime)
     {
     }
 

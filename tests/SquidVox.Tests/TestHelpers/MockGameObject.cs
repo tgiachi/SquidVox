@@ -1,8 +1,7 @@
-using FontStashSharp.Interfaces;
-using Silk.NET.Maths;
-using SquidVox.Core.Data.Graphics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Interfaces.GameObjects;
-using TrippyGL;
 
 namespace SquidVox.Tests.TestHelpers;
 
@@ -15,10 +14,10 @@ public class MockGameObject : ISVox2dDrawableGameObject
     public int ZIndex { get; set; }
     public bool IsEnabled { get; set; } = true;
     public bool IsVisible { get; set; } = true;
-    public Vector2D<float> Position { get; set; } = Vector2D<float>.Zero;
-    public Vector2D<float> Scale { get; set; } = Vector2D<float>.One;
+    public Vector2 Position { get; set; } = Vector2.Zero;
+    public Vector2 Scale { get; set; } = Vector2.One;
     public float Rotation { get; set; }
-    public Vector2D<float> Size { get; set; } = Vector2D<float>.Zero;
+    public Vector2 Size { get; set; } = Vector2.Zero;
     public IEnumerable<ISVoxObject> Children => _children;
     public ISVoxObject? Parent { get; set; }
 
@@ -39,12 +38,12 @@ public class MockGameObject : ISVox2dDrawableGameObject
         child.Parent = null;
     }
 
-    public void Update(GameTime gameTime)
+    public void Update(Microsoft.Xna.Framework.GameTime gameTime)
     {
         UpdateCallCount++;
     }
 
-    public void Render(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+    public void Render(SpriteBatch spriteBatch)
     {
         RenderCallCount++;
     }
@@ -72,12 +71,12 @@ public class MockInputGameObject : MockGameObject, ISVoxInputReceiver
     public int KeyboardHandleCount { get; private set; }
     public int MouseHandleCount { get; private set; }
 
-    public void HandleKeyboard(Silk.NET.Input.IKeyboard keyboard, GameTime gameTime)
+    public void HandleKeyboard(KeyboardState keyboardState, Microsoft.Xna.Framework.GameTime gameTime)
     {
         KeyboardHandleCount++;
     }
 
-    public void HandleMouse(Silk.NET.Input.IMouse mouse, GameTime gameTime)
+    public void HandleMouse(MouseState mouseState, Microsoft.Xna.Framework.GameTime gameTime)
     {
         MouseHandleCount++;
     }

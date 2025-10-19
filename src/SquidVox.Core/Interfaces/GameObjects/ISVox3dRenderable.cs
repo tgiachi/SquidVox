@@ -1,5 +1,5 @@
+using Microsoft.Xna.Framework.Graphics;
 using Silk.NET.Maths;
-using TrippyGL;
 
 namespace SquidVox.Core.Interfaces.GameObjects;
 

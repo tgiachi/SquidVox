@@ -67,21 +67,6 @@ public class AssetManagerService : IAssetManagerService
         return null;
     }
 
-    /// <summary>
-    /// Gets a shader program by name.
-    /// </summary>
-    /// <param name="name">The name of the shader program.</param>
-    /// <returns>The shader program if found, otherwise null.</returns>
-    public ShaderProgram GetShader(string name)
-    {
-        if (_shaderPrograms.TryGetValue(name, out var shaderProgram))
-        {
-            return shaderProgram;
-        }
-
-        _logger.Warning("Shader {Name} not found", name);
-        return null;
-    }
 
     /// <summary>
     /// Gets a tile from a texture atlas by index.

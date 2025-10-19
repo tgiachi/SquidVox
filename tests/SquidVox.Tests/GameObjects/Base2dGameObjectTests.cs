@@ -1,9 +1,7 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using NUnit.Framework;
-using Silk.NET.Maths;
 using SquidVox.Core.GameObjects;
-using SquidVox.Core.Data.Graphics;
-using FontStashSharp.Interfaces;
-using TrippyGL;
 
 namespace SquidVox.Tests.GameObjects;
 
@@ -23,7 +21,7 @@ public class Base2dGameObjectTests
             OnUpdateCallCount++;
         }
 
-        protected override void OnRender(TextureBatcher textureBatcher, IFontStashRenderer fontRenderer)
+        protected override void OnRender(SpriteBatch spriteBatch)
         {
             OnRenderCallCount++;
         }
@@ -40,8 +38,8 @@ public class Base2dGameObjectTests
         Assert.That(gameObject.ZIndex, Is.EqualTo(0));
         Assert.That(gameObject.IsEnabled, Is.True);
         Assert.That(gameObject.IsVisible, Is.True);
-        Assert.That(gameObject.Position, Is.EqualTo(Vector2D<float>.Zero));
-        Assert.That(gameObject.Scale, Is.EqualTo(Vector2D<float>.One));
+        Assert.That(gameObject.Position, Is.EqualTo(Vector2.Zero));
+        Assert.That(gameObject.Scale, Is.EqualTo(Vector2.One));
         Assert.That(gameObject.Rotation, Is.EqualTo(0f));
         Assert.That(gameObject.Parent, Is.Null);
         Assert.That(gameObject.HasFocus, Is.False);
@@ -54,14 +52,14 @@ public class Base2dGameObjectTests
         // Arrange
         var gameObject = new TestGameObject
         {
-            Position = new Vector2D<float>(10, 20)
+            Position = new Vector2(10, 20)
         };
 
         // Act
         var absolutePosition = gameObject.GetAbsolutePosition();
 
         // Assert
-        Assert.That(absolutePosition, Is.EqualTo(new Vector2D<float>(10, 20)));
+        Assert.That(absolutePosition, Is.EqualTo(new Vector2(10, 20)));
     }
 
     [Test]
@@ -70,12 +68,12 @@ public class Base2dGameObjectTests
         // Arrange
         var parent = new TestGameObject
         {
-            Position = new Vector2D<float>(100, 200)
+            Position = new Vector2(100, 200)
         };
 
         var child = new TestGameObject
         {
-            Position = new Vector2D<float>(10, 20)
+            Position = new Vector2(10, 20)
         };
 
         parent.AddChild(child);
@@ -84,7 +82,7 @@ public class Base2dGameObjectTests
         var absolutePosition = child.GetAbsolutePosition();
 
         // Assert
-        Assert.That(absolutePosition, Is.EqualTo(new Vector2D<float>(110, 220)));
+        Assert.That(absolutePosition, Is.EqualTo(new Vector2(110, 220)));
     }
 
     [Test]
@@ -93,17 +91,17 @@ public class Base2dGameObjectTests
         // Arrange
         var grandParent = new TestGameObject
         {
-            Position = new Vector2D<float>(100, 100)
+            Position = new Vector2(100, 100)
         };
 
         var parent = new TestGameObject
         {
-            Position = new Vector2D<float>(50, 50)
+            Position = new Vector2(50, 50)
         };
 
         var child = new TestGameObject
         {
-            Position = new Vector2D<float>(10, 10)
+            Position = new Vector2(10, 10)
         };
 
         grandParent.AddChild(parent);
@@ -114,7 +112,7 @@ public class Base2dGameObjectTests
 
         // Assert
         // 100 + 50 + 10 = 160, 100 + 50 + 10 = 160
-        Assert.That(absolutePosition, Is.EqualTo(new Vector2D<float>(160, 160)));
+        Assert.That(absolutePosition, Is.EqualTo(new Vector2(160, 160)));
     }
 
     [Test]
@@ -123,14 +121,14 @@ public class Base2dGameObjectTests
         // Arrange
         var gameObject = new TestGameObject
         {
-            Scale = new Vector2D<float>(2, 3)
+            Scale = new Vector2(2, 3)
         };
 
         // Act
         var absoluteScale = gameObject.GetAbsoluteScale();
 
         // Assert
-        Assert.That(absoluteScale, Is.EqualTo(new Vector2D<float>(2, 3)));
+        Assert.That(absoluteScale, Is.EqualTo(new Vector2(2, 3)));
     }
 
     [Test]
@@ -139,12 +137,12 @@ public class Base2dGameObjectTests
         // Arrange
         var parent = new TestGameObject
         {
-            Scale = new Vector2D<float>(2, 2)
+            Scale = new Vector2(2, 2)
         };
 
         var child = new TestGameObject
         {
-            Scale = new Vector2D<float>(0.5f, 0.5f)
+            Scale = new Vector2(0.5f, 0.5f)
         };
 
         parent.AddChild(child);
@@ -153,7 +151,7 @@ public class Base2dGameObjectTests
         var absoluteScale = child.GetAbsoluteScale();
 
         // Assert
-        Assert.That(absoluteScale, Is.EqualTo(new Vector2D<float>(1, 1)));
+        Assert.That(absoluteScale, Is.EqualTo(new Vector2(1, 1)));
     }
 
     [Test]
@@ -297,7 +295,7 @@ public class Base2dGameObjectTests
         var gameObject = new TestGameObject { IsVisible = false };
 
         // Act
-        gameObject.Render(null!, null!);
+        gameObject.Render(null!);
 
         // Assert
         Assert.That(gameObject.OnRenderCallCount, Is.EqualTo(0));
@@ -310,7 +308,7 @@ public class Base2dGameObjectTests
         var gameObject = new TestGameObject { IsVisible = true };
 
         // Act
-        gameObject.Render(null!, null!);
+        gameObject.Render(null!);
 
         // Assert
         Assert.That(gameObject.OnRenderCallCount, Is.EqualTo(1));
@@ -328,7 +326,7 @@ public class Base2dGameObjectTests
         parent.AddChild(child2);
 
         // Act
-        parent.Render(null!, null!);
+        parent.Render(null!);
 
         // Assert
         Assert.That(child1.OnRenderCallCount, Is.EqualTo(1));
