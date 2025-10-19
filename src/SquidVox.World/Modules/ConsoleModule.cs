@@ -17,8 +17,9 @@ public class ConsoleModule
     }
 
     [ScriptFunction(functionName: "log")]
-    public void Log(string message)
+    public void Log(params object[] args)
     {
+        var message = string.Join(" ", args.Select(FormatArg));
         _logger.Information("[Console] {Message}", message);
     }
 

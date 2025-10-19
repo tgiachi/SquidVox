@@ -531,11 +531,45 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
                 try
                 {
                     var parameters = method.GetParameters();
-                    var convertedArgs = new object[parameters.Length];
 
-                    for (var i = 0; i < parameters.Length && i < args.Count; i++)
+                    // Check if the last parameter is a params array
+                    var hasParamsArray = parameters.Length > 0 &&
+                                        parameters[^1].IsDefined(typeof(ParamArrayAttribute), false);
+
+                    object?[] convertedArgs;
+
+                    if (hasParamsArray)
                     {
-                        convertedArgs[i] = ConvertFromLua(args[i], parameters[i].ParameterType);
+                        var regularParamsCount = parameters.Length - 1;
+                        convertedArgs = new object?[parameters.Length];
+
+                        // Convert regular parameters
+                        for (var i = 0; i < regularParamsCount && i < args.Count; i++)
+                        {
+                            convertedArgs[i] = ConvertFromLua(args[i], parameters[i].ParameterType);
+                        }
+
+                        // Collect remaining arguments into params array
+                        var paramsArrayType = parameters[^1].ParameterType.GetElementType()!;
+                        var paramsCount = Math.Max(0, args.Count - regularParamsCount);
+                        var paramsArray = Array.CreateInstance(paramsArrayType, paramsCount);
+
+                        for (var i = 0; i < paramsCount; i++)
+                        {
+                            var argIndex = regularParamsCount + i;
+                            paramsArray.SetValue(ConvertFromLua(args[argIndex], paramsArrayType), i);
+                        }
+
+                        convertedArgs[^1] = paramsArray;
+                    }
+                    else
+                    {
+                        // Normal parameter handling
+                        convertedArgs = new object?[parameters.Length];
+                        for (var i = 0; i < parameters.Length && i < args.Count; i++)
+                        {
+                            convertedArgs[i] = ConvertFromLua(args[i], parameters[i].ParameterType);
+                        }
                     }
 
                     var result = method.Invoke(instance, convertedArgs);
