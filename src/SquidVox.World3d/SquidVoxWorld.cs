@@ -63,17 +63,18 @@ public class SquidVoxWorld : Game
         _renderLayers.Add(new GameObjectRenderLayer());
         _renderLayers.Add(new SceneRenderLayer());
 
-        _renderLayers.GetLayer<GameObjectRenderLayer>().AddGameObject(new TextGameObject("Hello World")
-        {
-            Position = new Vector2(50, 50),
-            FontSize = 24,
-            Color = Color.Red
-        });
+        _renderLayers.GetLayer<GameObjectRenderLayer>()
+            .AddGameObject(
+                new TextGameObject("Hello World")
+                {
+                    Position = new Vector2(50, 50),
+                    FontSize = 24,
+                    Color = Color.Red
+                }
+            );
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
         scriptEngine.StartAsync().GetAwaiter().GetResult();
-
-
     }
 
     protected override void Update(GameTime gameTime)
@@ -88,7 +89,6 @@ public class SquidVoxWorld : Game
         _renderLayers.HandleKeyboardAll(Keyboard.GetState(), gameTime);
         _renderLayers.HandleMouseAll(Mouse.GetState(), gameTime);
 
-        // TODO: Add your update logic here
 
         _renderLayers.UpdateAll(gameTime);
 
@@ -97,11 +97,10 @@ public class SquidVoxWorld : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(SquidVoxGraphicContext.ClearColor);
 
         _renderLayers.RenderAll(_spriteBatch);
 
-        // TODO: Add your drawing code here
 
         base.Draw(gameTime);
     }
