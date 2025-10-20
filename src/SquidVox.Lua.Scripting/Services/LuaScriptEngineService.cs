@@ -15,10 +15,14 @@ using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Strings;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Json;
+using SquidVox.Core.Utils;
 using SquidVox.Lua.Scripting.Data;
 using SquidVox.Lua.Scripting.Data.Container;
 using SquidVox.Lua.Scripting.Loaders;
 using SquidVox.Lua.Scripting.Utils;
+
+#pragma warning disable IL2026 // RequiresUnreferencedCode - Lua scripting uses reflection for dynamic functionality
+#pragma warning disable IL2072 // DynamicallyAccessedMemberTypes - Reflection access is necessary for scripting
 
 namespace SquidVox.Lua.Scripting.Services;
 

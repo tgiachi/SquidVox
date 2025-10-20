@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.World3d.Context;
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace SquidVox.World3d.GameObjects;
 
@@ -25,12 +26,16 @@ public sealed class TextGameObject : Base2dGameObject
     /// <param name="fontSize">The font size.</param>
     /// <param name="position">The relative position of the text.</param>
     /// <param name="color">The color of the text.</param>
+    /// <param name="isStroked">Whether the text should be stroked.</param>
+    /// <param name="isBlurry">Whether the text should be blurry.</param>
     public TextGameObject(
         string text = "Text",
         string fontName = "Monocraft",
         int fontSize = 14,
         Vector2? position = null,
-        Color? color = null
+        Color? color = null,
+        bool isStroked = false,
+        bool isBlurry = false
     )
     {
         _text = text ?? string.Empty;
@@ -38,6 +43,8 @@ public sealed class TextGameObject : Base2dGameObject
         FontName = fontName;
         Position = position ?? Vector2.Zero;
         Color = color ?? Color.White;
+        IsStroked = isStroked;
+        IsBlurry = isBlurry;
 
         LoadFont();
         UpdateSize();
@@ -88,8 +95,31 @@ public sealed class TextGameObject : Base2dGameObject
 
     /// <summary>
     /// Gets or sets the opacity of the text (0.0 to 1.0).
+    /// Setting to 0.0 will also set IsVisible to false for optimization.
     /// </summary>
-    public float Opacity { get; set; } = 1.0f;
+    public float Opacity
+    {
+        get => _opacity;
+        set
+        {
+            _opacity = MathHelper.Clamp(value, 0.0f, 1.0f);
+            if (_opacity == 0.0f)
+            {
+                IsVisible = false;
+            }
+        }
+    }
+    private float _opacity = 1.0f;
+
+    /// <summary>
+    /// Gets or sets whether the text should be stroked.
+    /// </summary>
+    public bool IsStroked { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the text should be blurry.
+    /// </summary>
+    public bool IsBlurry { get; set; }
 
     /// <summary>
     /// Draws the text content.
@@ -103,9 +133,22 @@ public sealed class TextGameObject : Base2dGameObject
         }
 
         var absolutePosition = GetAbsolutePosition();
-        var drawColor = Color * Opacity;
+        var drawColor = Color * _opacity;
 
-        spriteBatch.DrawString(_font, _text, absolutePosition, drawColor);
+        var effect = FontSystemEffect.None;
+        if (IsStroked)
+        {
+            effect |= FontSystemEffect.Stroked;
+        }
+
+        if (IsBlurry)
+        {
+            effect |= FontSystemEffect.Blurry;
+        }
+
+        // Use rotation and scale from base class
+        var origin = Vector2.Zero; // Top-left origin
+        spriteBatch.DrawString(_font, _text, absolutePosition, drawColor, rotation: Rotation, origin: origin, scale: Scale, effect: effect, layerDepth: 0f);
     }
 
     /// <summary>

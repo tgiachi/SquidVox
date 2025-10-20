@@ -1,4 +1,5 @@
 using DryIoc;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -13,7 +14,7 @@ using SquidVox.World3d.Rendering;
 namespace SquidVox.World3d;
 
 /// <summary>
-/// 
+///
 /// </summary>
 public class SquidVoxWorld : Game
 {
@@ -23,7 +24,7 @@ public class SquidVoxWorld : Game
     private readonly RenderLayerCollection _renderLayers = new();
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public SquidVoxWorld(IContainer container)
     {
@@ -55,6 +56,9 @@ public class SquidVoxWorld : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+        FontSystemDefaults.FontResolutionFactor = 2.0f;
+        FontSystemDefaults.KernelWidth = 2;
+        FontSystemDefaults.KernelHeight = 2;
 
         _renderLayers.Add(new ImGuiRenderLayer(this));
         _renderLayers.Add(new GameObjectRenderLayer());
