@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.GameObjects.UI.Types;
@@ -22,7 +23,7 @@ public class ButtonGameObject : Base2dGameObject
 
     private MouseState _previousMouseState;
     private string _text;
-    private Texture2D? _whitePixel;
+
 
     /// <summary>
     /// Initializes a new Button game object
@@ -140,8 +141,7 @@ public class ButtonGameObject : Base2dGameObject
         LoadFont();
 
         // Create a 1x1 white pixel texture for drawing rectangles
-        _whitePixel = new Texture2D(graphicsDevice, 1, 1);
-        _whitePixel.SetData(new[] { Color.White });
+
 
         _isInitialized = true;
     }
@@ -310,7 +310,7 @@ public class ButtonGameObject : Base2dGameObject
     /// </summary>
     protected override void OnRender(SpriteBatch spriteBatch)
     {
-        if (!IsVisible || _whitePixel == null)
+        if (!IsVisible || SquidVoxGraphicContext.WhitePixel == null)
         {
             return;
         }
@@ -344,7 +344,7 @@ public class ButtonGameObject : Base2dGameObject
             // For now, draw as rectangle - rounded corners would be a future enhancement
         }
 
-        spriteBatch.Draw(_whitePixel, bounds, backgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, bounds, backgroundColor * Opacity);
     }
 
     /// <summary>
@@ -355,7 +355,7 @@ public class ButtonGameObject : Base2dGameObject
         var borderColor = GetCurrentBorderColor() * Opacity;
 
         // Top border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), borderColor);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), borderColor);
         // Bottom border
         spriteBatch.Draw(
             _whitePixel,
@@ -363,7 +363,7 @@ public class ButtonGameObject : Base2dGameObject
             borderColor
         );
         // Left border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), borderColor);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), borderColor);
         // Right border
         spriteBatch.Draw(
             _whitePixel,
