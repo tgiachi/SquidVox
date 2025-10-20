@@ -3,8 +3,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
+using SquidVox.GameObjects.UI.Events;
 using SquidVox.GameObjects.UI.Types;
 
 namespace SquidVox.GameObjects.UI.Controls;
@@ -27,7 +29,7 @@ public class CheckBoxGameObject : Base2dGameObject
 
     private MouseState _previousMouseState;
     private string _text;
-    private Texture2D? _whitePixel;
+
 
     /// <summary>
     /// Initializes a new CheckBox game object
@@ -204,9 +206,7 @@ public class CheckBoxGameObject : Base2dGameObject
         LoadFont();
         LoadTextures();
 
-        // Create a 1x1 white pixel texture for drawing rectangles
-        _whitePixel = new Texture2D(graphicsDevice, 1, 1);
-        _whitePixel.SetData(new[] { Color.White });
+
 
         // Recalculate size with loaded font
         RecalculateSize();
@@ -473,10 +473,6 @@ public class CheckBoxGameObject : Base2dGameObject
     /// </summary>
     private void DrawCheckMark(SpriteBatch spriteBatch, Rectangle checkBoxRect)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         var checkColor = IsEnabled ? CheckMarkColor : DisabledCheckMarkColor;
         var center = checkBoxRect.Center;
@@ -501,16 +497,12 @@ public class CheckBoxGameObject : Base2dGameObject
     /// </summary>
     private void DrawLine(SpriteBatch spriteBatch, Vector2 start, Vector2 end, int thickness, Color color)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         var distance = Vector2.Distance(start, end);
         var angle = (float)Math.Atan2(end.Y - start.Y, end.X - start.X);
 
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle((int)start.X, (int)start.Y - thickness / 2, (int)distance, thickness),
             null,
             color * Opacity,
@@ -526,13 +518,9 @@ public class CheckBoxGameObject : Base2dGameObject
     /// </summary>
     private void DrawCheckboxFallback(SpriteBatch spriteBatch, Rectangle checkBoxRect)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         // Draw checkbox background
-        spriteBatch.Draw(_whitePixel, checkBoxRect, GetBackgroundColor() * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, checkBoxRect, GetBackgroundColor() * Opacity);
 
         // Draw checkbox border
         if (BorderWidth > 0)
@@ -540,30 +528,30 @@ public class CheckBoxGameObject : Base2dGameObject
             var borderColor = GetBorderColor() * Opacity;
             var borderWidth = (int)BorderWidth;
 
-            // Top border
-            spriteBatch.Draw(
-                _whitePixel,
-                new Rectangle(checkBoxRect.X, checkBoxRect.Y, checkBoxRect.Width, borderWidth),
-                borderColor
-            );
-            // Bottom border
-            spriteBatch.Draw(
-                _whitePixel,
-                new Rectangle(checkBoxRect.X, checkBoxRect.Bottom - borderWidth, checkBoxRect.Width, borderWidth),
-                borderColor
-            );
-            // Left border
-            spriteBatch.Draw(
-                _whitePixel,
-                new Rectangle(checkBoxRect.X, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
-                borderColor
-            );
-            // Right border
-            spriteBatch.Draw(
-                _whitePixel,
-                new Rectangle(checkBoxRect.Right - borderWidth, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
-                borderColor
-            );
+        // Top border
+        spriteBatch.Draw(
+            SquidVoxGraphicContext.WhitePixel,
+            new Rectangle(checkBoxRect.X, checkBoxRect.Y, checkBoxRect.Width, borderWidth),
+            borderColor
+        );
+        // Bottom border
+        spriteBatch.Draw(
+            SquidVoxGraphicContext.WhitePixel,
+            new Rectangle(checkBoxRect.X, checkBoxRect.Bottom - borderWidth, checkBoxRect.Width, borderWidth),
+            borderColor
+        );
+        // Left border
+        spriteBatch.Draw(
+            SquidVoxGraphicContext.WhitePixel,
+            new Rectangle(checkBoxRect.X, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
+            borderColor
+        );
+        // Right border
+        spriteBatch.Draw(
+            SquidVoxGraphicContext.WhitePixel,
+            new Rectangle(checkBoxRect.Right - borderWidth, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
+            borderColor
+        );
         }
 
         // Draw check mark if checked

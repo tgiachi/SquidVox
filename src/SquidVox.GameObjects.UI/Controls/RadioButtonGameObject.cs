@@ -3,8 +3,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
+using SquidVox.GameObjects.UI.Events;
 using SquidVox.GameObjects.UI.Types;
 
 namespace SquidVox.GameObjects.UI.Controls;
@@ -28,7 +30,7 @@ public class RadioButtonGameObject : Base2dGameObject
     private Texture2D? _radioUncheckedTexture;
     private string _text;
     private string _value;
-    private Texture2D? _whitePixel;
+
 
     public RadioButtonGameObject(
         string text = "RadioButton",
@@ -61,8 +63,7 @@ public class RadioButtonGameObject : Base2dGameObject
         LoadFont();
         LoadTextures();
 
-        _whitePixel = new Texture2D(graphicsDevice, 1, 1);
-        _whitePixel.SetData(new[] { Color.White });
+
 
         RecalculateSize();
 
@@ -326,10 +327,6 @@ public class RadioButtonGameObject : Base2dGameObject
 
     private void DrawCircle(SpriteBatch spriteBatch, Vector2 center, float radius, Color color)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         var steps = Math.Max(16, (int)radius);
         for (var i = 0; i < steps; i++)
@@ -339,7 +336,7 @@ public class RadioButtonGameObject : Base2dGameObject
             var y = center.Y + (float)Math.Sin(angle) * (radius - 1);
 
             var pixelRect = new Rectangle((int)x, (int)y, 2, 2);
-            spriteBatch.Draw(_whitePixel, pixelRect, color);
+            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, pixelRect, color);
         }
 
         var centerSize = Math.Max(1, (int)(radius * 0.7f));
@@ -349,15 +346,11 @@ public class RadioButtonGameObject : Base2dGameObject
             centerSize,
             centerSize
         );
-        spriteBatch.Draw(_whitePixel, centerRect, color);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, centerRect, color);
     }
 
     private void DrawCircleOutline(SpriteBatch spriteBatch, Vector2 center, float radius, float thickness, Color color)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         var steps = Math.Max(16, (int)radius);
         for (var i = 0; i < steps; i++)
@@ -367,16 +360,12 @@ public class RadioButtonGameObject : Base2dGameObject
             var y = center.Y + (float)Math.Sin(angle) * radius;
 
             var pixelRect = new Rectangle((int)x, (int)y, (int)thickness, (int)thickness);
-            spriteBatch.Draw(_whitePixel, pixelRect, color);
+            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, pixelRect, color);
         }
     }
 
     private void DrawRadioButtonFallback(SpriteBatch spriteBatch, Vector2 center)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         DrawCircle(spriteBatch, center, RadioButtonSize / 2, GetBackgroundColor() * Opacity);
 

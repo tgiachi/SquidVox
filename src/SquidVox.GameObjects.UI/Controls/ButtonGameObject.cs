@@ -11,8 +11,18 @@ using SquidVox.GameObjects.UI.Types;
 namespace SquidVox.GameObjects.UI.Controls;
 
 /// <summary>
-/// Button game object with hover effects, click handling, and customizable styling
+/// Represents a button UI component that supports hover effects, click handling, and customizable styling.
+/// This class handles mouse interactions and provides visual feedback for different states (normal, hovered, pressed, disabled).
 /// </summary>
+/// <summary>
+/// Initializes a new Button game object.
+/// </summary>
+/// <param name="text">Button text.</param>
+/// <param name="width">Width of the button.</param>
+/// <param name="height">Height of the button.</param>
+/// <param name="fontName">Font name for text display.</param>
+/// <param name="fontSize">Font size for text display.</param>
+/// <param name="assetManagerService">Asset manager service for loading resources.</param>
 public class ButtonGameObject : Base2dGameObject
 {
     private readonly string _fontName;
@@ -34,14 +44,23 @@ public class ButtonGameObject : Base2dGameObject
     /// <param name="fontName">Font name for text display</param>
     /// <param name="fontSize">Font size for text display</param>
     /// <param name="assetManagerService">Asset manager service for loading resources</param>
-    public ButtonGameObject(
-        string text = "Button",
-        float width = 120f,
-        float height = 35f,
-        string fontName = "Monocraft",
-        int fontSize = 14,
-        IAssetManagerService? assetManagerService = null
-    )
+/// <summary>
+/// Initializes a new Button game object.
+/// </summary>
+/// <param name="text">Button text.</param>
+/// <param name="width">Width of the button.</param>
+/// <param name="height">Height of the button.</param>
+/// <param name="fontName">Font name for text display.</param>
+/// <param name="fontSize">Font size for text display.</param>
+/// <param name="assetManagerService">Asset manager service for loading resources.</param>
+public ButtonGameObject(
+    string text = "Button",
+    float width = 120f,
+    float height = 35f,
+    string fontName = "Monocraft",
+    int fontSize = 14,
+    IAssetManagerService? assetManagerService = null
+)
     {
         _text = text;
         Size = new Vector2(width, height);
@@ -56,7 +75,10 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Sets default color scheme
     /// </summary>
-    private void SetDefaultColors()
+    /// <summary>
+/// Sets default color scheme for the button.
+/// </summary>
+private void SetDefaultColors()
     {
         // Default button colors (similar to Windows/web buttons)
         NormalBackgroundColor = new Color(240, 240, 240);
@@ -130,7 +152,12 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Initializes the button resources
     /// </summary>
-    public void Initialize(IAssetManagerService assetManagerService, GraphicsDevice graphicsDevice)
+    /// <summary>
+/// Initializes the button resources.
+/// </summary>
+/// <param name="assetManagerService">Asset manager service for loading resources.</param>
+/// <param name="graphicsDevice">Graphics device for creating textures.</param>
+public void Initialize(IAssetManagerService assetManagerService, GraphicsDevice graphicsDevice)
     {
         if (_isInitialized)
         {
@@ -149,7 +176,10 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Loads the font for text display
     /// </summary>
-    private void LoadFont()
+    /// <summary>
+/// Loads the font for text display.
+/// </summary>
+private void LoadFont()
     {
         if (_assetManagerService == null)
         {
@@ -176,7 +206,11 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Updates the button state
     /// </summary>
-    protected override void OnUpdate(GameTime gameTime)
+    /// <summary>
+/// Updates the button state.
+/// </summary>
+/// <param name="gameTime">The elapsed game time.</param>
+protected override void OnUpdate(GameTime gameTime)
     {
         if (!IsEnabled)
         {
@@ -189,7 +223,10 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Handles mouse input for button interaction
     /// </summary>
-    private void HandleMouseInput()
+    /// <summary>
+/// Handles mouse input for button interaction.
+/// </summary>
+private void HandleMouseInput()
     {
         var currentMouseState = Mouse.GetState();
         var mousePosition = new Vector2(currentMouseState.X, currentMouseState.Y);
@@ -266,7 +303,11 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Gets the current background color based on button state
     /// </summary>
-    private Color GetCurrentBackgroundColor()
+    /// <summary>
+/// Gets the current background color based on button state.
+/// </summary>
+/// <returns>The background color for the current state.</returns>
+private Color GetCurrentBackgroundColor()
     {
         return CurrentState switch
         {
@@ -280,7 +321,11 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Gets the current text color based on button state
     /// </summary>
-    private Color GetCurrentTextColor()
+    /// <summary>
+/// Gets the current text color based on button state.
+/// </summary>
+/// <returns>The text color for the current state.</returns>
+private Color GetCurrentTextColor()
     {
         return CurrentState switch
         {
@@ -308,9 +353,13 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Renders the button
     /// </summary>
+    /// <summary>
+/// Renders the button.
+/// </summary>
+/// <param name="spriteBatch">The sprite batch for rendering.</param>
     protected override void OnRender(SpriteBatch spriteBatch)
     {
-        if (!IsVisible || SquidVoxGraphicContext.WhitePixel == null)
+        if (!IsVisible)
         {
             return;
         }
@@ -334,7 +383,12 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Draws the button background
     /// </summary>
-    private void DrawBackground(SpriteBatch spriteBatch, Rectangle bounds)
+    /// <summary>
+/// Draws the button background.
+/// </summary>
+/// <param name="spriteBatch">The sprite batch for rendering.</param>
+/// <param name="bounds">The bounds of the button.</param>
+private void DrawBackground(SpriteBatch spriteBatch, Rectangle bounds)
     {
         var backgroundColor = GetCurrentBackgroundColor();
 
@@ -350,7 +404,12 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Draws the button border
     /// </summary>
-    private void DrawBorder(SpriteBatch spriteBatch, Rectangle bounds)
+    /// <summary>
+/// Draws the button border.
+/// </summary>
+/// <param name="spriteBatch">The sprite batch for rendering.</param>
+/// <param name="bounds">The bounds of the button.</param>
+private void DrawBorder(SpriteBatch spriteBatch, Rectangle bounds)
     {
         var borderColor = GetCurrentBorderColor() * Opacity;
 
@@ -358,7 +417,7 @@ public class ButtonGameObject : Base2dGameObject
         spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), borderColor);
         // Bottom border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - BorderWidth, bounds.Width, BorderWidth),
             borderColor
         );
@@ -366,7 +425,7 @@ public class ButtonGameObject : Base2dGameObject
         spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), borderColor);
         // Right border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.Right - BorderWidth, bounds.Y, BorderWidth, bounds.Height),
             borderColor
         );
@@ -375,7 +434,12 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Draws the button text
     /// </summary>
-    private void DrawText(SpriteBatch spriteBatch, Rectangle bounds)
+    /// <summary>
+/// Draws the button text.
+/// </summary>
+/// <param name="spriteBatch">The sprite batch for rendering.</param>
+/// <param name="bounds">The bounds of the button.</param>
+private void DrawText(SpriteBatch spriteBatch, Rectangle bounds)
     {
         if (_font == null || string.IsNullOrEmpty(_text))
         {
@@ -408,7 +472,10 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Programmatically triggers a click event
     /// </summary>
-    public void PerformClick()
+    /// <summary>
+/// Programmatically triggers a click event.
+/// </summary>
+public void PerformClick()
     {
         if (IsEnabled)
         {
@@ -416,10 +483,10 @@ public class ButtonGameObject : Base2dGameObject
         }
     }
 
-    #region Properties
+
 
     /// <summary>
-    /// Text displayed on the button
+    /// Text displayed on the button.
     /// </summary>
     public string Text
     {
@@ -454,42 +521,66 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Background color in normal state
     /// </summary>
-    public Color NormalBackgroundColor { get; set; }
+    /// <summary>
+/// Background color in normal state.
+/// </summary>
+public Color NormalBackgroundColor { get; set; }
 
     /// <summary>
     /// Background color when hovered
     /// </summary>
-    public Color HoverBackgroundColor { get; set; }
+    /// <summary>
+/// Background color when hovered.
+/// </summary>
+public Color HoverBackgroundColor { get; set; }
 
     /// <summary>
     /// Background color when pressed
     /// </summary>
-    public Color PressedBackgroundColor { get; set; }
+    /// <summary>
+/// Background color when pressed.
+/// </summary>
+public Color PressedBackgroundColor { get; set; }
 
     /// <summary>
     /// Background color when disabled
     /// </summary>
-    public Color DisabledBackgroundColor { get; set; }
+    /// <summary>
+/// Background color when disabled.
+/// </summary>
+public Color DisabledBackgroundColor { get; set; }
 
     /// <summary>
     /// Text color in normal state
     /// </summary>
-    public Color NormalTextColor { get; set; }
+    /// <summary>
+/// Text color in normal state.
+/// </summary>
+public Color NormalTextColor { get; set; }
 
     /// <summary>
     /// Text color when hovered
     /// </summary>
-    public Color HoverTextColor { get; set; }
+    /// <summary>
+/// Text color when hovered.
+/// </summary>
+public Color HoverTextColor { get; set; }
 
     /// <summary>
     /// Text color when pressed
     /// </summary>
-    public Color PressedTextColor { get; set; }
+    /// <summary>
+/// Text color when pressed.
+/// </summary>
+public Color PressedTextColor { get; set; }
 
     /// <summary>
     /// Text color when disabled
     /// </summary>
-    public Color DisabledTextColor { get; set; }
+    /// <summary>
+/// Text color when disabled.
+/// </summary>
+public Color DisabledTextColor { get; set; }
 
     /// <summary>
     /// Border color in normal state
@@ -536,32 +627,49 @@ public class ButtonGameObject : Base2dGameObject
     /// <summary>
     /// Event fired when the button is clicked
     /// </summary>
-    public event EventHandler? Click;
+    /// <summary>
+/// Event fired when the button is clicked.
+/// </summary>
+public event EventHandler? Click;
 
     /// <summary>
     /// Event fired when mouse enters the button area
     /// </summary>
-    public event EventHandler? MouseEnter;
+    /// <summary>
+/// Event fired when mouse enters the button area.
+/// </summary>
+public event EventHandler? MouseEnter;
 
     /// <summary>
     /// Event fired when mouse leaves the button area
     /// </summary>
-    public event EventHandler? MouseLeave;
+    /// <summary>
+/// Event fired when mouse leaves the button area.
+/// </summary>
+public event EventHandler? MouseLeave;
 
     /// <summary>
     /// Event fired when mouse is pressed down on the button
     /// </summary>
-    public event EventHandler? MouseDown;
+    /// <summary>
+/// Event fired when mouse is pressed down on the button.
+/// </summary>
+public event EventHandler? MouseDown;
 
     /// <summary>
     /// Event fired when mouse is released on the button
     /// </summary>
-    public event EventHandler? MouseUp;
+    /// <summary>
+/// Event fired when mouse is released on the button.
+/// </summary>
+public event EventHandler? MouseUp;
 
     /// <summary>
     /// Event fired when button text changes
     /// </summary>
-    public event EventHandler? TextChanged;
+    /// <summary>
+/// Event fired when button text changes.
+/// </summary>
+public event EventHandler? TextChanged;
 
-    #endregion
 }

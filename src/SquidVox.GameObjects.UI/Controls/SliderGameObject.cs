@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.GameObjects.UI.Events;
@@ -30,7 +31,7 @@ public class SliderGameObject : Base2dGameObject
     private Texture2D? _thumbTexture;
     private Texture2D? _trackTexture;
     private float _value = 50f;
-    private Texture2D? _whitePixel;
+
 
     /// <summary>
     /// Initializes a new Slider game object
@@ -71,9 +72,7 @@ public class SliderGameObject : Base2dGameObject
         LoadFont();
         LoadTextures();
 
-        // Create a 1x1 white pixel texture for drawing rectangles
-        _whitePixel = new Texture2D(graphicsDevice, 1, 1);
-        _whitePixel.SetData(new[] { Color.White });
+
 
         // Recalculate size with loaded font
         RecalculateSize();
@@ -355,10 +354,6 @@ public class SliderGameObject : Base2dGameObject
 
     protected override void OnRender(SpriteBatch spriteBatch)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         DrawTrack(spriteBatch);
         DrawThumb(spriteBatch);
@@ -371,16 +366,12 @@ public class SliderGameObject : Base2dGameObject
 
     private void DrawTrack(SpriteBatch spriteBatch)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         var trackBounds = GetSliderBounds();
         var trackColor = IsEnabled ? TrackBackgroundColor : DisabledTrackColor;
 
         // Draw background track
-        spriteBatch.Draw(_whitePixel, trackBounds, trackColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, trackBounds, trackColor * Opacity);
 
         // Draw filled portion
         if (IsEnabled && _value > _minValue)
@@ -408,7 +399,7 @@ public class SliderGameObject : Base2dGameObject
                 );
             }
 
-            spriteBatch.Draw(_whitePixel, fillBounds, TrackFillColor * Opacity);
+            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, fillBounds, TrackFillColor * Opacity);
         }
     }
 
@@ -442,13 +433,9 @@ public class SliderGameObject : Base2dGameObject
 
     private void DrawThumbFallback(SpriteBatch spriteBatch, Rectangle thumbBounds)
     {
-        if (_whitePixel == null)
-        {
-            return;
-        }
 
         // Draw thumb background
-        spriteBatch.Draw(_whitePixel, thumbBounds, GetThumbColor() * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, thumbBounds, GetThumbColor() * Opacity);
 
         // Draw thumb border
         var borderColor = GetThumbBorderColor() * Opacity;
@@ -456,25 +443,25 @@ public class SliderGameObject : Base2dGameObject
 
         // Top border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(thumbBounds.X, thumbBounds.Y, thumbBounds.Width, borderWidth),
             borderColor
         );
         // Bottom border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(thumbBounds.X, thumbBounds.Bottom - borderWidth, thumbBounds.Width, borderWidth),
             borderColor
         );
         // Left border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(thumbBounds.X, thumbBounds.Y, borderWidth, thumbBounds.Height),
             borderColor
         );
         // Right border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(thumbBounds.Right - borderWidth, thumbBounds.Y, borderWidth, thumbBounds.Height),
             borderColor
         );

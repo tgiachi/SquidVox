@@ -14,7 +14,7 @@ public class BackgroundComponent
 
     public void Draw(SpriteBatch spriteBatch, Base2dGameObject parent)
     {
-        if (!parent.IsVisible || SquidVoxGraphicContext.WhitePixel == null) return;
+        if (!parent.IsVisible) return;
 
         var bounds = new Rectangle(
             (int)parent.GetAbsolutePosition().X,

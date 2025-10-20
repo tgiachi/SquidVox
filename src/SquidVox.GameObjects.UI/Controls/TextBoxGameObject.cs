@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.GameObjects.UI.Events;
@@ -37,7 +38,7 @@ public class TextBoxGameObject : Base2dGameObject
     private int _selectionStart = -1;
     private string _text = string.Empty;
     private float _textOffset;
-    private Texture2D? _whitePixel;
+
 
     /// <summary>
     /// Initializes a new TextBox game object
@@ -84,10 +85,6 @@ public class TextBoxGameObject : Base2dGameObject
 
         _assetManagerService = assetManagerService;
         LoadFont();
-
-        // Create a 1x1 white pixel texture for drawing rectangles
-        _whitePixel = new Texture2D(graphicsDevice, 1, 1);
-        _whitePixel.SetData(new[] { Color.White });
 
         _isInitialized = true;
     }
@@ -541,7 +538,7 @@ public class TextBoxGameObject : Base2dGameObject
     /// </summary>
     protected override void OnRender(SpriteBatch spriteBatch)
     {
-        if (!IsVisible || _whitePixel == null)
+        if (!IsVisible)
         {
             return;
         }
@@ -563,7 +560,7 @@ public class TextBoxGameObject : Base2dGameObject
             bounds.Width - BorderWidth * 2,
             bounds.Height - BorderWidth * 2
         );
-        spriteBatch.Draw(_whitePixel, innerBounds, BackgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, innerBounds, BackgroundColor * Opacity);
 
         // Set up clipping for text area
         var textBounds = new Rectangle(
@@ -616,7 +613,7 @@ public class TextBoxGameObject : Base2dGameObject
             textBounds.Height
         );
 
-        spriteBatch.Draw(_whitePixel, selectionBounds, SelectionColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, selectionBounds, SelectionColor * Opacity);
     }
 
     /// <summary>
@@ -676,7 +673,7 @@ public class TextBoxGameObject : Base2dGameObject
             textBounds.Height - 4
         );
 
-        spriteBatch.Draw(_whitePixel, cursorBounds, CursorColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, cursorBounds, CursorColor * Opacity);
     }
 
     /// <summary>
@@ -687,18 +684,18 @@ public class TextBoxGameObject : Base2dGameObject
         var color = borderColor * Opacity;
 
         // Top border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
         // Bottom border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - BorderWidth, bounds.Width, BorderWidth),
             color
         );
         // Left border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
         // Right border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.Right - BorderWidth, bounds.Y, BorderWidth, bounds.Height),
             color
         );

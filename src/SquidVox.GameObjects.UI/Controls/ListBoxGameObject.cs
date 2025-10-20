@@ -3,9 +3,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.GameObjects.UI.Data;
+using SquidVox.GameObjects.UI.Events;
 using SquidVox.GameObjects.UI.Types;
 
 namespace SquidVox.GameObjects.UI.Controls;
@@ -26,7 +28,7 @@ public class ListBoxGameObject : Base2dGameObject
 
     private MouseState _previousMouseState;
     private int _scrollOffset;
-    private Texture2D? _whitePixel;
+
 
     public ListBoxGameObject(
         float width = 200f,
@@ -54,8 +56,7 @@ public class ListBoxGameObject : Base2dGameObject
         _assetManagerService = assetManagerService;
         LoadFont();
 
-        _whitePixel = new Texture2D(graphicsDevice, 1, 1);
-        _whitePixel.SetData(new[] { Color.White });
+
 
         _isInitialized = true;
     }
@@ -208,7 +209,7 @@ public class ListBoxGameObject : Base2dGameObject
 
     protected override void OnRender(SpriteBatch spriteBatch)
     {
-        if (_whitePixel == null || _font == null)
+        if (_font == null)
         {
             return;
         }
@@ -218,7 +219,7 @@ public class ListBoxGameObject : Base2dGameObject
 
         // Draw background
         var bgColor = IsEnabled ? BackgroundColor : DisabledBackgroundColor;
-        spriteBatch.Draw(_whitePixel, bounds, bgColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, bounds, bgColor * Opacity);
 
         // Draw border
         if (BorderWidth > 0)
@@ -274,7 +275,7 @@ public class ListBoxGameObject : Base2dGameObject
             }
 
             // Draw item background
-            spriteBatch.Draw(_whitePixel, itemBounds, itemBgColor * Opacity);
+            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, itemBounds, itemBgColor * Opacity);
 
             // Draw item text
             if (!string.IsNullOrEmpty(item.Text))
@@ -313,18 +314,18 @@ public class ListBoxGameObject : Base2dGameObject
         var borderWidth = (int)BorderWidth;
 
         // Top border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, borderWidth), color);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, borderWidth), color);
         // Bottom border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - borderWidth, bounds.Width, borderWidth),
             color
         );
         // Left border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, borderWidth, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, borderWidth, bounds.Height), color);
         // Right border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.Right - borderWidth, bounds.Y, borderWidth, bounds.Height),
             color
         );

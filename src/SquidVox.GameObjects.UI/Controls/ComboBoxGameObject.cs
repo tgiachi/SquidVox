@@ -3,8 +3,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
+using SquidVox.GameObjects.UI.Data;
 using SquidVox.GameObjects.UI.Events;
 using SquidVox.GameObjects.UI.Types;
 
@@ -28,7 +30,7 @@ public class ComboBoxGameObject : Base2dGameObject
 
     private MouseState _previousMouseState;
     private int _selectedIndex = -1;
-    private Texture2D? _whitePixel;
+
 
     /// <summary>
     /// Initializes a new ComboBox game object
@@ -87,9 +89,7 @@ public class ComboBoxGameObject : Base2dGameObject
         _assetManagerService = assetManagerService;
         LoadFont();
 
-        // Create a 1x1 white pixel texture for drawing rectangles
-        _whitePixel = new Texture2D(graphicsDevice, 1, 1);
-        _whitePixel.SetData(new[] { Color.White });
+
 
         UpdateDropdownHeight();
 
@@ -240,7 +240,7 @@ public class ComboBoxGameObject : Base2dGameObject
     /// </summary>
     protected override void OnRender(SpriteBatch spriteBatch)
     {
-        if (!IsVisible || _whitePixel == null)
+        if (!IsVisible)
         {
             return;
         }
@@ -274,7 +274,7 @@ public class ComboBoxGameObject : Base2dGameObject
             bounds.Width - BorderWidth * 2,
             bounds.Height - BorderWidth * 2
         );
-        spriteBatch.Draw(_whitePixel, innerBounds, BackgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, innerBounds, BackgroundColor * Opacity);
 
         // Draw text
         DrawButtonText(spriteBatch, innerBounds);
@@ -304,7 +304,7 @@ public class ComboBoxGameObject : Base2dGameObject
             dropdownBounds.Width - BorderWidth * 2,
             dropdownBounds.Height - BorderWidth * 2
         );
-        spriteBatch.Draw(_whitePixel, innerBounds, DropdownBackgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, innerBounds, DropdownBackgroundColor * Opacity);
 
         // Draw items
         for (var i = 0; i < Math.Min(_items.Count, MaxVisibleItems); i++)
@@ -329,7 +329,7 @@ public class ComboBoxGameObject : Base2dGameObject
             }
 
             // Draw item background
-            spriteBatch.Draw(_whitePixel, itemBounds, itemBgColor * Opacity);
+            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, itemBounds, itemBgColor * Opacity);
 
             // Draw item text
             if (_font != null && !string.IsNullOrEmpty(item.Text))
@@ -395,7 +395,7 @@ public class ComboBoxGameObject : Base2dGameObject
             var lineWidth = (i + 1) * 2;
             var lineX = arrowX + (arrowSize - lineWidth) / 2;
             var lineRect = new Rectangle(lineX, arrowY + i, lineWidth, 1);
-            spriteBatch.Draw(_whitePixel, lineRect, ArrowColor * Opacity);
+            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, lineRect, ArrowColor * Opacity);
         }
     }
 
@@ -407,18 +407,18 @@ public class ComboBoxGameObject : Base2dGameObject
         var color = borderColor * Opacity;
 
         // Top border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
         // Bottom border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - BorderWidth, bounds.Width, BorderWidth),
             color
         );
         // Left border
-        spriteBatch.Draw(_whitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
         // Right border
         spriteBatch.Draw(
-            _whitePixel,
+            SquidVoxGraphicContext.WhitePixel,
             new Rectangle(bounds.Right - BorderWidth, bounds.Y, BorderWidth, bounds.Height),
             color
         );
