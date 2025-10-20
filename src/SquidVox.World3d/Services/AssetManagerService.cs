@@ -1,4 +1,5 @@
 using FontStashSharp;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Graphics;
 using Serilog;
@@ -13,15 +14,22 @@ namespace SquidVox.World3d.Services;
 /// </summary>
 public class AssetManagerService : IAssetManagerService
 {
+    private ContentManager _contentManager;
     private readonly ILogger _logger = Log.ForContext<AssetManagerService>();
     private readonly Dictionary<string, Texture2D> _textures = new();
     private readonly Dictionary<string, FontSystem> _fontSystems = new();
     private readonly Dictionary<string, DynamicSpriteFont> _loadedFonts = new();
+    private readonly Dictionary<string, Effect> _effects = new();
 
     private readonly Dictionary<string, Texture2DAtlas> _textureAtlases = new();
 
 
     private readonly int[] _initialFontSize = [16, 24, 32, 48, 64, 96, 128];
+
+    public void SetContentManager(ContentManager contentManager)
+    {
+        _contentManager = contentManager;
+    }
 
     /// <summary>
     /// Loads an asset from file.
@@ -105,6 +113,41 @@ public class AssetManagerService : IAssetManagerService
 
         _logger.Warning("Font {Name} not found", name);
         return null;
+    }
+
+    /// <summary>
+    /// Gets an effect by name.
+    /// </summary>
+    /// <param name="name">The name of the effect.</param>
+    /// <returns>The effect if found, otherwise null.</returns>
+    public Effect GetEffect(string name)
+    {
+        if (_effects.TryGetValue(name, out var effect))
+        {
+            return effect;
+        }
+
+        _logger.Warning("Effect {Name} not found", name);
+        return null;
+    }
+
+    /// <summary>
+    /// Loads an effect from content.
+    /// </summary>
+    /// <param name="name">The name of the effect.</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public void LoadEffect(string name)
+    {
+        if (_contentManager == null)
+        {
+            // exception here
+            throw new ArgumentNullException(nameof(ContentManager));
+            return;
+        }
+
+        var effect = _contentManager.Load<Effect>(name);
+        _effects[name] = effect;
+        _logger.Information("Loaded effect {Name}", name);
     }
 
     /// <summary>
@@ -226,6 +269,12 @@ public class AssetManagerService : IAssetManagerService
 
         _textures.Clear();
 
+        foreach (var effect in _effects.Values)
+        {
+            effect.Dispose();
+        }
+
+        _effects.Clear();
 
         _textureAtlases.Clear();
 

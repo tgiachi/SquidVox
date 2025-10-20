@@ -1,4 +1,5 @@
 using FontStashSharp;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Graphics;
 using SquidVox.Core.Enums;
@@ -10,6 +11,9 @@ namespace SquidVox.Core.Interfaces.Services;
 /// </summary>
 public interface IAssetManagerService : IDisposable
 {
+
+    void SetContentManager(ContentManager contentManager);
+
     /// <summary>
     /// Loads an asset from file.
     /// </summary>
@@ -95,4 +99,17 @@ public interface IAssetManagerService : IDisposable
     /// <param name="spacing">The spacing between tiles in pixels.</param>
     /// <param name="margin">The margin around the atlas in pixels.</param>
     void LoadTextureAtlasFromBytes(ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0);
+
+    /// <summary>
+    /// Gets an effect by name.
+    /// </summary>
+    /// <param name="name">The name of the effect.</param>
+    /// <returns>The effect if found, otherwise null.</returns>
+    Effect GetEffect(string name);
+
+    /// <summary>
+    /// Loads an effect from content.
+    /// </summary>
+    /// <param name="name">The name of the effect.</param>
+    void LoadEffect(string name);
 }

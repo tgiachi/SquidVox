@@ -13,6 +13,7 @@ using SquidVox.Core.Json;
 using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
+using SquidVox.World3d;
 using SquidVox.World3d.Context;
 using SquidVox.World3d.Modules;
 using SquidVox.World3d.Services;
@@ -53,7 +54,7 @@ await ConsoleApp.RunAsync(
         container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
 
 
-        using var game = new SquidVox.World3d.SquidVoxWorld(container);
+        using var game = new SquidVoxWorld(container);
         game.Run();
     }
 );

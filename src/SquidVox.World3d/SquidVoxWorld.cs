@@ -41,6 +41,9 @@ public class SquidVoxWorld : Game
         // TODO: Add your initialization logic here
 
         var assetsManager = _container.Resolve<IAssetManagerService>();
+        assetsManager.SetContentManager(Content);
+
+
 
         var defaultFont = ResourceUtils.GetEmbeddedResourceContent(
             "Assets.Fonts.Monocraft.ttf",
@@ -48,6 +51,13 @@ public class SquidVoxWorld : Game
         );
 
         assetsManager.LoadFontFromBytes(defaultFont, "Monocraft");
+
+        assetsManager.LoadEffect("Effects/ChunkBillboard");
+
+        assetsManager.LoadEffect("Effects/ChunkFluid");
+
+        assetsManager.LoadEffect("Effects/ChunkSolid");
+
         base.Initialize();
     }
 
