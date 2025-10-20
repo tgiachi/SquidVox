@@ -53,9 +53,7 @@ public class SquidVoxWorld : Game
         assetsManager.LoadFontFromBytes(defaultFont, "Monocraft");
 
         assetsManager.LoadEffect("Effects/ChunkBillboard");
-
         assetsManager.LoadEffect("Effects/ChunkFluid");
-
         assetsManager.LoadEffect("Effects/ChunkSolid");
 
         base.Initialize();

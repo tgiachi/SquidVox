@@ -138,11 +138,11 @@ public class AssetManagerService : IAssetManagerService
     /// <exception cref="ArgumentNullException"></exception>
     public void LoadEffect(string name)
     {
+        ArgumentNullException.ThrowIfNull(name);
+
         if (_contentManager == null)
         {
-            // exception here
-            throw new ArgumentNullException(nameof(ContentManager));
-            return;
+            throw new InvalidOperationException("ContentManager not set");
         }
 
         var effect = _contentManager.Load<Effect>(name);
