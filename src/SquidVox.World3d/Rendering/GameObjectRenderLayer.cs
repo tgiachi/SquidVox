@@ -30,13 +30,29 @@ public class GameObjectRenderLayer : IRenderableLayer
     /// <summary>
     /// Initializes a new instance of the GameObjectRenderLayer class.
     /// </summary>
-    /// <param name="gameObjects">The game object collection to render.</param>
-    public GameObjectRenderLayer(SvoxGameObjectCollection<ISVox2dDrawableGameObject> gameObjects)
+    public GameObjectRenderLayer()
     {
-        ArgumentNullException.ThrowIfNull(gameObjects);
-        _gameObjects = gameObjects;
+        _gameObjects = new SvoxGameObjectCollection<ISVox2dDrawableGameObject>();
     }
 
+    /// <summary>
+    /// Adds a game object to the render layer.
+    /// </summary>
+    /// <param name="gameObject">The game object to add.</param>
+    public void AddGameObject(ISVox2dDrawableGameObject gameObject)
+    {
+        _gameObjects.Add(gameObject);
+    }
+
+    /// <summary>
+    /// Removes a game object from the render layer.
+    /// </summary>
+    /// <param name="gameObject">The game object to remove.</param>
+    /// <returns>True if the game object was removed, false otherwise.</returns>
+    public bool RemoveGameObject(ISVox2dDrawableGameObject gameObject)
+    {
+        return _gameObjects.Remove(gameObject);
+    }
 
     public void Render(SpriteBatch spriteBatch)
     {

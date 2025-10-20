@@ -6,6 +6,7 @@ using SquidVox.Core.Collections;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.World3d.Context;
+using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.ImGUI;
 using SquidVox.World3d.Rendering;
 
@@ -40,8 +41,6 @@ public class SquidVoxWorld : Game
             typeof(SquidVoxWorld).Assembly
         );
 
-
-
         assetsManager.LoadFontFromBytes(defaultFont, "Monocraft");
         base.Initialize();
     }
@@ -54,9 +53,17 @@ public class SquidVoxWorld : Game
         SquidVoxGraphicContext.ImGuiRenderer.RebuildFontAtlas();
 
         _renderLayers.Add(new ImGuiRenderLayer());
+        _renderLayers.Add(new GameObjectRenderLayer());
+
+        _renderLayers.GetLayer<GameObjectRenderLayer>().AddGameObject(new TextGameObject()
+        {
+            Position = Vector2.One,
+            FontSize = 33
+        });
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
         scriptEngine.StartAsync().GetAwaiter().GetResult();
+
 
         // TODO: use this.Content to load your game content here
     }

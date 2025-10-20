@@ -142,6 +142,23 @@ public class RenderLayerCollection
     }
 
     /// <summary>
+    /// Gets the first render layer of the specified type.
+    /// </summary>
+    /// <typeparam name="TLayer">The type of the layer to get.</typeparam>
+    /// <returns>The first layer of the specified type if found, otherwise null.</returns>
+    public TLayer? GetLayer<TLayer>() where TLayer : IRenderableLayer
+    {
+        foreach (var layer in _layers)
+        {
+            if (layer is TLayer tLayer)
+            {
+                return tLayer;
+            }
+        }
+        return default;
+    }
+
+    /// <summary>
     /// Checks if at least one layer with the specified RenderLayer enum exists.
     /// </summary>
     /// <param name="layerEnum">The RenderLayer enum to check.</param>
