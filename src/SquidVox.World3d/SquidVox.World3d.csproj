@@ -27,7 +27,10 @@
 
     <ItemGroup>
         <ProjectReference Include="..\SquidVox.Core\SquidVox.Core.csproj"/>
+        <ProjectReference Include="..\SquidVox.GameObjects.Base\SquidVox.GameObjects.Base.csproj" />
+        <ProjectReference Include="..\SquidVox.GameObjects.UI\SquidVox.GameObjects.UI.csproj" />
         <ProjectReference Include="..\SquidVox.Lua.Scripting\SquidVox.Lua.Scripting.csproj"/>
+        <ProjectReference Include="..\SquidVox.Voxel\SquidVox.Voxel.csproj" />
     </ItemGroup>
 
     <ItemGroup>

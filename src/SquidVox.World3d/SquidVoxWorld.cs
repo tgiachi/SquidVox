@@ -4,10 +4,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Collections;
+using SquidVox.Core.Context;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
-using SquidVox.World3d.Context;
-using SquidVox.World3d.GameObjects;
+using SquidVox.GameObjects.Base.Common;
 using SquidVox.World3d.Rendering;
 
 namespace SquidVox.World3d;

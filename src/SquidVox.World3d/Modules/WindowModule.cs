@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using SquidVox.Core.Attributes.Scripts;
-using SquidVox.World3d.Context;
+using SquidVox.Core.Context;
 
 namespace SquidVox.World3d.Modules;
 
@@ -9,13 +9,13 @@ namespace SquidVox.World3d.Modules;
 /// </summary>
 [ScriptModule("window", "Provides functions to create and manage in-game windows.")]
 /// <summary>
-/// 
+///
 /// </summary>
 public class WindowModule
 {
     [ScriptFunction("set_title", "Sets the title of the game window.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void SetTitle(string title)
     {
@@ -24,7 +24,7 @@ public class WindowModule
 
     [ScriptFunction("set_size", "Sets the size of the game window.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void SetSize(int width, int height)
     {
@@ -35,7 +35,7 @@ public class WindowModule
 
     [ScriptFunction("get_size", "Gets the current size of the game window.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public Vector2 GetSize()
     {
@@ -47,7 +47,7 @@ public class WindowModule
 
     [ScriptFunction("get_title", "Gets the current title of the game window.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string GetTitle()
     {

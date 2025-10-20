@@ -1,9 +1,8 @@
 using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SquidVox.World3d.ImGUI;
 
-namespace SquidVox.World3d.Context;
+namespace SquidVox.Core.Context;
 
 /// <summary>
 /// Provides static access to graphics context resources such as window, GL, and input.
@@ -11,12 +10,12 @@ namespace SquidVox.World3d.Context;
 public static class SquidVoxGraphicContext
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static IContainer Container { get; set; }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static Color ClearColor { get; set; } = Color.CornflowerBlue;
 
@@ -26,13 +25,13 @@ public static class SquidVoxGraphicContext
     public static GraphicsDevice GraphicsDevice => GraphicsDeviceManager.GraphicsDevice;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static GraphicsDeviceManager GraphicsDeviceManager { get; set; }
 
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static GameWindow Window { get; set; }
 

@@ -5,6 +5,7 @@ using DryIoc;
 using Microsoft.Xna.Framework;
 using MoonSharp.Interpreter;
 using Serilog;
+using SquidVox.Core.Context;
 using SquidVox.Core.Data.Directories;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Directories;
@@ -14,7 +15,6 @@ using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
 using SquidVox.World3d;
-using SquidVox.World3d.Context;
 using SquidVox.World3d.Modules;
 using SquidVox.World3d.Services;
 

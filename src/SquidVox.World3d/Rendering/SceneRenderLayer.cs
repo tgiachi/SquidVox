@@ -2,11 +2,11 @@ using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SquidVox.Core.Context;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.GameObjects;
 using SquidVox.Core.Interfaces.Rendering;
 using SquidVox.Core.Interfaces.Services;
-using SquidVox.World3d.Context;
 
 namespace SquidVox.World3d.Rendering;
 

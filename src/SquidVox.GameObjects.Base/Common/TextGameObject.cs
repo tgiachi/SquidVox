@@ -1,14 +1,13 @@
-using FontStashSharp;
-using FontStashSharp.Interfaces;
 using DryIoc;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
-using SquidVox.World3d.Context;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
-namespace SquidVox.World3d.GameObjects;
+namespace SquidVox.GameObjects.Base.Common;
 
 /// <summary>
 /// A simple component for rendering text in scenes.

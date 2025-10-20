@@ -3,9 +3,9 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Graphics;
 using Serilog;
+using SquidVox.Core.Context;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
-using SquidVox.World3d.Context;
 
 namespace SquidVox.World3d.Services;
 
