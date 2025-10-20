@@ -8,7 +8,6 @@ using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.World3d.Context;
 using SquidVox.World3d.GameObjects;
-using SquidVox.World3d.ImGUI;
 using SquidVox.World3d.Rendering;
 
 namespace SquidVox.World3d;
@@ -62,19 +61,19 @@ public class SquidVoxWorld : Game
 
         _renderLayers.Add(new ImGuiRenderLayer(this));
         _renderLayers.Add(new GameObjectRenderLayer());
-        _renderLayers.Add(new SceneRenderLayer(_container));
+        _renderLayers.Add(new SceneRenderLayer());
 
-        _renderLayers.GetLayer<GameObjectRenderLayer>().AddGameObject(new TextGameObject()
+        _renderLayers.GetLayer<GameObjectRenderLayer>().AddGameObject(new TextGameObject("Hello World")
         {
-            Position = Vector2.One,
-            FontSize = 33
+            Position = new Vector2(50, 50),
+            FontSize = 24,
+            Color = Color.Red
         });
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
 
-        // TODO: use this.Content to load your game content here
     }
 
     protected override void Update(GameTime gameTime)

@@ -1,5 +1,6 @@
-using DryIoc;
 using FontStashSharp;
+using FontStashSharp.Interfaces;
+using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SquidVox.Core.GameObjects;
@@ -26,16 +27,12 @@ public sealed class TextGameObject : Base2dGameObject
     /// <param name="fontSize">The font size.</param>
     /// <param name="position">The relative position of the text.</param>
     /// <param name="color">The color of the text.</param>
-    /// <param name="isStroked">Whether the text should be stroked.</param>
-    /// <param name="isBlurry">Whether the text should be blurry.</param>
     public TextGameObject(
         string text = "Text",
         string fontName = "Monocraft",
         int fontSize = 14,
         Vector2? position = null,
-        Color? color = null,
-        bool isStroked = false,
-        bool isBlurry = false
+        Color? color = null
     )
     {
         _text = text ?? string.Empty;
@@ -43,8 +40,6 @@ public sealed class TextGameObject : Base2dGameObject
         FontName = fontName;
         Position = position ?? Vector2.Zero;
         Color = color ?? Color.White;
-        IsStroked = isStroked;
-        IsBlurry = isBlurry;
 
         LoadFont();
         UpdateSize();
@@ -111,15 +106,7 @@ public sealed class TextGameObject : Base2dGameObject
     }
     private float _opacity = 1.0f;
 
-    /// <summary>
-    /// Gets or sets whether the text should be stroked.
-    /// </summary>
-    public bool IsStroked { get; set; }
 
-    /// <summary>
-    /// Gets or sets whether the text should be blurry.
-    /// </summary>
-    public bool IsBlurry { get; set; }
 
     /// <summary>
     /// Draws the text content.
@@ -135,20 +122,9 @@ public sealed class TextGameObject : Base2dGameObject
         var absolutePosition = GetAbsolutePosition();
         var drawColor = Color * _opacity;
 
-        var effect = FontSystemEffect.None;
-        if (IsStroked)
-        {
-            effect |= FontSystemEffect.Stroked;
-        }
-
-        if (IsBlurry)
-        {
-            effect |= FontSystemEffect.Blurry;
-        }
-
         // Use rotation and scale from base class
         var origin = Vector2.Zero; // Top-left origin
-        spriteBatch.DrawString(_font, _text, absolutePosition, drawColor, rotation: Rotation, origin: origin, scale: Scale, effect: effect, layerDepth: 0f);
+        FontStashSharp.SpriteBatchExtensions.DrawString(spriteBatch, _font, _text, absolutePosition, drawColor, Rotation, origin, Scale, 0f);
     }
 
     /// <summary>

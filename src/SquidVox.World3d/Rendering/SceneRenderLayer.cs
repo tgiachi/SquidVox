@@ -78,8 +78,8 @@ public class SceneRenderLayer : IRenderableLayer
     /// Initializes a new instance of the SceneRenderLayer class.
     /// </summary>
     /// <param name="container">The IoC container to resolve dependencies.</param>
-    public SceneRenderLayer(IContainer container)
+    public SceneRenderLayer()
     {
-        _sceneManager = container.Resolve<ISceneManager>();
+        _sceneManager = SquidVoxGraphicContext.Container.Resolve<ISceneManager>();
     }
 }

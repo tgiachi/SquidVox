@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.GameObjects;
 using SquidVox.Core.Interfaces.Rendering;
-using SquidVox.World3d.Context;
 using SquidVox.World3d.ImGUI;
 
 namespace SquidVox.World3d.Rendering;
@@ -14,7 +13,7 @@ namespace SquidVox.World3d.Rendering;
 /// Render layer for ImGui debug UI.
 /// Always renders on top at the DebugUI layer priority.
 /// </summary>
-public class ImGuiRenderLayer : IRenderableLayer
+public class ImGuiRenderLayer : IRenderableLayer, IDisposable
 {
     /// <summary>
     /// Gets the rendering layer priority.
@@ -67,7 +66,7 @@ public class ImGuiRenderLayer : IRenderableLayer
     /// <summary>
     ///
     /// </summary>
-    public ImGuiRenderLayer(Game game )
+    public ImGuiRenderLayer(Game game)
     {
         _imGuiRenderer = new ImGuiRenderer(game);
         _imGuiRenderer.RebuildFontAtlas();
@@ -97,7 +96,6 @@ public class ImGuiRenderLayer : IRenderableLayer
         }
 
         _imGuiRenderer.EndLayout();
-
     }
 
     /// <summary>
@@ -106,16 +104,21 @@ public class ImGuiRenderLayer : IRenderableLayer
     public void Update(GameTime gameTime)
     {
         _gameTime = gameTime;
-
     }
 
     public bool HasFocus { get; set; }
+
     public void HandleKeyboard(KeyboardState keyboardState, GameTime gameTime)
     {
-
     }
 
     public void HandleMouse(MouseState mouseState, GameTime gameTime)
     {
+    }
+
+    public void Dispose()
+    {
+        _imGuiRenderer.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
