@@ -1,4 +1,4 @@
-﻿using DryIoc;
+using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -12,6 +12,9 @@ using SquidVox.World3d.Rendering;
 
 namespace SquidVox.World3d;
 
+/// <summary>
+/// 
+/// </summary>
 public class SquidVoxWorld : Game
 {
     private GraphicsDeviceManager _graphics;
@@ -19,6 +22,9 @@ public class SquidVoxWorld : Game
     private readonly IContainer _container;
     private readonly RenderLayerCollection _renderLayers = new();
 
+    /// <summary>
+    /// 
+    /// </summary>
     public SquidVoxWorld(IContainer container)
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -49,11 +55,10 @@ public class SquidVoxWorld : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        SquidVoxGraphicContext.ImGuiRenderer = new ImGuiRenderer(this);
-        SquidVoxGraphicContext.ImGuiRenderer.RebuildFontAtlas();
 
-        _renderLayers.Add(new ImGuiRenderLayer());
+        _renderLayers.Add(new ImGuiRenderLayer(this));
         _renderLayers.Add(new GameObjectRenderLayer());
+        _renderLayers.Add(new SceneRenderLayer(_container));
 
         _renderLayers.GetLayer<GameObjectRenderLayer>().AddGameObject(new TextGameObject()
         {
@@ -75,6 +80,10 @@ public class SquidVoxWorld : Game
         {
             Exit();
         }
+
+        // Handle input for render layers
+        _renderLayers.HandleKeyboardAll(Keyboard.GetState(), gameTime);
+        _renderLayers.HandleMouseAll(Mouse.GetState(), gameTime);
 
         // TODO: Add your update logic here
 

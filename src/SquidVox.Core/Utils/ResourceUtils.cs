@@ -222,6 +222,9 @@ public static partial class ResourceUtils
 
     /// <returns>The file path.</returns>
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static string ConvertResourceNameToPath(string resourceName, string baseNamespace)
     {
         if (!resourceName.StartsWith(baseNamespace + ".", StringComparison.Ordinal))

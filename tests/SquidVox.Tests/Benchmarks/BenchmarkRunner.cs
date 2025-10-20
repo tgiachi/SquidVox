@@ -8,6 +8,9 @@ namespace SquidVox.Tests.Benchmarks;
 /// </summary>
 public class BenchmarkRunner
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static void Main(string[] args)
     {
         // Run all benchmarks

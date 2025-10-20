@@ -50,6 +50,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     private bool _isInitialized;
     private Func<string, string> _nameResolver;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public LuaScriptEngineService(
         DirectoriesConfig directoriesConfig,
         List<ScriptModuleData> scriptModules,
@@ -70,8 +73,14 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         LuaScript = CreateOptimizedEngine();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Script LuaScript { get; }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void Dispose()
     {
         if (_disposed)
@@ -104,8 +113,14 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     /// </summary>
     public event EventHandler<ScriptErrorInfo>? OnScriptError;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public object Engine => LuaScript;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void AddInitScript(string script)
     {
         if (string.IsNullOrWhiteSpace(script))
@@ -116,6 +131,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _initScripts.Add(script);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void ExecuteScript(string script)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(script);
@@ -167,6 +185,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void ExecuteScriptFile(string scriptFile)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(scriptFile);
@@ -189,6 +210,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void AddCallback(string name, Action<object[]> callback)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -200,6 +224,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _logger.Debug("Callback registered: {Name}", normalizedName);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void AddConstant(string name, object? value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -217,6 +244,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _logger.Debug("Constant added: {Name}", normalizedName);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void ExecuteCallback(string name, params object[] args)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -242,18 +272,27 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void AddScriptModule(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
         _scriptModules.Add(new ScriptModuleData(type));
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public string ToScriptEngineFunctionName(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         return _nameResolver(name);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public ScriptResult ExecuteFunction(string command)
     {
         try
@@ -287,11 +326,17 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public async Task<ScriptResult> ExecuteFunctionAsync(string command)
     {
         return ExecuteFunction(command);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         if (_isInitialized)
@@ -325,6 +370,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
@@ -354,6 +402,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _logger.Information("Script cache cleared");
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void RegisterGlobalFunction(string name, Delegate func)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -363,6 +414,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _logger.Debug("Global function registered: {Name}", name);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void RegisterGlobal(string name, object value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -372,6 +426,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _logger.Debug("Global registered: {Name} (Type: {Type})", name, value.GetType().Name);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public bool UnregisterGlobal(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -720,6 +777,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         return JsonUtils.Serialize(luarcConfig);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public async Task ExecuteScriptFileAsync(string scriptFile)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(scriptFile);
@@ -742,6 +802,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void Reset()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -754,6 +817,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _logger.Debug("Lua engine reset");
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public (int ModuleCount, int CallbackCount, int ConstantCount, bool IsInitialized) GetStats()
     {
         return (_loadedModules.Count, _callbacks.Count, _constants.Count, _isInitialized);

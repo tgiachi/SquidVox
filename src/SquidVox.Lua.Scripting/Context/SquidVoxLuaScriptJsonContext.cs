@@ -9,6 +9,9 @@ namespace SquidVox.Lua.Scripting.Context;
 [JsonSerializable(typeof(LuarcDiagnosticsConfig))]
 [JsonSerializable(typeof(LuarcCompletionConfig))]
 [JsonSerializable(typeof(LuarcFormatConfig))]
+/// <summary>
+/// 
+/// </summary>
 public partial class SquidVoxLuaScriptJsonContext : JsonSerializerContext
 {
 }

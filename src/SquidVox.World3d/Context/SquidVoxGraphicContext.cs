@@ -10,8 +10,14 @@ namespace SquidVox.World3d.Context;
 /// </summary>
 public static class SquidVoxGraphicContext
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static IContainer Container { get; set; }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static Color ClearColor { get; set; } = Color.CornflowerBlue;
 
     /// <summary>
@@ -19,9 +25,15 @@ public static class SquidVoxGraphicContext
     /// </summary>
     public static GraphicsDevice GraphicsDevice => GraphicsDeviceManager.GraphicsDevice;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static GraphicsDeviceManager GraphicsDeviceManager { get; set; }
 
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static GameWindow Window { get; set; }
 
     /// <summary>
@@ -31,7 +43,6 @@ public static class SquidVoxGraphicContext
 
 
 
-    public static ImGuiRenderer ImGuiRenderer { get; set; }
 
     /// <summary>
     /// Gets the game time instance.

@@ -9,11 +9,20 @@ namespace SquidVox.Tests.GameObjects;
 /// Unit tests for Base2dGameObject class.
 /// </summary>
 [TestFixture]
+/// <summary>
+/// 
+/// </summary>
 public class Base2dGameObjectTests
 {
     private class TestGameObject : Base2dGameObject
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public int OnUpdateCallCount { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
         public int OnRenderCallCount { get; private set; }
 
         protected override void OnUpdate(GameTime gameTime)
@@ -28,6 +37,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Constructor_InitializesDefaultValues()
     {
         // Arrange & Act
@@ -47,6 +59,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetAbsolutePosition_WithNoParent_ReturnsLocalPosition()
     {
         // Arrange
@@ -63,6 +78,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetAbsolutePosition_WithParent_ReturnsParentPlusLocalPosition()
     {
         // Arrange
@@ -86,6 +104,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetAbsolutePosition_WithMultipleLevelsOfParents_CalculatesCorrectly()
     {
         // Arrange
@@ -116,6 +137,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetAbsoluteScale_WithNoParent_ReturnsLocalScale()
     {
         // Arrange
@@ -132,6 +156,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetAbsoluteScale_WithParent_ReturnsMultipliedScale()
     {
         // Arrange
@@ -155,6 +182,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetAbsoluteRotation_WithNoParent_ReturnsLocalRotation()
     {
         // Arrange
@@ -171,6 +201,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetAbsoluteRotation_WithParent_ReturnsSumOfRotations()
     {
         // Arrange
@@ -194,6 +227,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void AddChild_AddsChildAndSetsParent()
     {
         // Arrange
@@ -209,6 +245,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void AddChild_DoesNotAddDuplicateChild()
     {
         // Arrange
@@ -224,6 +263,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void RemoveChild_RemovesChildAndClearsParent()
     {
         // Arrange
@@ -240,6 +282,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Update_WhenDisabled_DoesNotCallOnUpdate()
     {
         // Arrange
@@ -254,6 +299,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Update_WhenEnabled_CallsOnUpdate()
     {
         // Arrange
@@ -268,6 +316,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Update_UpdatesEnabledChildren()
     {
         // Arrange
@@ -289,6 +340,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Render_WhenInvisible_DoesNotCallOnRender()
     {
         // Arrange
@@ -302,6 +356,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Render_WhenVisible_CallsOnRender()
     {
         // Arrange
@@ -315,6 +372,9 @@ public class Base2dGameObjectTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Render_RendersVisibleChildren()
     {
         // Arrange

@@ -15,6 +15,9 @@ namespace SquidVox.Lua.Scripting.Utils;
 [RequiresUnreferencedCode(
     "This class uses reflection to analyze types for Lua meta generation and requires full type metadata."
 )]
+/// <summary>
+/// 
+/// </summary>
 public static class LuaDocumentationGenerator
 {
     private static readonly HashSet<Type> _processedTypes = new();
@@ -26,8 +29,14 @@ public static class LuaDocumentationGenerator
 
     private static Func<string, string> _nameResolver = name => name.ToSnakeCase();
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static List<Type> FoundEnums { get; } = new(16);
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static void AddClassToGenerate(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -54,6 +63,9 @@ public static class LuaDocumentationGenerator
         "IL2072:Reflection",
         Justification = "Reflection is required for parameter and return type analysis"
     )]
+    /// <summary>
+    /// 
+    /// </summary>
     public static string GenerateDocumentation(
         string appName, string appVersion, List<ScriptModuleData> scriptModules, Dictionary<string, object> constants,
         Func<string, string>? nameResolver = null

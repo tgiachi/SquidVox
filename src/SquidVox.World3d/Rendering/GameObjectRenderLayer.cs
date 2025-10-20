@@ -1,6 +1,7 @@
 using FontStashSharp.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Collections;
@@ -54,6 +55,9 @@ public class GameObjectRenderLayer : IRenderableLayer
         return _gameObjects.Remove(gameObject);
     }
 
+    /// <summary>
+    ///
+    /// </summary>
     public void Render(SpriteBatch spriteBatch)
     {
         // Check for ZIndex changes before rendering
@@ -63,6 +67,9 @@ public class GameObjectRenderLayer : IRenderableLayer
         _gameObjects.RenderAll(spriteBatch);
     }
 
+    /// <summary>
+    ///
+    /// </summary>
     public void Update(GameTime gameTime)
     {
         // Check for ZIndex changes before updatating
@@ -70,4 +77,33 @@ public class GameObjectRenderLayer : IRenderableLayer
 
         _gameObjects.UpdateAll(gameTime);
     }
+
+    public void HandleKeyboard(KeyboardState keyboardState, GameTime gameTime)
+    {
+        // Propagate keyboard input to game objects that can receive input
+        foreach (var gameObject in _gameObjects)
+        {
+            if (gameObject is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
+            {
+                inputReceiver.HandleKeyboard(keyboardState, gameTime);
+            }
+        }
+    }
+
+    public void HandleMouse(MouseState mouseState, GameTime gameTime)
+    {
+        // Propagate mouse input to game objects that can receive input
+        foreach (var gameObject in _gameObjects)
+        {
+            if (gameObject is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
+            {
+                inputReceiver.HandleMouse(mouseState, gameTime);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether this layer has input focus.
+    /// </summary>
+    public bool HasFocus { get; set; }
 }

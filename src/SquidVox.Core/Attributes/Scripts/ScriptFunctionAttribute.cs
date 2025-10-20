@@ -6,6 +6,9 @@ namespace SquidVox.Core.Attributes.Scripts;
 /// <param name="functionName">Optional name override for the script function.</param>
 /// <param name="helpText">Optional help text describing the function's purpose.</param>
 [AttributeUsage(AttributeTargets.Method)]
+/// <summary>
+/// 
+/// </summary>
 public class ScriptFunctionAttribute(string? functionName = null, string? helpText = null) : Attribute
 {
     /// <summary>

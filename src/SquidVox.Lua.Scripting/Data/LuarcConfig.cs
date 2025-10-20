@@ -8,6 +8,9 @@ namespace SquidVox.Lua.Scripting.Data;
 public class LuarcConfig
 {
     [JsonPropertyName("$schema")]
+    /// <summary>
+    /// 
+    /// </summary>
     public string Schema { get; set; } = "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json";
 
     [JsonPropertyName("runtime")] public LuarcRuntimeConfig Runtime { get; set; } = new();

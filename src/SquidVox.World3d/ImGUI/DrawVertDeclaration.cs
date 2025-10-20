@@ -9,8 +9,14 @@ namespace SquidVox.World3d.ImGUI;
 /// </summary>
 public static class DrawVertDeclaration
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static readonly VertexDeclaration Declaration;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static readonly int Size;
 
     static DrawVertDeclaration()

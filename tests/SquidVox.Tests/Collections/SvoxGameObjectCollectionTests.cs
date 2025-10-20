@@ -3,10 +3,19 @@ using SquidVox.Tests.TestHelpers;
 
 namespace SquidVox.Tests.Collections;
 
+/// <summary>
+/// Contains unit tests for the SvoxGameObjectCollection class.
+/// </summary>
 [TestFixture]
+/// <summary>
+/// 
+/// </summary>
 public class SvoxGameObjectCollectionTests
 {
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Add_AddsGameObject_IncrementsCount()
     {
         // Arrange
@@ -22,6 +31,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Add_DuplicateGameObject_ThrowsException()
     {
         // Arrange
@@ -34,6 +46,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Remove_ExistingGameObject_RemovesAndReturnsTrue()
     {
         // Arrange
@@ -51,6 +66,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Remove_NonExistingGameObject_ReturnsFalse()
     {
         // Arrange
@@ -65,6 +83,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Indexer_ReturnsGameObjectsSortedByZIndex()
     {
         // Arrange
@@ -84,6 +105,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void CheckForZIndexChanges_DetectsChanges_MarksDirty()
     {
         // Arrange
@@ -104,6 +128,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetGameObjectsInZRange_ReturnsCorrectObjects()
     {
         // Arrange
@@ -123,6 +150,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetEnabledGameObjects_ReturnsOnlyEnabled()
     {
         // Arrange
@@ -139,6 +169,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetVisibleGameObjects_ReturnsOnlyVisible()
     {
         // Arrange
@@ -155,6 +188,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetActiveGameObjects_ReturnsOnlyEnabledAndVisible()
     {
         // Arrange
@@ -173,6 +209,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetGameObjectByName_FindsCorrectObject()
     {
         // Arrange
@@ -189,6 +228,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetGameObjectByName_NonExisting_ReturnsNull()
     {
         // Arrange
@@ -202,6 +244,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetGameObjectsOfType_FiltersCorrectly()
     {
         // Arrange
@@ -218,6 +263,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void GetFirstGameObjectOfType_ReturnsFirst()
     {
         // Arrange
@@ -235,6 +283,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Clear_RemovesAllObjects()
     {
         // Arrange
@@ -250,6 +301,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Contains_Generic_DetectsType()
     {
         // Arrange
@@ -264,6 +318,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void ToArray_ReturnsCorrectArray()
     {
         // Arrange
@@ -281,6 +338,9 @@ public class SvoxGameObjectCollectionTests
     }
 
     [Test]
+    /// <summary>
+    /// 
+    /// </summary>
     public void Enumeration_WorksCorrectly()
     {
         // Arrange

@@ -7,6 +7,9 @@ using Vector2 = System.Numerics.Vector2;
 
 namespace SquidVox.World3d.ImGUI;
 
+/// <summary>
+/// 
+/// </summary>
 public class ImGuiRenderer : IDisposable
 {
     private readonly Keys[] _allKeys = Enum.GetValues<Keys>();
@@ -37,6 +40,9 @@ public class ImGuiRenderer : IDisposable
 
     private byte[] _vertexData;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public ImGuiRenderer(Microsoft.Xna.Framework.Game game)
     {
         var context = ImGui.CreateContext();
@@ -465,6 +471,9 @@ public class ImGuiRenderer : IDisposable
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void Dispose()
     {
         _vertexBuffer?.Dispose();

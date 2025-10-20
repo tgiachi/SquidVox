@@ -8,15 +8,24 @@ namespace SquidVox.World3d.Modules;
 /// Module for managing the game window.
 /// </summary>
 [ScriptModule("window", "Provides functions to create and manage in-game windows.")]
+/// <summary>
+/// 
+/// </summary>
 public class WindowModule
 {
     [ScriptFunction("set_title", "Sets the title of the game window.")]
+    /// <summary>
+    /// 
+    /// </summary>
     public void SetTitle(string title)
     {
         SquidVoxGraphicContext.Window.Title = title;
     }
 
     [ScriptFunction("set_size", "Sets the size of the game window.")]
+    /// <summary>
+    /// 
+    /// </summary>
     public void SetSize(int width, int height)
     {
         SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferWidth = width;
@@ -25,6 +34,9 @@ public class WindowModule
     }
 
     [ScriptFunction("get_size", "Gets the current size of the game window.")]
+    /// <summary>
+    /// 
+    /// </summary>
     public Vector2 GetSize()
     {
         return new Vector2(
@@ -34,6 +46,9 @@ public class WindowModule
     }
 
     [ScriptFunction("get_title", "Gets the current title of the game window.")]
+    /// <summary>
+    /// 
+    /// </summary>
     public string GetTitle()
     {
         return SquidVoxGraphicContext.Window.Title;

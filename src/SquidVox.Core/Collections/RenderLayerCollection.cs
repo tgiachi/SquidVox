@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using FontStashSharp.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Rendering;
 
@@ -327,5 +328,41 @@ public class RenderLayerCollection
     public int GetEnabledCount()
     {
         return _layers.Count(layer => layer.Enabled);
+    }
+
+    /// <summary>
+    /// Handles keyboard input for all enabled layers.
+    /// </summary>
+    /// <param name="keyboardState">The current keyboard state.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    public void HandleKeyboardAll(KeyboardState keyboardState, GameTime gameTime)
+    {
+        EnsureSorted();
+
+        foreach (var layer in _layers)
+        {
+            if (layer.Enabled)
+            {
+                layer.HandleKeyboard(keyboardState, gameTime);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles mouse input for all enabled layers.
+    /// </summary>
+    /// <param name="mouseState">The current mouse state.</param>
+    /// <param name="gameTime">Game timing information.</param>
+    public void HandleMouseAll(MouseState mouseState, GameTime gameTime)
+    {
+        EnsureSorted();
+
+        foreach (var layer in _layers)
+        {
+            if (layer.Enabled)
+            {
+                layer.HandleMouse(mouseState, gameTime);
+            }
+        }
     }
 }
