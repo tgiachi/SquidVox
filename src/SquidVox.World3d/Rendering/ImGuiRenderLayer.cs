@@ -22,7 +22,7 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
 
     private readonly ImGuiRenderer _imGuiRenderer;
 
-    private readonly Lock _addRemoveLock = new();
+    private readonly object _addRemoveLock = new();
 
     private readonly List<ISVoxDebuggerGameObject> _debuggers = new();
 

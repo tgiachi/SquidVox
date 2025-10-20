@@ -12,8 +12,8 @@
         <ApplicationIcon>Icon.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
-        <None Remove="Icon.ico"/>
-        <None Remove="Icon.bmp"/>
+        <None Remove="Icon.ico" />
+        <None Remove="Icon.bmp" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico">
@@ -24,14 +24,21 @@
         </EmbeddedResource>
     </ItemGroup>
 
+
     <ItemGroup>
-        <ProjectReference Include="..\SquidVox.Core\SquidVox.Core.csproj"/>
-        <ProjectReference Include="..\SquidVox.Lua.Scripting\SquidVox.Lua.Scripting.csproj"/>
+        <ProjectReference Include="..\SquidVox.Core\SquidVox.Core.csproj" />
+        <ProjectReference Include="..\SquidVox.Lua.Scripting\SquidVox.Lua.Scripting.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Assets\**\*"/>
-        <EmbeddedResource Include="Assets\**\*"/>
+        <None Remove="Assets\**\*" />
+        <EmbeddedResource Include="Assets\**\*" />
+    </ItemGroup>
+
+
+
+    <ItemGroup>
+        <MonoGameContentReference Include="Content\Content.mgcb" />
     </ItemGroup>
 
     <ItemGroup>
@@ -39,16 +46,18 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Contentless" Version="4.2.0" />
         <PackageReference Include="MonoGame.Extended" Version="5.1.0" />
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4" />
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.5-develop.12" />
         <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
-        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog" Version="4.3.0" />
         <PackageReference Include="FontStashSharp.MonoGame" Version="1.5.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     </ItemGroup>
+
     <Target Name="RestoreDotnetTools" BeforeTargets="CollectPackageReferences">
-        <Message Text="Restoring dotnet tools (this might take a while depending on your internet speed and should only happen upon building your project for the first time, or after upgrading MonoGame, or clearing your nuget cache)" Importance="High"/>
-        <Exec Command="dotnet tool restore"/>
+        <Message Text="Restoring dotnet tools (this might take a while depending on your internet speed and should only happen upon building your project for the first time, or after upgrading MonoGame, or clearing your nuget cache)" Importance="High" />
+        <Exec Command="dotnet tool restore" />
     </Target>
 </Project>

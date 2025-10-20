@@ -14,7 +14,7 @@ public static class JsonUtils
 {
     private static readonly ConcurrentBag<IJsonTypeInfoResolver> JsonSerializerContexts = new();
     private static readonly ConcurrentBag<JsonConverter> JsonConverters = new();
-    private static readonly Lock _lockObject = new();
+    private static readonly object _lockObject = new();
 
     private static volatile JsonSerializerOptions? _jsonSerializerOptions;
 
@@ -146,7 +146,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON serialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON serialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static string Serialize<T>(T obj)
     {
@@ -172,7 +172,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON serialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON serialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static string Serialize<T>(T obj, JsonSerializerOptions options)
     {
@@ -198,7 +198,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON deserialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON deserialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static T? Deserialize<T>(string json)
     {
@@ -225,7 +225,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON deserialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON deserialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static T? DeserializeOrDefault<T>(string json, T? defaultValue = default)
     {
@@ -325,7 +325,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON deserialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON deserialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static T DeserializeFromFile<T>(string filePath)
     {
@@ -358,7 +358,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON deserialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON deserialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static async Task<T> DeserializeFromStreamAsync<T>(Stream stream, CancellationToken cancellationToken = default)
     {
@@ -385,7 +385,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON serialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON serialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static void SerializeToFile<T>(T obj, string filePath)
     {
@@ -421,7 +421,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON serialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON serialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static async Task SerializeToFileAsync<T>(T obj, string filePath, CancellationToken cancellationToken = default)
     {
@@ -457,7 +457,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON deserialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON deserialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static async Task<T> DeserializeFromFileAsync<T>(string filePath, CancellationToken cancellationToken = default)
     {
@@ -489,7 +489,7 @@ public static class JsonUtils
     [RequiresUnreferencedCode("JSON serialization may require types that cannot be statically analyzed. Use overload with JsonSerializerContext when possible.")]
     [RequiresDynamicCode("JSON serialization may require dynamic code generation. Use overload with JsonSerializerContext when possible.")]
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public static void SerializeMultipleToDirectory<T>(Dictionary<string, T> objects, string directory)
     {
