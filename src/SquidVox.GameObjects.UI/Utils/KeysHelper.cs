@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework.Input;
 
-namespace SquidVox.GameObjects.UI.Controls;
+namespace SquidVox.GameObjects.UI.Utils;
 
 /// <summary>
 /// Helper class for converting Keys to characters

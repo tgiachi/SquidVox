@@ -31,6 +31,20 @@ public class ComboBoxGameObject : Base2dGameObject
     private MouseState _previousMouseState;
     private int _selectedIndex = -1;
 
+    /// <summary>
+    /// Event fired when the selected index changes
+    /// </summary>
+    public event EventHandler<SelectedIndexChangedEventArgs>? SelectedIndexChanged;
+
+    /// <summary>
+    /// Event fired when the dropdown is opened
+    /// </summary>
+    public event EventHandler? DropdownOpened;
+
+    /// <summary>
+    /// Event fired when the dropdown is closed.
+    /// </summary>
+    public event EventHandler? DropdownClosed;
 
     /// <summary>
     /// Initializes a new ComboBox game object
@@ -424,8 +438,6 @@ public class ComboBoxGameObject : Base2dGameObject
         );
     }
 
-    #region Properties
-
     /// <summary>
     /// Background color of the ComboBox
     /// </summary>
@@ -527,25 +539,6 @@ public class ComboBoxGameObject : Base2dGameObject
     /// Collection of items in the ComboBox
     /// </summary>
     public IReadOnlyList<ComboItem> Items => _items.AsReadOnly();
-
-    /// <summary>
-    /// Event fired when the selected index changes
-    /// </summary>
-    public event EventHandler<SelectedIndexChangedEventArgs>? SelectedIndexChanged;
-
-    /// <summary>
-    /// Event fired when the dropdown is opened
-    /// </summary>
-    public event EventHandler? DropdownOpened;
-
-    /// <summary>
-    /// Event fired when the dropdown is closed
-    /// </summary>
-    public event EventHandler? DropdownClosed;
-
-    #endregion
-
-    #region Item Management
 
     /// <summary>
     /// Adds an item to the ComboBox
@@ -651,6 +644,4 @@ public class ComboBoxGameObject : Base2dGameObject
 
         return false;
     }
-
-    #endregion
 }

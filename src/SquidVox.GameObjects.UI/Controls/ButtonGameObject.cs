@@ -34,6 +34,35 @@ public class ButtonGameObject : Base2dGameObject
     private MouseState _previousMouseState;
     private string _text;
 
+    /// <summary>
+    /// Event fired when the button is clicked.
+    /// </summary>
+    public event EventHandler? Click;
+
+    /// <summary>
+    /// Event fired when mouse enters the button area.
+    /// </summary>
+    public event EventHandler? MouseEnter;
+
+    /// <summary>
+    /// Event fired when mouse leaves the button area.
+    /// </summary>
+    public event EventHandler? MouseLeave;
+
+    /// <summary>
+    /// Event fired when mouse is pressed down on the button.
+    /// </summary>
+    public event EventHandler? MouseDown;
+
+    /// <summary>
+    /// Event fired when mouse is released on the button.
+    /// </summary>
+    public event EventHandler? MouseUp;
+
+    /// <summary>
+    /// Event fired when button text changes.
+    /// </summary>
+    public event EventHandler? TextChanged;
 
     /// <summary>
     /// Initializes a new Button game object
@@ -516,15 +545,10 @@ public void PerformClick()
     /// </summary>
     public float Opacity { get; set; } = 1.0f;
 
-    #region Colors
-
     /// <summary>
-    /// Background color in normal state
+    /// Background color in normal state.
     /// </summary>
-    /// <summary>
-/// Background color in normal state.
-/// </summary>
-public Color NormalBackgroundColor { get; set; }
+    public Color NormalBackgroundColor { get; set; }
 
     /// <summary>
     /// Background color when hovered
@@ -602,8 +626,6 @@ public Color DisabledTextColor { get; set; }
     /// </summary>
     public Color DisabledBorderColor { get; set; }
 
-    #endregion
-
     /// <summary>
     /// Border width in pixels
     /// </summary>
@@ -623,53 +645,4 @@ public Color DisabledTextColor { get; set; }
     /// Text alignment within the button
     /// </summary>
     public TextAlignment TextAlignment { get; set; } = TextAlignment.Center;
-
-    /// <summary>
-    /// Event fired when the button is clicked
-    /// </summary>
-    /// <summary>
-/// Event fired when the button is clicked.
-/// </summary>
-public event EventHandler? Click;
-
-    /// <summary>
-    /// Event fired when mouse enters the button area
-    /// </summary>
-    /// <summary>
-/// Event fired when mouse enters the button area.
-/// </summary>
-public event EventHandler? MouseEnter;
-
-    /// <summary>
-    /// Event fired when mouse leaves the button area
-    /// </summary>
-    /// <summary>
-/// Event fired when mouse leaves the button area.
-/// </summary>
-public event EventHandler? MouseLeave;
-
-    /// <summary>
-    /// Event fired when mouse is pressed down on the button
-    /// </summary>
-    /// <summary>
-/// Event fired when mouse is pressed down on the button.
-/// </summary>
-public event EventHandler? MouseDown;
-
-    /// <summary>
-    /// Event fired when mouse is released on the button
-    /// </summary>
-    /// <summary>
-/// Event fired when mouse is released on the button.
-/// </summary>
-public event EventHandler? MouseUp;
-
-    /// <summary>
-    /// Event fired when button text changes
-    /// </summary>
-    /// <summary>
-/// Event fired when button text changes.
-/// </summary>
-public event EventHandler? TextChanged;
-
 }

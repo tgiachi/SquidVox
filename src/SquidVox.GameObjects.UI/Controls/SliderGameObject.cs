@@ -32,6 +32,9 @@ public class SliderGameObject : Base2dGameObject
     private Texture2D? _trackTexture;
     private float _value = 50f;
 
+    public event EventHandler<SliderValueChangedEventArgs>? ValueChanged;
+    public event EventHandler? DragStarted;
+    public event EventHandler? DragEnded;
 
     /// <summary>
     /// Initializes a new Slider game object
@@ -523,8 +526,6 @@ public class SliderGameObject : Base2dGameObject
         Value = _minValue + percentage * (_maxValue - _minValue);
     }
 
-    #region Properties
-
     public float MinValue
     {
         get => _minValue;
@@ -605,10 +606,4 @@ public class SliderGameObject : Base2dGameObject
     public Color ThumbBorderPressedColor { get; set; }
     public Color ValueLabelColor { get; set; }
     public Color DisabledValueLabelColor { get; set; }
-
-    public event EventHandler<SliderValueChangedEventArgs>? ValueChanged;
-    public event EventHandler? DragStarted;
-    public event EventHandler? DragEnded;
-
-    #endregion
 }

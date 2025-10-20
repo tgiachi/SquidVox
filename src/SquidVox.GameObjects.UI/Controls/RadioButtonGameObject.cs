@@ -31,6 +31,8 @@ public class RadioButtonGameObject : Base2dGameObject
     private string _text;
     private string _value;
 
+    public event EventHandler<bool>? SelectionChanged;
+    public event EventHandler? Click;
 
     public RadioButtonGameObject(
         string text = "RadioButton",
@@ -400,8 +402,9 @@ public class RadioButtonGameObject : Base2dGameObject
         _isSelected = isSelected;
     }
 
-    #region Properties
-
+    /// <summary>
+    /// Text displayed next to the radio button.
+    /// </summary>
     public string Text
     {
         get => _text;
@@ -468,9 +471,4 @@ public class RadioButtonGameObject : Base2dGameObject
 
     public Color DotColor { get; set; }
     public Color DisabledDotColor { get; set; }
-
-    public event EventHandler<bool>? SelectionChanged;
-    public event EventHandler? Click;
-
-    #endregion
 }

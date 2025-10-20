@@ -8,6 +8,7 @@ using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.GameObjects.UI.Events;
+using SquidVox.GameObjects.UI.Utils;
 
 namespace SquidVox.GameObjects.UI.Controls;
 
@@ -39,6 +40,25 @@ public class TextBoxGameObject : Base2dGameObject
     private string _text = string.Empty;
     private float _textOffset;
 
+    /// <summary>
+    /// Event fired when text changes
+    /// </summary>
+    public event EventHandler<TextChangedEventArgs>? TextChanged;
+
+    /// <summary>
+    /// Event fired when TextBox gains focus
+    /// </summary>
+    public event EventHandler? GotFocus;
+
+    /// <summary>
+    /// Event fired when TextBox loses focus
+    /// </summary>
+    public event EventHandler? LostFocus;
+
+    /// <summary>
+    /// Event fired when Enter key is pressed
+    /// </summary>
+    public event EventHandler? EnterPressed;
 
     /// <summary>
     /// Initializes a new TextBox game object
@@ -701,8 +721,6 @@ public class TextBoxGameObject : Base2dGameObject
         );
     }
 
-    #region Properties
-
     /// <summary>
     /// Current text content of the TextBox
     /// </summary>
@@ -874,26 +892,4 @@ public class TextBoxGameObject : Base2dGameObject
     /// Cursor color
     /// </summary>
     public Color CursorColor { get; set; }
-
-    /// <summary>
-    /// Event fired when text changes
-    /// </summary>
-    public event EventHandler<TextChangedEventArgs>? TextChanged;
-
-    /// <summary>
-    /// Event fired when TextBox gains focus
-    /// </summary>
-    public event EventHandler? GotFocus;
-
-    /// <summary>
-    /// Event fired when TextBox loses focus
-    /// </summary>
-    public event EventHandler? LostFocus;
-
-    /// <summary>
-    /// Event fired when Enter key is pressed
-    /// </summary>
-    public event EventHandler? EnterPressed;
-
-    #endregion
 }

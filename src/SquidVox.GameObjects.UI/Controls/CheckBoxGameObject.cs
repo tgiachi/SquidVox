@@ -30,6 +30,15 @@ public class CheckBoxGameObject : Base2dGameObject
     private MouseState _previousMouseState;
     private string _text;
 
+    /// <summary>
+    /// Event fired when the checked state changes
+    /// </summary>
+    public event EventHandler<bool>? CheckedChanged;
+
+    /// <summary>
+    /// Event fired when the checkbox is clicked
+    /// </summary>
+    public event EventHandler? Click;
 
     /// <summary>
     /// Initializes a new CheckBox game object
@@ -142,16 +151,6 @@ public class CheckBoxGameObject : Base2dGameObject
             PressedTextColor = value;
         }
     }
-
-    /// <summary>
-    /// Event fired when the checked state changes
-    /// </summary>
-    public event EventHandler<bool>? CheckedChanged;
-
-    /// <summary>
-    /// Event fired when the checkbox is clicked
-    /// </summary>
-    public event EventHandler? Click;
 
     /// <summary>
     /// Sets default color scheme

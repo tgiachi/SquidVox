@@ -29,6 +29,7 @@ public class ListBoxGameObject : Base2dGameObject
     private MouseState _previousMouseState;
     private int _scrollOffset;
 
+    public event EventHandler? SelectionChanged;
 
     public ListBoxGameObject(
         float width = 200f,
@@ -331,8 +332,6 @@ public class ListBoxGameObject : Base2dGameObject
         );
     }
 
-    #region Item Management
-
     public void AddItem(ListBoxItem item)
     {
         _items.Add(item);
@@ -413,10 +412,6 @@ public class ListBoxGameObject : Base2dGameObject
         }
     }
 
-    #endregion
-
-    #region Properties
-
     public ListBoxSelectionMode SelectionMode { get; set; } = ListBoxSelectionMode.Single;
     public float ItemHeight { get; set; } = 24f;
     public float ItemPadding { get; set; } = 8f;
@@ -467,8 +462,4 @@ public class ListBoxGameObject : Base2dGameObject
             return index >= 0 && index < _items.Count ? _items[index] : null;
         }
     }
-
-    public event EventHandler? SelectionChanged;
-
-    #endregion
 }
