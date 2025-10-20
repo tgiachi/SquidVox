@@ -96,9 +96,7 @@ public class SquidVoxWorld : Game
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        _spriteBatch.Begin();
         _renderLayers.RenderAll(_spriteBatch);
-        _spriteBatch.End();
 
         // TODO: Add your drawing code here
 

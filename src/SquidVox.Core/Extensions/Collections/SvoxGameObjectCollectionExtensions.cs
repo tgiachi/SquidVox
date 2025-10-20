@@ -34,7 +34,7 @@ public static class SvoxGameObjectCollectionExtensions
     }
 
     /// <summary>
-    /// Renders all visible game objects in the collection.
+    /// Renders all visible game objects in the collection, applying scissor clipping for objects with Size set.
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of game objects.</param>
@@ -47,13 +47,56 @@ public static class SvoxGameObjectCollectionExtensions
     {
         collection.CheckForZIndexChanges();
 
+        if (collection.Count == 0) return;
+
+        var graphicsDevice = spriteBatch.GraphicsDevice;
+        var rasterizerState = new RasterizerState();
+        Rectangle? currentScissor = null;
+        bool batchBegun = false;
+
         for (var i = 0; i < collection.Count; i++)
         {
             var gameObject = collection[i];
-            if (gameObject.IsVisible)
+            if (!gameObject.IsVisible) continue;
+
+            Rectangle? scissorRect = gameObject.Size != Vector2.Zero ? new Rectangle((int)gameObject.Position.X, (int)gameObject.Position.Y, (int)gameObject.Size.X, (int)gameObject.Size.Y) : null;
+
+            if (scissorRect != currentScissor)
             {
-                gameObject.Render(spriteBatch);
+                if (batchBegun)
+                {
+                    spriteBatch.End();
+                    batchBegun = false;
+                }
+
+                if (scissorRect.HasValue)
+                {
+                    rasterizerState.ScissorTestEnable = true;
+                    graphicsDevice.ScissorRectangle = scissorRect.Value;
+                }
+                else
+                {
+                    rasterizerState.ScissorTestEnable = false;
+                }
+
+                spriteBatch.Begin(rasterizerState: rasterizerState);
+                batchBegun = true;
+                currentScissor = scissorRect;
             }
+
+            if (!batchBegun)
+            {
+                spriteBatch.Begin();
+                batchBegun = true;
+                currentScissor = null;
+            }
+
+            gameObject.Render(spriteBatch);
+        }
+
+        if (batchBegun)
+        {
+            spriteBatch.End();
         }
     }
 
