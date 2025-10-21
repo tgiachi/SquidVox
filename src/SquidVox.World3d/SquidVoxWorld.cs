@@ -4,6 +4,7 @@ using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Serilog;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Scripts;
@@ -15,6 +16,7 @@ using SquidVox.Voxel.Interfaces;
 using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
 using SquidVox.World3d.Scripts;
+using SquidVox.World3d.Services;
 
 namespace SquidVox.World3d;
 
@@ -23,6 +25,7 @@ namespace SquidVox.World3d;
 /// </summary>
 public class SquidVoxWorld : Game
 {
+    private readonly ILogger _logger = Log.ForContext<SquidVoxWorld>();
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private readonly IContainer _container;
@@ -98,7 +101,8 @@ public class SquidVoxWorld : Game
         _renderLayers.Add(new GameObject3dRenderLayer());
 
         _inputManager = _container.Resolve<IInputManager>();
-        _inputManager.CurrentContext = InputContext.Gameplay3D;
+        // TODO: Restore when InputContext is implemented
+        // _inputManager.CurrentContext = InputContext.Gameplay3D;
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
 
@@ -106,32 +110,8 @@ public class SquidVoxWorld : Game
 
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
-        var camera = new CameraComponent();
-        camera.FlyMode = true;
-        camera.Position = new Vector3(0, 2, 5);
-        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(camera);
+        // TODO: Setup camera and world components when WorldComponent is implemented
 
-        _inputManager.SetFocus(camera);
-
-        _inputManager.BindKey("F1", () => Exit(), InputContext.Gameplay3D);
-
-        SetupTestBlock(camera);
-
-        _renderLayers.GetLayer<ImGuiRenderLayer>()
-            .AddDebugger(
-                new LuaImGuiDebuggerObject(
-                    "Camera",
-                    () =>
-                    {
-                        var cam = _renderLayers.GetLayer<GameObject3dRenderLayer>().GetComponent<CameraComponent>();
-                        ImGui.Text("Use WASD to move the camera.");
-                        ImGui.Text("Use mouse to look around.");
-                        ImGui.Text("Position: " + cam.Position);
-                        ImGui.Text("Rotation: " + cam.Rotation);
-                        ImGui.Text("Pitch: " + cam.Pitch);
-                    }
-                )
-            );
 
 
     }
@@ -177,23 +157,10 @@ public class SquidVoxWorld : Game
 
         _renderLayers.RenderAll(_spriteBatch);
 
-
         base.Draw(gameTime);
     }
 
-    private void SetupTestBlock(CameraComponent cameraComponent)
-    {
 
-        var grassBlock = new Block3dComponent(cameraComponent)
-        {
-            BlockType = Voxel.Types.BlockType.Grass,
-            Position = Vector3.Zero,
-            AutoRotate = true,
-            Size = 1f
-        };
-
-        _renderLayers.GetLayer<GameObject3dRenderLayer>()?.AddGameObject(grassBlock);
-    }
 
     private Texture2D CreateColorTexture(Color color)
     {

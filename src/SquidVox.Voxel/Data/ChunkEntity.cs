@@ -23,6 +23,8 @@ public class ChunkEntity
     /// </summary>
     public const int Depth = 16;
 
+    public const int Size = Width * Height * Depth;
+
     private readonly int _chunkX;
     private readonly int _chunkY;
     private readonly int _chunkZ;

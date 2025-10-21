@@ -1,8 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SquidVox.Core.Context;
-using SquidVox.Core.GameObjects;
 using SquidVox.Voxel.Data;
 
 namespace SquidVox.World3d.GameObjects;
@@ -10,7 +8,7 @@ namespace SquidVox.World3d.GameObjects;
 /// <summary>
 /// Represents a first-person 3D camera component with input handling, physics, and collision detection.
 /// </summary>
-public sealed class CameraComponent : Base3dGameObject
+public sealed class CameraComponent
 {
     private Vector3 _position;
     private float _fieldOfView = MathHelper.PiOver4;
@@ -20,6 +18,7 @@ public sealed class CameraComponent : Base3dGameObject
     private readonly Vector3 _worldUp = Vector3.Up;
     private Vector3 _front;
     private Vector3 _right;
+    private Vector3 _up;
 
     private Matrix _view;
     private Matrix _projection;
@@ -39,6 +38,7 @@ public sealed class CameraComponent : Base3dGameObject
     private const float JumpVelocity = 12f;
     private const float TerminalVelocity = 50f;
 
+    // Spatial hashing for collision detection optimization
     private const float CellSize = 1.0f;
     private readonly Dictionary<(int, int, int), HashSet<Vector3>> _spatialGrid = new();
     private bool _isOnGround;
@@ -46,23 +46,25 @@ public sealed class CameraComponent : Base3dGameObject
     /// <summary>
     /// Initializes a new instance of the <see cref="CameraComponent"/> class.
     /// </summary>
-    public CameraComponent()
+    /// <param name="graphicsDevice">The graphics device used for viewport calculations.</param>
+    public CameraComponent(GraphicsDevice graphicsDevice)
     {
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        _graphicsDevice = graphicsDevice ?? throw new ArgumentNullException(nameof(graphicsDevice));
         _position = new Vector3(8f, ChunkEntity.Height + 20f, 8f);
 
         _front = Vector3.UnitZ;
-        Up = Vector3.Up;
+        _up = Vector3.Up;
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
 
         UpdateCameraVectors();
 
         Mouse.SetPosition(_graphicsDevice.Viewport.Width / 2, _graphicsDevice.Viewport.Height / 2);
-
-        Name = "Camera";
     }
 
-    public new Vector3 Position
+    /// <summary>
+    /// Gets or sets the camera's world position.
+    /// </summary>
+    public Vector3 Position
     {
         get => _position;
         set
@@ -88,7 +90,7 @@ public sealed class CameraComponent : Base3dGameObject
     /// <summary>
     /// Gets the up direction vector (normalized).
     /// </summary>
-    public Vector3 Up { get; private set; }
+    public Vector3 Up => _up;
 
     /// <summary>
     /// Gets or sets the horizontal rotation in degrees (default: -90°).
@@ -187,7 +189,7 @@ public sealed class CameraComponent : Base3dGameObject
         {
             if (_viewDirty)
             {
-                _view = Matrix.CreateLookAt(_position, _position + _front, Up);
+                _view = Matrix.CreateLookAt(_position, _position + _front, _up);
                 _viewDirty = false;
             }
             return _view;
@@ -258,7 +260,7 @@ public sealed class CameraComponent : Base3dGameObject
 
         _front = Vector3.Normalize(cameraDirection);
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
-        Up = Vector3.Normalize(Vector3.Cross(_right, _front));
+        _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
         _viewDirty = true;
     }
@@ -327,22 +329,17 @@ public sealed class CameraComponent : Base3dGameObject
     /// </summary>
     public bool FlyMode { get; set; }
 
-    /// <summary>
-    /// Gets or sets the delegate for checking if a block is solid.
-    /// </summary>
     public Func<Vector3, bool>? IsBlockSolid { get; set; }
 
-    /// <summary>
-    /// Gets or sets the bounding box size for collision detection.
-    /// </summary>
     public Vector3 BoundingBoxSize { get; set; } = new Vector3(0.6f, 1.8f, 0.6f);
 
-    /// <summary>
-    /// Gets a value indicating whether the camera is on the ground.
-    /// </summary>
     public bool IsOnGround => _isOnGround;
 
-    protected override void OnUpdate(GameTime gameTime)
+    /// <summary>
+    /// Updates the camera component, handling physics and input.
+    /// </summary>
+    /// <param name="gameTime">The game time information.</param>
+    public void Update(GameTime gameTime)
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -351,8 +348,6 @@ public sealed class CameraComponent : Base3dGameObject
             HandleKeyboardInput(deltaTime);
             HandleMouseInput();
         }
-
-        base.OnUpdate(gameTime);
     }
 
     private void HandleKeyboardInput(float deltaTime)
@@ -536,11 +531,13 @@ public sealed class CameraComponent : Base3dGameObject
 
     private bool CheckCollision(Vector3 position)
     {
+        // Use optimized spatial grid collision detection if available
         if (_spatialGrid.Count > 0)
         {
             return CheckCollisionOptimized(position);
         }
 
+        // Fallback to original method if spatial grid is not populated
         if (IsBlockSolid == null) return false;
 
         var halfSize = BoundingBoxSize / 2;
@@ -566,11 +563,13 @@ public sealed class CameraComponent : Base3dGameObject
 
     private bool CheckGroundCollision(Vector3 position)
     {
+        // Use optimized spatial grid collision detection if available
         if (_spatialGrid.Count > 0)
         {
             return CheckGroundCollisionOptimized(position);
         }
 
+        // Fallback to original method if spatial grid is not populated
         if (IsBlockSolid == null) return false;
 
         var feetY = position.Y - BoundingBoxSize.Y / 2 - 0.01f;
@@ -622,6 +621,7 @@ public sealed class CameraComponent : Base3dGameObject
                     var cellKey = (cellX, cellY, cellZ);
                     var cellBlocks = new HashSet<Vector3>();
 
+                    // Scan all blocks in this cell
                     var cellMin = new Vector3(cellX * CellSize, cellY * CellSize, cellZ * CellSize);
                     var cellMax = cellMin + new Vector3(CellSize, CellSize, CellSize);
 
@@ -649,17 +649,18 @@ public sealed class CameraComponent : Base3dGameObject
         }
     }
 
+    /// <summary>
+    /// Optimized collision detection using spatial grid.
+    /// </summary>
     private bool CheckCollisionOptimized(Vector3 position)
     {
-        if (IsBlockSolid == null)
-        {
-            return false;
-        }
+        if (IsBlockSolid == null) return false;
 
         var halfSize = BoundingBoxSize / 2;
         var min = position - halfSize;
         var max = position + halfSize;
 
+        // Get cells that intersect with the bounding box
         var minCellX = (int)MathF.Floor(min.X / CellSize);
         var maxCellX = (int)MathF.Ceiling(max.X / CellSize);
         var minCellY = (int)MathF.Floor(min.Y / CellSize);
@@ -667,6 +668,7 @@ public sealed class CameraComponent : Base3dGameObject
         var minCellZ = (int)MathF.Floor(min.Z / CellSize);
         var maxCellZ = (int)MathF.Ceiling(max.Z / CellSize);
 
+        // Check all intersecting cells
         for (var cellX = minCellX; cellX <= maxCellX; cellX++)
         {
             for (var cellY = minCellY; cellY <= maxCellY; cellY++)
@@ -676,6 +678,7 @@ public sealed class CameraComponent : Base3dGameObject
                     var cellKey = (cellX, cellY, cellZ);
                     if (_spatialGrid.TryGetValue(cellKey, out var cellBlocks))
                     {
+                        // Check if any block in this cell intersects with our bounding box
                         foreach (var blockPos in cellBlocks)
                         {
                             if (blockPos.X >= min.X && blockPos.X <= max.X &&
@@ -693,12 +696,12 @@ public sealed class CameraComponent : Base3dGameObject
         return false;
     }
 
+    /// <summary>
+    /// Optimized ground collision detection using spatial grid.
+    /// </summary>
     private bool CheckGroundCollisionOptimized(Vector3 position)
     {
-        if (IsBlockSolid == null)
-        {
-            return false;
-        }
+        if (IsBlockSolid == null) return false;
 
         var feetY = position.Y - BoundingBoxSize.Y / 2 - 0.01f;
         var halfWidth = BoundingBoxSize.X / 2;
@@ -713,12 +716,14 @@ public sealed class CameraComponent : Base3dGameObject
             new Vector3(position.X, feetY, position.Z)
         };
 
+        // Get the cell for the ground level
         var cellY = (int)MathF.Floor(feetY / CellSize);
         var minCellX = (int)MathF.Floor((position.X - halfWidth) / CellSize);
         var maxCellX = (int)MathF.Ceiling((position.X + halfWidth) / CellSize);
         var minCellZ = (int)MathF.Floor((position.Z - halfDepth) / CellSize);
         var maxCellZ = (int)MathF.Ceiling((position.Z + halfDepth) / CellSize);
 
+        // Check intersecting cells at ground level
         for (var cellX = minCellX; cellX <= maxCellX; cellX++)
         {
             for (var cellZ = minCellZ; cellZ <= maxCellZ; cellZ++)
@@ -730,7 +735,7 @@ public sealed class CameraComponent : Base3dGameObject
                     {
                         foreach (var testPos in testPositions)
                         {
-                            if (Vector3.DistanceSquared(blockPos, testPos) < 0.01f)
+                            if (Vector3.DistanceSquared(blockPos, testPos) < 0.01f) // Small epsilon for floating point comparison
                             {
                                 return true;
                             }
