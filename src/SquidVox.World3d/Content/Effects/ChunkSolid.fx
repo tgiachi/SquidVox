@@ -20,7 +20,7 @@ sampler texSampler = sampler_state
 };
 
 // Lighting constants
-static const float3 ambient = float3(0.5, 0.5, 0.5);
+static const float3 ambient = float3(0.7, 0.7, 0.7);
 static const float3 lightDirection = float3(0.8, 1.0, 0.7);
 
 // Array of possible normals based on direction

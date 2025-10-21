@@ -38,3 +38,8 @@
 /processorParam:DebugMode=Auto
 /build:Effects/SkyPanorama.fx
 
+#begin Effects/ChunkBlock.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:Effects/ChunkBlock.fx
+

@@ -5,10 +5,36 @@ using MonoGame.Extended.Graphics;
 using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
+using SquidVox.Core.Interfaces.Services;
 using SquidVox.Voxel.Interfaces;
 using SquidVox.Voxel.Types;
 
 namespace SquidVox.World3d.GameObjects;
+
+/// <summary>
+/// Custom vertex format for block rendering with normals, AO, and per-vertex lighting.
+/// </summary>
+public struct VertexPositionNormalTextureAO : IVertexType
+{
+    public Vector3 Position;
+    public Vector3 Normal;
+    public Vector4 UV; // xy = texture coords, z = AO, w = light
+
+    public static readonly VertexDeclaration VertexDeclaration = new(
+        new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
+        new VertexElement(12, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
+        new VertexElement(24, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 0)
+    );
+
+    public VertexPositionNormalTextureAO(Vector3 position, Vector3 normal, Vector4 uv)
+    {
+        Position = position;
+        Normal = normal;
+        UV = uv;
+    }
+
+    VertexDeclaration IVertexType.VertexDeclaration => VertexDeclaration;
+}
 
 /// <summary>
 /// Renders a textured voxel block in 3D space using textures from the BlockManagerService.
@@ -17,11 +43,13 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
 {
     private readonly GraphicsDevice _graphicsDevice;
     private readonly IBlockManagerService _blockManagerService;
-    private readonly BasicEffect _effect;
+    private readonly IAssetManagerService _assetManagerService;
+    private readonly Effect _effect;
     private readonly ILogger _logger = Log.ForContext<Block3dComponent>();
 
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
+    private Texture2D? _currentTexture;
     private bool _geometryInvalidated = true;
 
     private float _rotationY;
@@ -32,6 +60,13 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
     private BlockType _blockType = BlockType.Grass;
     private bool _isBillboard;
 
+    // Shader parameters
+    private float _timer;
+    private float _timeOfDay; // 0.0 to 1.0, represents time of day cycle
+    private float _daylight = 1.0f; // Calculated daylight intensity
+    private float _fogDistance = 100.0f;
+    private float _dayNightCycleSpeed = 0.05f; // Speed of day/night cycle
+
     /// <summary>
     /// Initializes a new instance of the Block3dComponent class.
     /// </summary>
@@ -41,13 +76,9 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
     {
         _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
         _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
+        _assetManagerService = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
 
-        _effect = new BasicEffect(_graphicsDevice)
-        {
-            TextureEnabled = true,
-            LightingEnabled = false,
-            VertexColorEnabled = false
-        };
+        _effect = _assetManagerService.GetEffect("Effects/ChunkBlock");
 
         Name = "Block3D";
         UpdateBillboardStatus();
@@ -125,15 +156,69 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
     /// </summary>
     public Vector3 CameraTarget { get; set; } = Vector3.Zero;
 
+    /// <summary>
+    /// Gets or sets the time of day (0.0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset).
+    /// </summary>
+    public float TimeOfDay
+    {
+        get => _timeOfDay;
+        set => _timeOfDay = value % 1.0f;
+    }
+
+    /// <summary>
+    /// Gets the current daylight intensity (0.0 to 1.0).
+    /// </summary>
+    public float Daylight => _daylight;
+
+    /// <summary>
+    /// Gets or sets the speed of the day/night cycle.
+    /// </summary>
+    public float DayNightCycleSpeed
+    {
+        get => _dayNightCycleSpeed;
+        set => _dayNightCycleSpeed = value;
+    }
+
     protected override void OnUpdate(GameTime gameTime)
     {
+        var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
         if (AutoRotate)
         {
-            var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
             _rotationY = (_rotationY + RotationSpeed * elapsedSeconds) % MathHelper.TwoPi;
         }
 
+        // Update time of day (0.0 to 1.0 cycle)
+        _timeOfDay = (_timeOfDay + elapsedSeconds * _dayNightCycleSpeed) % 1.0f;
+
+        // Calculate daylight intensity using sigmoid function
+        _daylight = GetDaylight(_timeOfDay);
+
+        // Update timer for shader animation (wraps at 1.0 for sky texture sampling)
+        _timer = (_timer + elapsedSeconds * 0.01f) % 1.0f;
+
         base.OnUpdate(gameTime);
+    }
+
+    /// <summary>
+    /// Calculates daylight intensity based on time of day using a sigmoid function.
+    /// </summary>
+    /// <param name="timeOfDay">Time of day from 0.0 to 1.0</param>
+    /// <returns>Daylight intensity from 0.0 to 1.0</returns>
+    private static float GetDaylight(float timeOfDay)
+    {
+        if (timeOfDay < 0.5f)
+        {
+            // Sunrise/morning: sigmoid curve centered at 0.25
+            float t = (timeOfDay - 0.25f) * 100f;
+            return 1.0f / (1.0f + MathF.Pow(2, -t));
+        }
+        else
+        {
+            // Sunset/night: inverse sigmoid curve centered at 0.85
+            float t = (timeOfDay - 0.85f) * 100f;
+            return 1.0f - 1.0f / (1.0f + MathF.Pow(2, -t));
+        }
     }
 
     protected override void OnRender(GraphicsDevice graphicsDevice)
@@ -195,9 +280,29 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
         _lastView = Matrix.CreateLookAt(CameraPosition, lookTarget, Vector3.Up);
         _lastProjection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.1f, 100f);
 
-        _effect.World = _lastWorld;
-        _effect.View = _lastView;
-        _effect.Projection = _lastProjection;
+        // Combine world-view-projection matrices
+        var mvpMatrix = _lastWorld * _lastView * _lastProjection;
+
+        // Set shader parameters for ChunkBlock shader
+        _effect.Parameters["mvpMatrix"]?.SetValue(mvpMatrix);
+        _effect.Parameters["worldMatrix"]?.SetValue(_lastWorld);
+        _effect.Parameters["camera"]?.SetValue(CameraPosition);
+        _effect.Parameters["fog_distance"]?.SetValue(_fogDistance);
+        _effect.Parameters["ortho"]?.SetValue(false); // Always use perspective for this block
+        _effect.Parameters["timer"]?.SetValue(_timer);
+        _effect.Parameters["daylight"]?.SetValue(_daylight);
+
+        if (_currentTexture != null)
+        {
+            _effect.Parameters["tex"]?.SetValue(_currentTexture);
+        }
+        else
+        {
+            _logger.Warning("Current texture is null!");
+        }
+
+        // Sky texture is optional - if not set, fog won't be applied
+        // _effect.Parameters["sky_tex"]?.SetValue(skyTexture);
 
         var previousBlendState = _graphicsDevice.BlendState;
         var previousDepthStencilState = _graphicsDevice.DepthStencilState;
@@ -246,7 +351,7 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
         }
 
         var halfSize = 0.5f;
-        var vertices = new List<VertexPositionTexture>();
+        var vertices = new List<VertexPositionNormalTextureAO>();
         var indices = new List<short>();
         short baseIndex = 0;
 
@@ -328,7 +433,7 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
 
         _vertexBuffer = new VertexBuffer(
             _graphicsDevice,
-            typeof(VertexPositionTexture),
+            typeof(VertexPositionNormalTextureAO),
             vertices.Count,
             BufferUsage.WriteOnly
         );
@@ -337,9 +442,27 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
         _indexBuffer = new IndexBuffer(_graphicsDevice, IndexElementSize.SixteenBits, indices.Count, BufferUsage.WriteOnly);
         _indexBuffer.SetData(indices.ToArray());
 
-        _effect.Texture = commonTexture;
-
+        _currentTexture = commonTexture;
         _geometryInvalidated = false;
+    }
+
+    /// <summary>
+    /// Gets the normal vector for a given block side.
+    /// </summary>
+    /// <param name="side">The block side.</param>
+    /// <returns>The normal vector.</returns>
+    private static Vector3 GetNormal(BlockSide side)
+    {
+        return side switch
+        {
+            BlockSide.Top => new Vector3(0, 1, 0),
+            BlockSide.Bottom => new Vector3(0, -1, 0),
+            BlockSide.North => new Vector3(0, 0, -1),
+            BlockSide.South => new Vector3(0, 0, 1),
+            BlockSide.East => new Vector3(1, 0, 0),
+            BlockSide.West => new Vector3(-1, 0, 0),
+            _ => Vector3.Up
+        };
     }
 
     /// <summary>
@@ -365,53 +488,57 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
         return (min, max);
     }
 
-    private static VertexPositionTexture[] GetFaceVertices(BlockSide side, float halfSize, (Vector2 Min, Vector2 Max) uv)
+    private static VertexPositionNormalTextureAO[] GetFaceVertices(BlockSide side, float halfSize, (Vector2 Min, Vector2 Max) uv)
     {
         var (min, max) = uv;
+        var normal = GetNormal(side);
+        // UV.z = AO (1.0 = no occlusion), UV.w = per-vertex light (0.0 = no extra light)
+        const float ao = 1.0f;
+        const float light = 0.0f;
 
         return side switch
         {
             BlockSide.Top =>
             [
-                new VertexPositionTexture(new Vector3(-halfSize, halfSize, -halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, halfSize, -halfSize), new Vector2(max.X, min.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, halfSize, halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, halfSize, halfSize), new Vector2(min.X, max.Y))
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, halfSize, -halfSize), normal, new Vector4(min.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, halfSize, -halfSize), normal, new Vector4(max.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, halfSize, halfSize), normal, new Vector4(max.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, halfSize, halfSize), normal, new Vector4(min.X, max.Y, ao, light))
             ],
             BlockSide.Bottom =>
             [
-                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, -halfSize, halfSize), new Vector2(max.X, min.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, -halfSize, -halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, -halfSize), new Vector2(min.X, max.Y))
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, -halfSize, halfSize), normal, new Vector4(min.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, -halfSize, halfSize), normal, new Vector4(max.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, -halfSize, -halfSize), normal, new Vector4(max.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, -halfSize, -halfSize), normal, new Vector4(min.X, max.Y, ao, light))
             ],
             BlockSide.North =>
             [
-                new VertexPositionTexture(new Vector3(-halfSize, halfSize, -halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, -halfSize), new Vector2(min.X, max.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, -halfSize, -halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, halfSize, -halfSize), new Vector2(max.X, min.Y))
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, halfSize, -halfSize), normal, new Vector4(min.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, -halfSize, -halfSize), normal, new Vector4(min.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, -halfSize, -halfSize), normal, new Vector4(max.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, halfSize, -halfSize), normal, new Vector4(max.X, min.Y, ao, light))
             ],
             BlockSide.South =>
             [
-                new VertexPositionTexture(new Vector3(halfSize, halfSize, halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, -halfSize, halfSize), new Vector2(min.X, max.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, halfSize, halfSize), new Vector2(max.X, min.Y))
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, halfSize, halfSize), normal, new Vector4(min.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, -halfSize, halfSize), normal, new Vector4(min.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, -halfSize, halfSize), normal, new Vector4(max.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, halfSize, halfSize), normal, new Vector4(max.X, min.Y, ao, light))
             ],
             BlockSide.East =>
             [
-                new VertexPositionTexture(new Vector3(halfSize, halfSize, -halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, -halfSize, -halfSize), new Vector2(min.X, max.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, -halfSize, halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, halfSize, halfSize), new Vector2(max.X, min.Y))
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, halfSize, -halfSize), normal, new Vector4(min.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, -halfSize, -halfSize), normal, new Vector4(min.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, -halfSize, halfSize), normal, new Vector4(max.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(halfSize, halfSize, halfSize), normal, new Vector4(max.X, min.Y, ao, light))
             ],
             BlockSide.West =>
             [
-                new VertexPositionTexture(new Vector3(-halfSize, halfSize, halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, halfSize), new Vector2(min.X, max.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, -halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, halfSize, -halfSize), new Vector2(max.X, min.Y))
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, halfSize, halfSize), normal, new Vector4(min.X, min.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, -halfSize, halfSize), normal, new Vector4(min.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, -halfSize, -halfSize), normal, new Vector4(max.X, max.Y, ao, light)),
+                new VertexPositionNormalTextureAO(new Vector3(-halfSize, halfSize, -halfSize), normal, new Vector4(max.X, min.Y, ao, light))
             ],
             _ => throw new ArgumentOutOfRangeException(nameof(side), side, "Unsupported block side")
         };

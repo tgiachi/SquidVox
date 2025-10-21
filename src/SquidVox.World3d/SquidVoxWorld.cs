@@ -79,6 +79,7 @@ public class SquidVoxWorld : Game
         assetsManager.LoadEffect("Effects/ChunkBillboard");
         assetsManager.LoadEffect("Effects/ChunkFluid");
         assetsManager.LoadEffect("Effects/ChunkSolid");
+        assetsManager.LoadEffect("Effects/ChunkBlock");
 
         base.Initialize();
     }
@@ -131,6 +132,8 @@ public class SquidVoxWorld : Game
                     }
                 )
             );
+
+
     }
 
     /// <summary>
