@@ -34,6 +34,27 @@ public static class SvoxGameObjectCollectionExtensions
     }
 
     /// <summary>
+    /// Renders all visible 3D game objects in the collection.
+    /// </summary>
+    /// <typeparam name="T">Type implementing ISVox3dDrawableGameObject</typeparam>
+    /// <param name="collection">Collection of 3D game objects.</param>
+    /// <param name="graphicsDevice">The graphics device for rendering.</param>
+    public static void RenderAll<T>(this SvoxGameObjectCollection<T> collection, GraphicsDevice graphicsDevice)
+        where T : class, ISVox3dDrawableGameObject
+    {
+        collection.CheckForZIndexChanges();
+
+        for (var i = 0; i < collection.Count; i++)
+        {
+            var gameObject = collection[i];
+            if (gameObject.IsVisible)
+            {
+                gameObject.Render(graphicsDevice);
+            }
+        }
+    }
+
+    /// <summary>
     /// Renders all visible game objects in the collection, applying scissor clipping for objects with Size set.
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>

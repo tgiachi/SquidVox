@@ -5,11 +5,11 @@ using SquidVox.Core.Interfaces.GameObjects;
 namespace SquidVox.Core.Collections;
 
 /// <summary>
-/// High-performance sorted collection for ISVox2dDrawableGameObject objects, automatically sorted by ZIndex.
+/// High-performance sorted collection for ISVoxObject objects, automatically sorted by ZIndex.
 /// </summary>
-/// <typeparam name="T">Type implementing ISVox2dDrawableGameObject</typeparam>
+/// <typeparam name="T">Type implementing ISVoxObject, ISVoxUpdateable</typeparam>
 public class SvoxGameObjectCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T> : IEnumerable<T>
-    where T : class, ISVox2dDrawableGameObject
+    where T : class, ISVoxObject, ISVoxUpdateable
 {
     private readonly List<T> _gameObjects;
     private readonly Dictionary<Type, List<T>> _gameObjectsByType;

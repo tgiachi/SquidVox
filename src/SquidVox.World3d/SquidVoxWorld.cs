@@ -9,6 +9,7 @@ using SquidVox.Core.Data.Scripts;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
+using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
 
 namespace SquidVox.World3d;
@@ -82,16 +83,8 @@ public class SquidVoxWorld : Game
         _renderLayers.Add(new ImGuiRenderLayer(this));
         _renderLayers.Add(new GameObjectRenderLayer());
         _renderLayers.Add(new SceneRenderLayer());
+        _renderLayers.Add(new GameObject3dRenderLayer());
 
-        _renderLayers.GetLayer<GameObjectRenderLayer>()
-            .AddGameObject(
-                new LabelGameObject("Hello World")
-                {
-                    Position = new Vector2(50, 50),
-                    FontSize = 24,
-                    Color = Color.Red
-                }
-            );
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
 
@@ -99,6 +92,8 @@ public class SquidVoxWorld : Game
         scriptEngine.OnScriptError += OnScriptError;
 
         scriptEngine.StartAsync().GetAwaiter().GetResult();
+
+        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(new CameraComponent());
     }
 
     /// <summary>

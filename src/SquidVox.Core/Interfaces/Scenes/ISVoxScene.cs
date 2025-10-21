@@ -15,9 +15,14 @@ public interface ISVoxScene : ISVoxUpdateable, ISVox2dRenderable, ISVoxInputRece
     string Name { get; }
 
     /// <summary>
-    /// Gets the collection of game objects in this scene.
+    /// Gets the collection of 2D game objects in this scene.
     /// </summary>
     SvoxGameObjectCollection<ISVox2dDrawableGameObject> Components { get; }
+
+    /// <summary>
+    /// Gets the collection of 3D game objects in this scene.
+    /// </summary>
+    SvoxGameObjectCollection<ISVox3dDrawableGameObject> Components3d { get; }
 
     /// <summary>
     /// Called when the scene is loaded and becomes active.

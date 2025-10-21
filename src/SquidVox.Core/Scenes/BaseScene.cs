@@ -40,9 +40,14 @@ public abstract class BaseScene : ISVoxScene
     public virtual Vector2 Size { get; set; } = Vector2.Zero;
 
     /// <summary>
-    /// Gets the collection of game objects in this scene.
+    /// Gets the collection of 2D game objects in this scene.
     /// </summary>
     public SvoxGameObjectCollection<ISVox2dDrawableGameObject> Components { get; }
+
+    /// <summary>
+    /// Gets the collection of 3D game objects in this scene.
+    /// </summary>
+    public SvoxGameObjectCollection<ISVox3dDrawableGameObject> Components3d { get; }
 
     /// <summary>
     /// Gets or sets whether this scene has input focus.
@@ -60,6 +65,7 @@ public abstract class BaseScene : ISVoxScene
     protected BaseScene()
     {
         Components = [];
+        Components3d = [];
     }
 
     /// <summary>
@@ -69,6 +75,7 @@ public abstract class BaseScene : ISVoxScene
     protected BaseScene(int capacity)
     {
         Components = new SvoxGameObjectCollection<ISVox2dDrawableGameObject>(capacity);
+        Components3d = new SvoxGameObjectCollection<ISVox3dDrawableGameObject>(capacity);
     }
 
     /// <summary>
@@ -90,6 +97,7 @@ public abstract class BaseScene : ISVoxScene
         IsLoaded = false;
         OnUnload();
         Components.Clear();
+        Components3d.Clear();
     }
 
     /// <summary>
@@ -104,7 +112,18 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnUpdate(gameTime);
+        
         Components.UpdateAll(gameTime);
+        
+        Components3d.CheckForZIndexChanges();
+        for (var i = 0; i < Components3d.Count; i++)
+        {
+            var component = Components3d[i];
+            if (component.IsEnabled)
+            {
+                component.Update(gameTime);
+            }
+        }
     }
 
     /// <summary>
@@ -119,6 +138,9 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnRenderBegin(spriteBatch);
+        
+        OnRender3d(spriteBatch.GraphicsDevice);
+        
         Components.RenderAll(spriteBatch);
         OnRenderEnd(spriteBatch);
     }
@@ -136,7 +158,16 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnHandleKeyboard(keyboardState, gameTime);
+        
         Components.HandleKeyboardInput(keyboardState, gameTime);
+        
+        for (var i = 0; i < Components3d.Count; i++)
+        {
+            if (Components3d[i] is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
+            {
+                inputReceiver.HandleKeyboard(keyboardState, gameTime);
+            }
+        }
     }
 
     /// <summary>
@@ -152,7 +183,16 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnHandleMouse(mouseState, gameTime);
+        
         Components.HandleMouseInput(mouseState, gameTime);
+        
+        for (var i = 0; i < Components3d.Count; i++)
+        {
+            if (Components3d[i] is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
+            {
+                inputReceiver.HandleMouse(mouseState, gameTime);
+            }
+        }
     }
 
     /// <summary>
@@ -196,6 +236,26 @@ public abstract class BaseScene : ISVoxScene
     /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
     protected virtual void OnRenderEnd(SpriteBatch spriteBatch)
     {
+    }
+
+    /// <summary>
+    /// Called during Render() to render 3D components.
+    /// Override this to add custom 3D rendering logic or control rendering order.
+    /// By default, renders all visible 3D components in the Components3d collection.
+    /// </summary>
+    /// <param name="graphicsDevice">The graphics device for rendering.</param>
+    protected virtual void OnRender3d(GraphicsDevice graphicsDevice)
+    {
+        Components3d.CheckForZIndexChanges();
+        
+        for (var i = 0; i < Components3d.Count; i++)
+        {
+            var component = Components3d[i];
+            if (component.IsVisible)
+            {
+                component.Render(graphicsDevice);
+            }
+        }
     }
 
     /// <summary>
