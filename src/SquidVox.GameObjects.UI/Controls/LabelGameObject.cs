@@ -7,12 +7,12 @@ using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
-namespace SquidVox.GameObjects.Base.Common;
+namespace SquidVox.GameObjects.UI.Controls;
 
 /// <summary>
 /// A simple component for rendering text in scenes.
 /// </summary>
-public sealed class TextGameObject : Base2dGameObject
+public sealed class LabelGameObject : Base2dGameObject
 {
     private DynamicSpriteFont? _font;
     private string _text;
@@ -26,7 +26,7 @@ public sealed class TextGameObject : Base2dGameObject
     /// <param name="fontSize">The font size.</param>
     /// <param name="position">The relative position of the text.</param>
     /// <param name="color">The color of the text.</param>
-    public TextGameObject(
+    public LabelGameObject(
         string text = "Text",
         string fontName = "Monocraft",
         int fontSize = 14,

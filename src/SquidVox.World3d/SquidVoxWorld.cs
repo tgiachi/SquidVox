@@ -7,7 +7,7 @@ using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
-using SquidVox.GameObjects.Base.Common;
+using SquidVox.GameObjects.UI.Controls;
 using SquidVox.World3d.Rendering;
 
 namespace SquidVox.World3d;
@@ -73,7 +73,7 @@ public class SquidVoxWorld : Game
 
         _renderLayers.GetLayer<GameObjectRenderLayer>()
             .AddGameObject(
-                new TextGameObject("Hello World")
+                new LabelGameObject("Hello World")
                 {
                     Position = new Vector2(50, 50),
                     FontSize = 24,
