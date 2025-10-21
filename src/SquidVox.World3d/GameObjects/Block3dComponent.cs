@@ -46,6 +46,7 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
     private readonly IAssetManagerService _assetManagerService;
     private readonly Effect _effect;
     private readonly ILogger _logger = Log.ForContext<Block3dComponent>();
+    private readonly CameraComponent? _camera;
 
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
@@ -70,13 +71,13 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
     /// <summary>
     /// Initializes a new instance of the Block3dComponent class.
     /// </summary>
-    /// <param name="graphicsDevice">Graphics device for rendering.</param>
-    /// <param name="blockManagerService">Service for block texture management.</param>
-    public Block3dComponent()
+    /// <param name="camera">Optional camera component to use for rendering.</param>
+    public Block3dComponent(CameraComponent? camera = null)
     {
         _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
         _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
         _assetManagerService = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        _camera = camera;
 
         _effect = _assetManagerService.GetEffect("Effects/ChunkBlock");
 
@@ -233,11 +234,14 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
         var viewport = _graphicsDevice.Viewport;
         var aspectRatio = viewport.AspectRatio <= 0 ? 1f : viewport.AspectRatio;
 
+        // Block transformation in world space
         Matrix worldMatrix;
+
         if (IsBillboard)
         {
-            // For billboards, create a rotation matrix that always faces the camera
-            var cameraDirection = Vector3.Normalize(CameraPosition - Position);
+            // Billboards face the camera
+            var cameraPos = _camera?.Position ?? CameraPosition;
+            var cameraDirection = Vector3.Normalize(cameraPos - Position);
             var up = Vector3.Up;
 
             // Create billboard rotation (Y-axis only, like grass/flowers)
@@ -246,39 +250,33 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
 
             worldMatrix = Matrix.CreateScale(Size) *
                           new Matrix(
-                              right.X,
-                              right.Y,
-                              right.Z,
-                              0,
-                              up.X,
-                              up.Y,
-                              up.Z,
-                              0,
-                              forward.X,
-                              forward.Y,
-                              forward.Z,
-                              0,
-                              0,
-                              0,
-                              0,
-                              1
+                              right.X, right.Y, right.Z, 0,
+                              up.X, up.Y, up.Z, 0,
+                              forward.X, forward.Y, forward.Z, 0,
+                              0, 0, 0, 1
                           ) *
                           Matrix.CreateTranslation(Position);
         }
         else
         {
-            // Normal block rotation
-            worldMatrix = Matrix.CreateScale(Size)
-                          * Matrix.CreateFromYawPitchRoll(_rotationY + ManualRotation.Y, ManualRotation.X, ManualRotation.Z)
-                          * Matrix.CreateTranslation(Position);
+            // Normal block - no rotation applied, block stays fixed
+            worldMatrix = Matrix.CreateScale(Size) * Matrix.CreateTranslation(Position);
         }
 
         _lastWorld = worldMatrix;
 
-        var lookTarget = CameraTarget == Vector3.Zero ? Position : CameraTarget;
-
-        _lastView = Matrix.CreateLookAt(CameraPosition, lookTarget, Vector3.Up);
-        _lastProjection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.1f, 100f);
+        // Use camera component if provided, otherwise use default camera position
+        if (_camera != null)
+        {
+            _lastView = _camera.View;
+            _lastProjection = _camera.Projection;
+        }
+        else
+        {
+            var lookTarget = CameraTarget == Vector3.Zero ? Position : CameraTarget;
+            _lastView = Matrix.CreateLookAt(CameraPosition, lookTarget, Vector3.Up);
+            _lastProjection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 0.1f, 100f);
+        }
 
         // Combine world-view-projection matrices
         var mvpMatrix = _lastWorld * _lastView * _lastProjection;

@@ -115,7 +115,7 @@ public class SquidVoxWorld : Game
 
         _inputManager.BindKey("F1", () => Exit(), InputContext.Gameplay3D);
 
-        SetupTestBlock();
+        SetupTestBlock(camera);
 
         _renderLayers.GetLayer<ImGuiRenderLayer>()
             .AddDebugger(
@@ -181,10 +181,10 @@ public class SquidVoxWorld : Game
         base.Draw(gameTime);
     }
 
-    private void SetupTestBlock()
+    private void SetupTestBlock(CameraComponent cameraComponent)
     {
 
-        var grassBlock = new Block3dComponent()
+        var grassBlock = new Block3dComponent(cameraComponent)
         {
             BlockType = Voxel.Types.BlockType.Grass,
             Position = Vector3.Zero,
