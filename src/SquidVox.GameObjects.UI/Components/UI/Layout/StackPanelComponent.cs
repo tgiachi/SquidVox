@@ -30,7 +30,10 @@ public class StackPanelComponent
     /// <param name="parent">The parent game object containing the children to arrange.</param>
     public void ArrangeChildren(Base2dGameObject parent)
     {
-        if (parent.Children == null || !parent.Children.Any()) return;
+        if (parent.Children == null || !parent.Children.Any())
+        {
+            return;
+        }
 
         float currentX = 0;
         float currentY = 0;

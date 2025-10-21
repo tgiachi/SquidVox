@@ -1,4 +1,4 @@
-namespace SquidVox.GameObjects.UI.Types;
+namespace SquidVox.GameObjects.UI.Data;
 
 /// <summary>
 /// Represents an item in a ComboBox
