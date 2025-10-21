@@ -374,16 +374,16 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
             BlockSide.Top =>
             [
                 new VertexPositionTexture(new Vector3(-halfSize, halfSize, -halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, halfSize, halfSize), new Vector2(min.X, max.Y)),
+                new VertexPositionTexture(new Vector3(halfSize, halfSize, -halfSize), new Vector2(max.X, min.Y)),
                 new VertexPositionTexture(new Vector3(halfSize, halfSize, halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, halfSize, -halfSize), new Vector2(max.X, min.Y))
+                new VertexPositionTexture(new Vector3(-halfSize, halfSize, halfSize), new Vector2(min.X, max.Y))
             ],
             BlockSide.Bottom =>
             [
                 new VertexPositionTexture(new Vector3(-halfSize, -halfSize, halfSize), new Vector2(min.X, min.Y)),
-                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, -halfSize), new Vector2(min.X, max.Y)),
+                new VertexPositionTexture(new Vector3(halfSize, -halfSize, halfSize), new Vector2(max.X, min.Y)),
                 new VertexPositionTexture(new Vector3(halfSize, -halfSize, -halfSize), new Vector2(max.X, max.Y)),
-                new VertexPositionTexture(new Vector3(halfSize, -halfSize, halfSize), new Vector2(max.X, min.Y))
+                new VertexPositionTexture(new Vector3(-halfSize, -halfSize, -halfSize), new Vector2(min.X, max.Y))
             ],
             BlockSide.North =>
             [
