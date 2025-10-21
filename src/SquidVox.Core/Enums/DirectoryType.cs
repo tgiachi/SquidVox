@@ -16,17 +16,14 @@ public enum DirectoryType
     Data,
 
     /// <summary>
-    ///  Directory for storing database files
+    ///     Directory for storing world data and related files
     /// </summary>
-    Database,
+    World,
 
     /// <summary>
     ///     Directory for storing script files used by the game engine
     /// </summary>
     Scripts,
 
-    /// <summary>
-    ///   Directory for storing entity schema definitions
-    /// </summary>
-    Schemas
+   
 }

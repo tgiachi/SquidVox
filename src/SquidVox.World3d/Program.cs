@@ -43,12 +43,13 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<ConsoleModule>()
             .AddLuaScriptModule<WindowModule>()
             .AddLuaScriptModule<ImGuiModule>()
+            .AddLuaScriptModule<AssetManagerModule>()
             ;
 
 
         // register custom userType for LUA
 
-        UserData .RegisterType<Vector2>();
+        UserData.RegisterType<Vector2>();
         UserData.RegisterType<Vector3>();
         UserData.RegisterType(typeof(ImGui));
 
