@@ -1,6 +1,7 @@
 using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Graphics;
 using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
@@ -58,7 +59,7 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
     public BlockType BlockType
     {
         get => _blockType;
-        set
+        init
         {
             if (_blockType != value)
             {
@@ -159,20 +160,32 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
             var forward = Vector3.Cross(right, up);
 
             worldMatrix = Matrix.CreateScale(Size) *
-                         new Matrix(
-                             right.X, right.Y, right.Z, 0,
-                             up.X, up.Y, up.Z, 0,
-                             forward.X, forward.Y, forward.Z, 0,
-                             0, 0, 0, 1
-                         ) *
-                         Matrix.CreateTranslation(Position);
+                          new Matrix(
+                              right.X,
+                              right.Y,
+                              right.Z,
+                              0,
+                              up.X,
+                              up.Y,
+                              up.Z,
+                              0,
+                              forward.X,
+                              forward.Y,
+                              forward.Z,
+                              0,
+                              0,
+                              0,
+                              0,
+                              1
+                          ) *
+                          Matrix.CreateTranslation(Position);
         }
         else
         {
             // Normal block rotation
             worldMatrix = Matrix.CreateScale(Size)
-                         * Matrix.CreateFromYawPitchRoll(_rotationY + ManualRotation.Y, ManualRotation.X, ManualRotation.Z)
-                         * Matrix.CreateTranslation(Position);
+                          * Matrix.CreateFromYawPitchRoll(_rotationY + ManualRotation.Y, ManualRotation.X, ManualRotation.Z)
+                          * Matrix.CreateTranslation(Position);
         }
 
         _lastWorld = worldMatrix;
@@ -242,23 +255,25 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
         if (IsBillboard)
         {
             // For billboards, create a single quad facing forward (North face)
-            var texture = _blockManagerService.GetBlockSide(BlockType, BlockSide.North);
+            var region = _blockManagerService.GetBlockSide(BlockType, BlockSide.North);
 
-            if (texture != null)
+            if (region != null)
             {
-                commonTexture = texture;
-                var uv = (Min: Vector2.Zero, Max: Vector2.One);
+                commonTexture = region.Texture;
+                var uv = ExtractUv(region);
                 var faceVertices = GetFaceVertices(BlockSide.North, halfSize, uv);
 
                 vertices.AddRange(faceVertices);
-                indices.AddRange([
-                    baseIndex,
-                    (short)(baseIndex + 1),
-                    (short)(baseIndex + 2),
-                    (short)(baseIndex + 2),
-                    (short)(baseIndex + 3),
-                    baseIndex
-                ]);
+                indices.AddRange(
+                    [
+                        baseIndex,
+                        (short)(baseIndex + 1),
+                        (short)(baseIndex + 2),
+                        (short)(baseIndex + 2),
+                        (short)(baseIndex + 3),
+                        baseIndex
+                    ]
+                );
             }
         }
         else
@@ -266,28 +281,32 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
             // For normal blocks, create all 6 faces
             foreach (BlockSide side in Enum.GetValues<BlockSide>())
             {
-                var texture = _blockManagerService.GetBlockSide(BlockType, side);
+                var region = _blockManagerService.GetBlockSide(BlockType, side);
 
-                if (texture == null)
+                if (region == null)
                 {
-                    _logger.Warning("Texture for block {BlockType} side {Side} not found", BlockType, side);
+                    _logger.Warning("Texture region for block {BlockType} side {Side} not found", BlockType, side);
                     continue;
                 }
 
-                commonTexture ??= texture;
+                // Use the atlas texture as the common texture
+                commonTexture ??= region.Texture;
 
-                var uv = (Min: Vector2.Zero, Max: Vector2.One);
+                // Extract UV coordinates from the region
+                var uv = ExtractUv(region);
                 var faceVertices = GetFaceVertices(side, halfSize, uv);
 
                 vertices.AddRange(faceVertices);
-                indices.AddRange([
-                    baseIndex,
-                    (short)(baseIndex + 1),
-                    (short)(baseIndex + 2),
-                    (short)(baseIndex + 2),
-                    (short)(baseIndex + 3),
-                    baseIndex
-                ]);
+                indices.AddRange(
+                    [
+                        baseIndex,
+                        (short)(baseIndex + 1),
+                        (short)(baseIndex + 2),
+                        (short)(baseIndex + 2),
+                        (short)(baseIndex + 3),
+                        baseIndex
+                    ]
+                );
 
                 baseIndex += 4;
             }
@@ -321,6 +340,29 @@ public sealed class Block3dComponent : Base3dGameObject, IDisposable
         _effect.Texture = commonTexture;
 
         _geometryInvalidated = false;
+    }
+
+    /// <summary>
+    /// Extracts normalized UV coordinates from a texture region.
+    /// </summary>
+    /// <param name="region">The texture region.</param>
+    /// <returns>A tuple containing the min and max UV coordinates.</returns>
+    private static (Vector2 Min, Vector2 Max) ExtractUv(Texture2DRegion region)
+    {
+        var bounds = region.Bounds;
+        var texture = region.Texture;
+
+        var min = new Vector2(
+            bounds.X / (float)texture.Width,
+            bounds.Y / (float)texture.Height
+        );
+
+        var max = new Vector2(
+            (bounds.X + bounds.Width) / (float)texture.Width,
+            (bounds.Y + bounds.Height) / (float)texture.Height
+        );
+
+        return (min, max);
     }
 
     private static VertexPositionTexture[] GetFaceVertices(BlockSide side, float halfSize, (Vector2 Min, Vector2 Max) uv)

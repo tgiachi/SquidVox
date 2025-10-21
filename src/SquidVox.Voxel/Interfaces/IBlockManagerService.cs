@@ -1,6 +1,7 @@
 using SquidVox.Voxel.Data.Entities;
 using SquidVox.Voxel.Types;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Graphics;
 
 namespace SquidVox.Voxel.Interfaces;
 
@@ -10,19 +11,18 @@ namespace SquidVox.Voxel.Interfaces;
 public interface IBlockManagerService
 {
     /// <summary>
-    /// Adds a block definition with the specified atlas name.
+    /// Adds a block definition.
     /// </summary>
-    /// <param name="atlasName">The name of the texture atlas.</param>
     /// <param name="blockDefinitionData">The block definition data.</param>
-    void AddBlockDefinition(string atlasName, BlockDefinitionData blockDefinitionData);
+    void AddBlockDefinition(BlockDefinitionData blockDefinitionData);
 
     /// <summary>
-    /// Gets the texture for a specific block side.
+    /// Gets the texture region for a specific block side.
     /// </summary>
     /// <param name="blockType">The type of the block.</param>
     /// <param name="sideType">The side of the block.</param>
-    /// <returns>The texture for the block side, or null if not found.</returns>
-    Texture2D? GetBlockSide(BlockType blockType, BlockSide sideType);
+    /// <returns>The texture region for the block side, or null if not found.</returns>
+    Texture2DRegion? GetBlockSide(BlockType blockType, BlockSide sideType);
 
     /// <summary>
     /// Gets the raw block definition metadata for the specified block type.

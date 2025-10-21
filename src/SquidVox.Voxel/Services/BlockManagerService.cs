@@ -1,5 +1,8 @@
+using System.Globalization;
 using Microsoft.Xna.Framework.Graphics;
 using System.Text.RegularExpressions;
+using Microsoft.Xna.Framework;
+using MonoGame.Extended.Graphics;
 using Serilog;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Voxel.Data.Entities;
@@ -25,7 +28,7 @@ public partial class BlockManagerService : IBlockManagerService
         _assetManagerService = assetManagerService;
     }
 
-    public void AddBlockDefinition(string atlasName, BlockDefinitionData blockDefinitionData)
+    public void AddBlockDefinition(BlockDefinitionData blockDefinitionData)
     {
         _logger.Information(
             "Adding block definition: {BlockType} faces: {FacesCount}",
@@ -43,31 +46,43 @@ public partial class BlockManagerService : IBlockManagerService
             {
                 // Format: atlas_name#tile_index or atlas_name#start-end
                 var atlasNameFromSide = match.Groups[1].Value;
-                var startIndex = int.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+                var startIndex = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
 
                 if (match.Groups[3].Success)
                 {
                     // Range format: store range info for random selection
-                    var endIndex = int.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, null, atlasNameFromSide, startIndex, endIndex));
+                    var endIndex = int.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
+                    _blockSideEntities[blockDefinitionData.BlockType]
+                        .Add(new BlockSideEntity(side.Key, null, atlasNameFromSide, startIndex, endIndex));
                 }
                 else
                 {
-                    // Single index format: get texture immediately
+                    // Single index format: get texture region immediately
                     var region = _assetManagerService.GetTextureAtlasTile(atlasNameFromSide, startIndex);
-                    _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, region.Texture));
+
+                    _blockSideEntities[blockDefinitionData.BlockType]
+                        .Add(new BlockSideEntity(side.Key, region));
+
+                    _logger.Debug(
+                        "Loaded texture region for block {BlockType} side {Side} from atlas {Atlas} index {Index}",
+                        blockDefinitionData.BlockType,
+                        side.Key,
+                        atlasNameFromSide,
+                        startIndex
+                    );
                 }
             }
             else
             {
-                // Direct texture name
+                // Direct texture name - create a region covering the entire texture
                 var texture = _assetManagerService.GetTexture(side.Value);
-                _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, texture));
+                var region = new Texture2DRegion(texture, 0, 0, texture.Width, texture.Height);
+                _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, region));
             }
         }
     }
 
-    public Texture2D? GetBlockSide(BlockType blockType, BlockSide sideType)
+    public Texture2DRegion? GetBlockSide(BlockType blockType, BlockSide sideType)
     {
         if (_blockSideEntities.TryGetValue(blockType, out var sides))
         {
@@ -77,18 +92,19 @@ public partial class BlockManagerService : IBlockManagerService
                 return null;
             }
 
-            // If texture is already resolved, return it
-            if (side.Texture != null)
+            // If region is already resolved, return it
+            if (side.Region != null)
             {
-                return side.Texture;
+                return side.Region;
             }
 
-            // If it's a range, select random texture from atlas
+            // If it's a range, select random texture region from atlas
             if (side.AtlasName != null && side.StartIndex.HasValue && side.EndIndex.HasValue)
             {
                 var tileIndex = Random.Shared.Next(side.StartIndex.Value, side.EndIndex.Value + 1);
                 var region = _assetManagerService.GetTextureAtlasTile(side.AtlasName, tileIndex);
-                return region.Texture;
+
+                return region;
             }
         }
 
@@ -124,4 +140,10 @@ public partial class BlockManagerService : IBlockManagerService
     }
 }
 
-public record BlockSideEntity(BlockSide Side, Texture2D? Texture, string? AtlasName = null, int? StartIndex = null, int? EndIndex = null);
+public record BlockSideEntity(
+    BlockSide Side,
+    Texture2DRegion? Region,
+    string? AtlasName = null,
+    int? StartIndex = null,
+    int? EndIndex = null
+);

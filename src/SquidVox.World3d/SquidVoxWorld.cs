@@ -11,6 +11,7 @@ using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
+using SquidVox.Voxel.Interfaces;
 using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
 using SquidVox.World3d.Scripts;
@@ -105,11 +106,15 @@ public class SquidVoxWorld : Game
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
         var camera = new CameraComponent();
+        camera.FlyMode = true;
+        camera.Position = new Vector3(0, 2, 5);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(camera);
 
         _inputManager.SetFocus(camera);
 
         _inputManager.BindKey("F1", () => Exit(), InputContext.Gameplay3D);
+
+        SetupTestBlock();
 
         _renderLayers.GetLayer<ImGuiRenderLayer>()
             .AddDebugger(
@@ -172,4 +177,43 @@ public class SquidVoxWorld : Game
 
         base.Draw(gameTime);
     }
+
+    private void SetupTestBlock()
+    {
+
+        var grassBlock = new Block3dComponent()
+        {
+            BlockType = Voxel.Types.BlockType.Grass,
+            Position = Vector3.Zero,
+            AutoRotate = true,
+            Size = 1f
+        };
+
+        _renderLayers.GetLayer<GameObject3dRenderLayer>()?.AddGameObject(grassBlock);
+    }
+
+    private Texture2D CreateColorTexture(Color color)
+    {
+        var texture = new Texture2D(GraphicsDevice, 16, 16);
+        var data = new Color[16 * 16];
+        for (int i = 0; i < data.Length; i++)
+            data[i] = color;
+        texture.SetData(data);
+        return texture;
+    }
+
+    private Texture2D CreateGrassSideTexture()
+    {
+        var texture = new Texture2D(GraphicsDevice, 16, 16);
+        var data = new Color[16 * 16];
+        for (int i = 0; i < data.Length; i++)
+        {
+            int row = i / 16;
+            data[i] = row < 4 ? new Color(34, 139, 34) : new Color(139, 69, 19);
+        }
+        texture.SetData(data);
+        return texture;
+    }
+
+    private readonly Dictionary<string, Texture2D> _blockTextures = new();
 }

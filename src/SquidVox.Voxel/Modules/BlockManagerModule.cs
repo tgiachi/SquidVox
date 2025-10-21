@@ -28,7 +28,7 @@ public class BlockManagerModule
     [ScriptFunction("register_block", "Registers a new block definition.")]
     public void RegisterBlock(BlockDefinitionData blockDefinition)
     {
-        _blockManagerService.AddBlockDefinition("default", blockDefinition);
+        _blockManagerService.AddBlockDefinition(blockDefinition);
     }
 
     [ScriptFunction("from_json", "Loads block definitions from a JSON file.")]
@@ -41,12 +41,11 @@ public class BlockManagerModule
             throw new FileNotFoundException($"Block definition file not found: {path}");
         }
 
-
         var jsonObject = JsonUtils.DeserializeFromFile<BlockDefinitionData[]>(path);
 
         foreach (var blockDefinition in jsonObject)
         {
-            _blockManagerService.AddBlockDefinition("default", blockDefinition);
+            _blockManagerService.AddBlockDefinition(blockDefinition);
         }
     }
 }
