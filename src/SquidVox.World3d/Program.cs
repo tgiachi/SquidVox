@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using ConsoleAppFramework;
 using DryIoc;
 using ImGuiNET;
@@ -44,6 +44,8 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<WindowModule>()
             .AddLuaScriptModule<ImGuiModule>()
             .AddLuaScriptModule<AssetManagerModule>()
+            .AddLuaScriptModule<InputManagerModule>()
+            .AddLuaScriptModule<RenderLayerModule>()
             ;
 
 
@@ -56,6 +58,7 @@ await ConsoleApp.RunAsync(
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
         container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
+        container.Register<IInputManager, InputManagerService>(Reuse.Singleton);
 
 
         using var game = new SquidVoxWorld(container);

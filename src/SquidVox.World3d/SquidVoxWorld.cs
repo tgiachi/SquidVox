@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Scripts;
+using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
@@ -25,6 +26,7 @@ public class SquidVoxWorld : Game
     private SpriteBatch _spriteBatch;
     private readonly IContainer _container;
     private readonly RenderLayerCollection _renderLayers = new();
+    private IInputManager _inputManager;
 
     /// <summary>
     /// Initializes a new instance of the SquidVoxWorld class.
@@ -87,15 +89,21 @@ public class SquidVoxWorld : Game
         _renderLayers.Add(new SceneRenderLayer());
         _renderLayers.Add(new GameObject3dRenderLayer());
 
+        _inputManager = _container.Resolve<IInputManager>();
+        _inputManager.CurrentContext = InputContext.Gameplay3D;
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
 
-        // Subscribe to script errors to show error dialog
         scriptEngine.OnScriptError += OnScriptError;
 
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
-        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(new CameraComponent());
+        var camera = new CameraComponent();
+        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(camera);
+
+        _inputManager.SetFocus(camera);
+
+        _inputManager.BindKey("F1", () => Exit(), InputContext.Gameplay3D);
 
         _renderLayers.GetLayer<ImGuiRenderLayer>()
             .AddDebugger(
@@ -140,16 +148,9 @@ public class SquidVoxWorld : Game
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            Keyboard.GetState().IsKeyDown(Keys.Escape))
-        {
-            Exit();
-        }
+        _inputManager.Update(gameTime);
 
-        // Handle input for render layers
-        _renderLayers.HandleKeyboardAll(Keyboard.GetState(), gameTime);
-        _renderLayers.HandleMouseAll(Mouse.GetState(), gameTime);
-
+        _inputManager.DistributeInput(gameTime);
 
         _renderLayers.UpdateAll(gameTime);
 

@@ -60,6 +60,26 @@ public class GameObject3dRenderLayer : IRenderableLayer
     }
 
     /// <summary>
+    /// Gets the first game object of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of game object to find.</typeparam>
+    /// <returns>The first game object of the specified type, or null if not found.</returns>
+    public T? GetComponent<T>() where T : class, ISVox3dDrawableGameObject
+    {
+        return _gameObjects.GetFirstGameObjectOfType<T>();
+    }
+
+    /// <summary>
+    /// Gets all game objects of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of game objects to find.</typeparam>
+    /// <returns>An enumerable of game objects of the specified type.</returns>
+    public IEnumerable<T> GetComponents<T>() where T : class, ISVox3dDrawableGameObject
+    {
+        return _gameObjects.GetGameObjectsOfType<T>();
+    }
+
+    /// <summary>
     /// Renders all visible 3D game objects in the layer.
     /// </summary>
     /// <param name="spriteBatch">The sprite batch (unused for 3D rendering).</param>
@@ -120,14 +140,4 @@ public class GameObject3dRenderLayer : IRenderableLayer
         }
     }
 
-    /// <summary>
-    /// Gets the first game object of the specified type, or null if not found.
-    /// </summary>
-    /// <typeparam name="TGameObject">The type of game object to retrieve.</typeparam>
-    /// <returns>The first game object of the specified type, or null.</returns>
-    public TGameObject? GetComponent<TGameObject>()
-        where TGameObject : class, ISVox3dDrawableGameObject
-    {
-        return _gameObjects.GetFirstGameObjectOfType<TGameObject>();
-    }
 }
