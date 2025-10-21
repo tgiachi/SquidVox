@@ -55,7 +55,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     private Func<string, string> _nameResolver;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public LuaScriptEngineService(
         DirectoriesConfig directoriesConfig,
@@ -83,7 +83,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     public Script LuaScript { get; }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void Dispose()
     {
@@ -142,6 +142,16 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     /// <param name="script">The script to execute.</param>
     public void ExecuteScript(string script)
     {
+        ExecuteScript(script, null);
+    }
+
+    /// <summary>
+    /// Executes a script string with an optional file name for error reporting.
+    /// </summary>
+    /// <param name="script">The script to execute.</param>
+    /// <param name="fileName">Optional file name for error reporting.</param>
+    private void ExecuteScript(string script, string? fileName)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(script);
 
         var stopwatch = Stopwatch.GetTimestamp();
@@ -167,12 +177,27 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         }
         catch (ScriptRuntimeException luaEx)
         {
-            var errorInfo = CreateErrorInfo(luaEx, script);
+            var errorInfo = CreateErrorInfo(luaEx, script, fileName);
             OnScriptError?.Invoke(this, errorInfo);
 
             _logger.Error(
                 luaEx,
                 "Lua error at line {Line}, column {Column}: {Message}",
+                errorInfo.LineNumber,
+                errorInfo.ColumnNumber,
+                errorInfo.Message
+            );
+            throw;
+        }
+        catch (InterpreterException luaEx)
+        {
+            var errorInfo = CreateErrorInfo(luaEx, script, fileName);
+            OnScriptError?.Invoke(this, errorInfo);
+
+            _logger.Error(
+                luaEx,
+                "Lua {ErrorType} at line {Line}, column {Column}: {Message}",
+                errorInfo.ErrorType,
                 errorInfo.LineNumber,
                 errorInfo.ColumnNumber,
                 errorInfo.Message
@@ -192,7 +217,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void ExecuteScriptFile(string scriptFile)
     {
@@ -207,17 +232,16 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         {
             var content = File.ReadAllText(scriptFile);
             _logger.Debug("Executing script file: {FileName}", Path.GetFileName(scriptFile));
-            ExecuteScript(content);
+            ExecuteScript(content, scriptFile);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to execute script file: {FileName}", Path.GetFileName(scriptFile));
-            throw;
         }
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void AddCallback(string name, Action<object[]> callback)
     {
@@ -231,7 +255,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void AddConstant(string name, object? value)
     {
@@ -251,7 +275,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void ExecuteCallback(string name, params object[] args)
     {
@@ -279,7 +303,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void AddScriptModule(Type type)
     {
@@ -288,7 +312,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string ToScriptEngineFunctionName(string name)
     {
@@ -297,7 +321,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public ScriptResult ExecuteFunction(string command)
     {
@@ -324,6 +348,24 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
                 .WithMessage($"{errorInfo.ErrorType}: {errorInfo.Message} at line {errorInfo.LineNumber}")
                 .Build();
         }
+        catch (InterpreterException luaEx)
+        {
+            var errorInfo = CreateErrorInfo(luaEx, command);
+            OnScriptError?.Invoke(this, errorInfo);
+
+            _logger.Error(
+                luaEx,
+                "Lua {ErrorType} at line {Line}, column {Column}: {Message}",
+                errorInfo.ErrorType,
+                errorInfo.LineNumber,
+                errorInfo.ColumnNumber,
+                errorInfo.Message
+            );
+
+            return ScriptResultBuilder.CreateError()
+                .WithMessage($"{errorInfo.ErrorType}: {errorInfo.Message} at line {errorInfo.LineNumber}")
+                .Build();
+        }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to execute function: {Command}", command);
@@ -333,7 +375,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public async Task<ScriptResult> ExecuteFunctionAsync(string command)
     {
@@ -341,7 +383,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -377,7 +419,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
@@ -409,7 +451,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void RegisterGlobalFunction(string name, Delegate func)
     {
@@ -421,7 +463,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void RegisterGlobal(string name, object value)
     {
@@ -433,7 +475,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public bool UnregisterGlobal(string name)
     {
@@ -784,7 +826,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public async Task ExecuteScriptFileAsync(string scriptFile)
     {
@@ -799,7 +841,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         {
             var content = await File.ReadAllTextAsync(scriptFile).ConfigureAwait(false);
             _logger.Debug("Executing script file asynchronously: {FileName}", Path.GetFileName(scriptFile));
-            ExecuteScript(content);
+            ExecuteScript(content, scriptFile);
         }
         catch (Exception ex)
         {
@@ -809,7 +851,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void Reset()
     {
@@ -824,7 +866,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public (int ModuleCount, int CallbackCount, int ConstantCount, bool IsInitialized) GetStats()
     {
@@ -834,7 +876,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     /// <summary>
     ///     Creates detailed error information from a Lua exception
     /// </summary>
-    private static ScriptErrorInfo CreateErrorInfo(ScriptRuntimeException luaEx, string sourceCode)
+    private static ScriptErrorInfo CreateErrorInfo(ScriptRuntimeException luaEx, string sourceCode, string? fileName = null)
     {
         var errorInfo = new ScriptErrorInfo
         {
@@ -844,7 +886,49 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
             ColumnNumber = 0,
             ErrorType = "LuaError",
             SourceCode = sourceCode,
-            FileName = "script.lua"
+            FileName = fileName ?? "script.lua"
+        };
+
+        return errorInfo;
+    }
+
+    /// <summary>
+    ///     Creates detailed error information from a Lua interpreter exception (syntax errors, etc.)
+    /// </summary>
+    private static ScriptErrorInfo CreateErrorInfo(InterpreterException luaEx, string sourceCode, string? fileName = null)
+    {
+        // Extract line and column info from the exception message if available
+        // SyntaxErrorException typically has format like "chunk_1:(1,5-10): unexpected symbol near '?'"
+        int? lineNumber = null;
+        int? columnNumber = null;
+        string errorType = "LuaError";
+
+        if (luaEx is SyntaxErrorException)
+        {
+            errorType = "SyntaxError";
+        }
+
+        // Try to extract line and column from the message
+        var message = luaEx.Message;
+        if (message != null && message.Contains("("))
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(message, @"\((\d+),(\d+)");
+            if (match.Success)
+            {
+                lineNumber = int.Parse(match.Groups[1].Value);
+                columnNumber = int.Parse(match.Groups[2].Value);
+            }
+        }
+
+        var errorInfo = new ScriptErrorInfo
+        {
+            Message = luaEx.DecoratedMessage ?? luaEx.Message,
+            StackTrace = luaEx.StackTrace,
+            LineNumber = lineNumber,
+            ColumnNumber = columnNumber,
+            ErrorType = errorType,
+            SourceCode = sourceCode,
+            FileName = fileName ?? "script.lua"
         };
 
         return errorInfo;

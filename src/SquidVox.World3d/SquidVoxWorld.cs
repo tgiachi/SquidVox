@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
+using SquidVox.Core.Data.Scripts;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
@@ -31,8 +32,9 @@ public class SquidVoxWorld : Game
         _container.RegisterInstance(_renderLayers);
         _graphics = new GraphicsDeviceManager(this);
         SquidVoxGraphicContext.GraphicsDeviceManager = _graphics;
-
         SquidVoxGraphicContext.Window = Window;
+
+
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
@@ -41,16 +43,25 @@ public class SquidVoxWorld : Game
     {
         // TODO: Add your initialization logic here
 
+        SquidVoxGraphicContext.WhitePixel = new Texture2D(GraphicsDevice, 1, 1);
+        SquidVoxGraphicContext.WhitePixel.SetData([Color.White]);
         var assetsManager = _container.Resolve<IAssetManagerService>();
         assetsManager.SetContentManager(Content);
 
 
-        var defaultFont = ResourceUtils.GetEmbeddedResourceContent(
+        var defaultUiFont = ResourceUtils.GetEmbeddedResourceContent(
             "Assets.Fonts.Monocraft.ttf",
             typeof(SquidVoxWorld).Assembly
         );
 
-        assetsManager.LoadFontFromBytes(defaultFont, "Monocraft");
+        var defaultMonoFont = ResourceUtils.GetEmbeddedResourceContent(
+            "Assets.Fonts.DefaultMonoFont.ttf",
+            typeof(SquidVoxWorld).Assembly
+        );
+
+        assetsManager.LoadFontFromBytes(defaultUiFont, "DefaultMono");
+
+        assetsManager.LoadFontFromBytes(defaultUiFont, "Monocraft");
 
         assetsManager.LoadEffect("Effects/ChunkBillboard");
         assetsManager.LoadEffect("Effects/ChunkFluid");
@@ -82,7 +93,35 @@ public class SquidVoxWorld : Game
             );
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
+
+        // Subscribe to script errors to show error dialog
+        scriptEngine.OnScriptError += OnScriptError;
+
         scriptEngine.StartAsync().GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Handles Lua script errors by displaying an error dialog.
+    /// </summary>
+    /// <param name="sender">The event sender.</param>
+    /// <param name="errorInfo">The error information.</param>
+    private void OnScriptError(object? sender, ScriptErrorInfo errorInfo)
+    {
+        // Create error dialog
+        var assetManager = _container.Resolve<IAssetManagerService>();
+        var errorDialog = new ScriptErrorGameObject(errorInfo);
+        errorDialog.Initialize(assetManager, GraphicsDevice);
+
+        // Handle dialog close event
+        errorDialog.Closed += (s, e) =>
+        {
+            var gameObjectLayer = _renderLayers.GetLayer<GameObjectRenderLayer>();
+            gameObjectLayer.RemoveGameObject(errorDialog);
+        };
+
+        // Add to UI layer
+        var gameObjectLayer = _renderLayers.GetLayer<GameObjectRenderLayer>();
+        gameObjectLayer.AddGameObject(errorDialog);
     }
 
     protected override void Update(GameTime gameTime)

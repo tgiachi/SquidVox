@@ -50,7 +50,6 @@ public static class SvoxGameObjectCollectionExtensions
         if (collection.Count == 0) return;
 
         var graphicsDevice = spriteBatch.GraphicsDevice;
-        var rasterizerState = new RasterizerState();
         Rectangle? currentScissor = null;
         bool batchBegun = false;
 
@@ -69,14 +68,15 @@ public static class SvoxGameObjectCollectionExtensions
                     batchBegun = false;
                 }
 
+                RasterizerState rasterizerState;
                 if (scissorRect.HasValue)
                 {
-                    rasterizerState.ScissorTestEnable = true;
+                    rasterizerState = new RasterizerState { ScissorTestEnable = true };
                     graphicsDevice.ScissorRectangle = scissorRect.Value;
                 }
                 else
                 {
-                    rasterizerState.ScissorTestEnable = false;
+                    rasterizerState = new RasterizerState { ScissorTestEnable = false };
                 }
 
                 spriteBatch.Begin(rasterizerState: rasterizerState);

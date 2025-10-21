@@ -263,8 +263,15 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
         {
             OnRender(spriteBatch);
 
-            // Render all visible children using our optimized collection
-            _children.RenderAll(spriteBatch);
+            // Render all visible children directly (without calling RenderAll to avoid nested Begin/End)
+            for (var i = 0; i < _children.Count; i++)
+            {
+                var child = _children[i];
+                if (child.IsVisible)
+                {
+                    child.Render(spriteBatch);
+                }
+            }
         }
         finally
         {
