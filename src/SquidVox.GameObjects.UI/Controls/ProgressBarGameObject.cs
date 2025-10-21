@@ -6,12 +6,20 @@ using SquidVox.Core.GameObjects;
 
 namespace SquidVox.GameObjects.UI.Controls;
 
+/// <summary>
+/// Progress bar game object for displaying progress or value within a range.
+/// </summary>
 public class ProgressBarGameObject : Base2dGameObject
 {
     private float _value;
     private float _minimum;
     private float _maximum = 100f;
 
+    /// <summary>
+    /// Initializes a new instance of the ProgressBarGameObject class.
+    /// </summary>
+    /// <param name="width">The width of the progress bar.</param>
+    /// <param name="height">The height of the progress bar.</param>
     public ProgressBarGameObject(float width = 200f, float height = 20f)
     {
         Size = new Vector2(width, height);
@@ -22,12 +30,18 @@ public class ProgressBarGameObject : Base2dGameObject
         BorderWidth = 1;
     }
 
+    /// <summary>
+    /// Gets or sets the current value of the progress bar.
+    /// </summary>
     public float Value
     {
         get => _value;
         set => _value = Math.Clamp(value, _minimum, _maximum);
     }
 
+    /// <summary>
+    /// Gets or sets the minimum value of the progress bar.
+    /// </summary>
     public float Minimum
     {
         get => _minimum;
@@ -41,6 +55,9 @@ public class ProgressBarGameObject : Base2dGameObject
         }
     }
 
+    /// <summary>
+    /// Gets or sets the maximum value of the progress bar.
+    /// </summary>
     public float Maximum
     {
         get => _maximum;
@@ -54,12 +71,35 @@ public class ProgressBarGameObject : Base2dGameObject
         }
     }
 
+    /// <summary>
+    /// Gets or sets the opacity of the progress bar.
+    /// </summary>
     public float Opacity { get; set; } = 1.0f;
+
+    /// <summary>
+    /// Gets or sets the background color of the progress bar.
+    /// </summary>
     public Color BackgroundColor { get; set; }
+
+    /// <summary>
+    /// Gets or sets the foreground color of the progress bar.
+    /// </summary>
     public Color ForegroundColor { get; set; }
+
+    /// <summary>
+    /// Gets or sets the border color of the progress bar.
+    /// </summary>
     public Color BorderColor { get; set; }
+
+    /// <summary>
+    /// Gets or sets the border width of the progress bar.
+    /// </summary>
     public int BorderWidth { get; set; }
 
+    /// <summary>
+    /// Gets the percentage of the current value relative to the minimum and maximum.
+    /// </summary>
+    /// <returns>The percentage as a float between 0 and 1.</returns>
     public float GetPercentage()
     {
         if (_maximum - _minimum == 0)

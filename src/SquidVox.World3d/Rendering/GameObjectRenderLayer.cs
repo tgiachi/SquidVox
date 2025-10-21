@@ -55,8 +55,9 @@ public class GameObjectRenderLayer : IRenderableLayer
     }
 
     /// <summary>
-    ///
+    /// Renders all visible game objects in the layer.
     /// </summary>
+    /// <param name="spriteBatch">The sprite batch to use for rendering.</param>
     public void Render(SpriteBatch spriteBatch)
     {
         // Check for ZIndex changes before rendering
@@ -67,16 +68,22 @@ public class GameObjectRenderLayer : IRenderableLayer
     }
 
     /// <summary>
-    ///
+    /// Updates all enabled game objects in the layer.
     /// </summary>
+    /// <param name="gameTime">The game time.</param>
     public void Update(GameTime gameTime)
     {
-        // Check for ZIndex changes before updatating
+        // Check for ZIndex changes before updating
         _gameObjects.CheckForZIndexChanges();
 
         _gameObjects.UpdateAll(gameTime);
     }
 
+    /// <summary>
+    /// Handles keyboard input for all game objects that have focus.
+    /// </summary>
+    /// <param name="keyboardState">The keyboard state.</param>
+    /// <param name="gameTime">The game time.</param>
     public void HandleKeyboard(KeyboardState keyboardState, GameTime gameTime)
     {
         // Propagate keyboard input to game objects that can receive input
@@ -89,6 +96,11 @@ public class GameObjectRenderLayer : IRenderableLayer
         }
     }
 
+    /// <summary>
+    /// Handles mouse input for all game objects that have focus.
+    /// </summary>
+    /// <param name="mouseState">The mouse state.</param>
+    /// <param name="gameTime">The game time.</param>
     public void HandleMouse(MouseState mouseState, GameTime gameTime)
     {
         // Propagate mouse input to game objects that can receive input

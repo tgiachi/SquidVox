@@ -14,15 +14,6 @@ namespace SquidVox.GameObjects.UI.Controls;
 /// Represents a button UI component that supports hover effects, click handling, and customizable styling.
 /// This class handles mouse interactions and provides visual feedback for different states (normal, hovered, pressed, disabled).
 /// </summary>
-/// <summary>
-/// Initializes a new Button game object.
-/// </summary>
-/// <param name="text">Button text.</param>
-/// <param name="width">Width of the button.</param>
-/// <param name="height">Height of the button.</param>
-/// <param name="fontName">Font name for text display.</param>
-/// <param name="fontSize">Font size for text display.</param>
-/// <param name="assetManagerService">Asset manager service for loading resources.</param>
 public class ButtonGameObject : Base2dGameObject
 {
     private readonly string _fontName;
@@ -73,23 +64,23 @@ public class ButtonGameObject : Base2dGameObject
     /// <param name="fontName">Font name for text display</param>
     /// <param name="fontSize">Font size for text display</param>
     /// <param name="assetManagerService">Asset manager service for loading resources</param>
-/// <summary>
-/// Initializes a new Button game object.
-/// </summary>
-/// <param name="text">Button text.</param>
-/// <param name="width">Width of the button.</param>
-/// <param name="height">Height of the button.</param>
-/// <param name="fontName">Font name for text display.</param>
-/// <param name="fontSize">Font size for text display.</param>
-/// <param name="assetManagerService">Asset manager service for loading resources.</param>
-public ButtonGameObject(
-    string text = "Button",
-    float width = 120f,
-    float height = 35f,
-    string fontName = "Monocraft",
-    int fontSize = 14,
-    IAssetManagerService? assetManagerService = null
-)
+    /// <summary>
+    /// Initializes a new Button game object.
+    /// </summary>
+    /// <param name="text">Button text.</param>
+    /// <param name="width">Width of the button.</param>
+    /// <param name="height">Height of the button.</param>
+    /// <param name="fontName">Font name for text display.</param>
+    /// <param name="fontSize">Font size for text display.</param>
+    /// <param name="assetManagerService">Asset manager service for loading resources.</param>
+    public ButtonGameObject(
+        string text = "Button",
+        float width = 120f,
+        float height = 35f,
+        string fontName = "Monocraft",
+        int fontSize = 14,
+        IAssetManagerService? assetManagerService = null
+    )
     {
         _text = text;
         Size = new Vector2(width, height);
@@ -102,12 +93,9 @@ public ButtonGameObject(
     }
 
     /// <summary>
-    /// Sets default color scheme
+    /// Sets default color scheme for the button.
     /// </summary>
-    /// <summary>
-/// Sets default color scheme for the button.
-/// </summary>
-private void SetDefaultColors()
+    private void SetDefaultColors()
     {
         // Default button colors (similar to Windows/web buttons)
         NormalBackgroundColor = new Color(240, 240, 240);
@@ -127,8 +115,11 @@ private void SetDefaultColors()
     }
 
     /// <summary>
-    /// Sets a flat button style
+    /// Sets a flat button style.
     /// </summary>
+    /// <param name="backgroundColor">The background color for the button.</param>
+    /// <param name="textColor">The text color for the button.</param>
+    /// <param name="hoverColor">The hover background color (optional).</param>
     public void SetFlatStyle(Color backgroundColor, Color textColor, Color? hoverColor = null)
     {
         var hover = hoverColor ?? Color.Lerp(backgroundColor, Color.White, 0.1f);
@@ -154,8 +145,11 @@ private void SetDefaultColors()
     }
 
     /// <summary>
-    /// Sets an outlined button style
+    /// Sets an outlined button style.
     /// </summary>
+    /// <param name="borderColor">The border color for the button.</param>
+    /// <param name="textColor">The text color for the button.</param>
+    /// <param name="hoverBackgroundColor">The hover background color (optional).</param>
     public void SetOutlinedStyle(Color borderColor, Color textColor, Color? hoverBackgroundColor = null)
     {
         var hoverBg = hoverBackgroundColor ?? Color.Lerp(borderColor, Color.White, 0.9f);
@@ -179,14 +173,11 @@ private void SetDefaultColors()
     }
 
     /// <summary>
-    /// Initializes the button resources
+    /// Initializes the button resources.
     /// </summary>
-    /// <summary>
-/// Initializes the button resources.
-/// </summary>
-/// <param name="assetManagerService">Asset manager service for loading resources.</param>
-/// <param name="graphicsDevice">Graphics device for creating textures.</param>
-public void Initialize(IAssetManagerService assetManagerService, GraphicsDevice graphicsDevice)
+    /// <param name="assetManagerService">Asset manager service for loading resources.</param>
+    /// <param name="graphicsDevice">Graphics device for creating textures.</param>
+    public void Initialize(IAssetManagerService assetManagerService, GraphicsDevice graphicsDevice)
     {
         if (_isInitialized)
         {
@@ -203,12 +194,9 @@ public void Initialize(IAssetManagerService assetManagerService, GraphicsDevice 
     }
 
     /// <summary>
-    /// Loads the font for text display
+    /// Loads the font for text display.
     /// </summary>
-    /// <summary>
-/// Loads the font for text display.
-/// </summary>
-private void LoadFont()
+    private void LoadFont()
     {
         if (_assetManagerService == null)
         {
@@ -233,13 +221,10 @@ private void LoadFont()
     }
 
     /// <summary>
-    /// Updates the button state
+    /// Updates the button state.
     /// </summary>
-    /// <summary>
-/// Updates the button state.
-/// </summary>
-/// <param name="gameTime">The elapsed game time.</param>
-protected override void OnUpdate(GameTime gameTime)
+    /// <param name="gameTime">The elapsed game time.</param>
+    protected override void OnUpdate(GameTime gameTime)
     {
         if (!IsEnabled)
         {
@@ -250,12 +235,9 @@ protected override void OnUpdate(GameTime gameTime)
     }
 
     /// <summary>
-    /// Handles mouse input for button interaction
+    /// Handles mouse input for button interaction.
     /// </summary>
-    /// <summary>
-/// Handles mouse input for button interaction.
-/// </summary>
-private void HandleMouseInput()
+    private void HandleMouseInput()
     {
         var currentMouseState = Mouse.GetState();
         var mousePosition = new Vector2(currentMouseState.X, currentMouseState.Y);
@@ -319,8 +301,9 @@ private void HandleMouseInput()
     }
 
     /// <summary>
-    /// Determines if mouse was over the button in the previous frame
+    /// Determines if mouse was over the button in the previous frame.
     /// </summary>
+    /// <returns>True if the mouse was over the button in the previous frame, false otherwise.</returns>
     private bool GetPreviousMouseOver()
     {
         var previousMousePosition = new Vector2(_previousMouseState.X, _previousMouseState.Y);
@@ -330,13 +313,10 @@ private void HandleMouseInput()
     }
 
     /// <summary>
-    /// Gets the current background color based on button state
+    /// Gets the current background color based on button state.
     /// </summary>
-    /// <summary>
-/// Gets the current background color based on button state.
-/// </summary>
-/// <returns>The background color for the current state.</returns>
-private Color GetCurrentBackgroundColor()
+    /// <returns>The background color for the current state.</returns>
+    private Color GetCurrentBackgroundColor()
     {
         return CurrentState switch
         {
@@ -348,13 +328,10 @@ private Color GetCurrentBackgroundColor()
     }
 
     /// <summary>
-    /// Gets the current text color based on button state
+    /// Gets the current text color based on button state.
     /// </summary>
-    /// <summary>
-/// Gets the current text color based on button state.
-/// </summary>
-/// <returns>The text color for the current state.</returns>
-private Color GetCurrentTextColor()
+    /// <returns>The text color for the current state.</returns>
+    private Color GetCurrentTextColor()
     {
         return CurrentState switch
         {
@@ -366,8 +343,9 @@ private Color GetCurrentTextColor()
     }
 
     /// <summary>
-    /// Gets the current border color based on button state
+    /// Gets the current border color based on button state.
     /// </summary>
+    /// <returns>The border color for the current state.</returns>
     private Color GetCurrentBorderColor()
     {
         return CurrentState switch
@@ -380,12 +358,9 @@ private Color GetCurrentTextColor()
     }
 
     /// <summary>
-    /// Renders the button
+    /// Renders the button.
     /// </summary>
-    /// <summary>
-/// Renders the button.
-/// </summary>
-/// <param name="spriteBatch">The sprite batch for rendering.</param>
+    /// <param name="spriteBatch">The sprite batch for rendering.</param>
     protected override void OnRender(SpriteBatch spriteBatch)
     {
         if (!IsVisible)
@@ -410,14 +385,11 @@ private Color GetCurrentTextColor()
     }
 
     /// <summary>
-    /// Draws the button background
+    /// Draws the button background.
     /// </summary>
-    /// <summary>
-/// Draws the button background.
-/// </summary>
-/// <param name="spriteBatch">The sprite batch for rendering.</param>
-/// <param name="bounds">The bounds of the button.</param>
-private void DrawBackground(SpriteBatch spriteBatch, Rectangle bounds)
+    /// <param name="spriteBatch">The sprite batch for rendering.</param>
+    /// <param name="bounds">The bounds of the button.</param>
+    private void DrawBackground(SpriteBatch spriteBatch, Rectangle bounds)
     {
         var backgroundColor = GetCurrentBackgroundColor();
 
@@ -431,14 +403,11 @@ private void DrawBackground(SpriteBatch spriteBatch, Rectangle bounds)
     }
 
     /// <summary>
-    /// Draws the button border
+    /// Draws the button border.
     /// </summary>
-    /// <summary>
-/// Draws the button border.
-/// </summary>
-/// <param name="spriteBatch">The sprite batch for rendering.</param>
-/// <param name="bounds">The bounds of the button.</param>
-private void DrawBorder(SpriteBatch spriteBatch, Rectangle bounds)
+    /// <param name="spriteBatch">The sprite batch for rendering.</param>
+    /// <param name="bounds">The bounds of the button.</param>
+    private void DrawBorder(SpriteBatch spriteBatch, Rectangle bounds)
     {
         var borderColor = GetCurrentBorderColor() * Opacity;
 
@@ -461,14 +430,11 @@ private void DrawBorder(SpriteBatch spriteBatch, Rectangle bounds)
     }
 
     /// <summary>
-    /// Draws the button text
+    /// Draws the button text.
     /// </summary>
-    /// <summary>
-/// Draws the button text.
-/// </summary>
-/// <param name="spriteBatch">The sprite batch for rendering.</param>
-/// <param name="bounds">The bounds of the button.</param>
-private void DrawText(SpriteBatch spriteBatch, Rectangle bounds)
+    /// <param name="spriteBatch">The sprite batch for rendering.</param>
+    /// <param name="bounds">The bounds of the button.</param>
+    private void DrawText(SpriteBatch spriteBatch, Rectangle bounds)
     {
         if (_font == null || string.IsNullOrEmpty(_text))
         {
@@ -499,12 +465,9 @@ private void DrawText(SpriteBatch spriteBatch, Rectangle bounds)
     }
 
     /// <summary>
-    /// Programmatically triggers a click event
+    /// Programmatically triggers a click event.
     /// </summary>
-    /// <summary>
-/// Programmatically triggers a click event.
-/// </summary>
-public void PerformClick()
+    public void PerformClick()
     {
         if (IsEnabled)
         {
@@ -531,118 +494,97 @@ public void PerformClick()
     }
 
     /// <summary>
-    /// Current visual state of the button
+    /// Gets the current visual state of the button.
     /// </summary>
     public UIButtonState CurrentState { get; private set; } = UIButtonState.Normal;
 
     /// <summary>
-    /// Whether the button is currently being pressed
+    /// Gets a value indicating whether the button is currently being pressed.
     /// </summary>
     public bool IsPressed { get; private set; }
 
     /// <summary>
-    /// Opacity of the button (0.0 to 1.0)
+    /// Gets or sets the opacity of the button (0.0 to 1.0).
     /// </summary>
     public float Opacity { get; set; } = 1.0f;
 
     /// <summary>
-    /// Background color in normal state.
+    /// Gets or sets the background color in normal state.
     /// </summary>
     public Color NormalBackgroundColor { get; set; }
 
     /// <summary>
-    /// Background color when hovered
+    /// Gets or sets the background color when hovered.
     /// </summary>
-    /// <summary>
-/// Background color when hovered.
-/// </summary>
-public Color HoverBackgroundColor { get; set; }
+    public Color HoverBackgroundColor { get; set; }
 
     /// <summary>
-    /// Background color when pressed
+    /// Gets or sets the background color when pressed.
     /// </summary>
-    /// <summary>
-/// Background color when pressed.
-/// </summary>
-public Color PressedBackgroundColor { get; set; }
+    public Color PressedBackgroundColor { get; set; }
 
     /// <summary>
-    /// Background color when disabled
+    /// Gets or sets the background color when disabled.
     /// </summary>
-    /// <summary>
-/// Background color when disabled.
-/// </summary>
-public Color DisabledBackgroundColor { get; set; }
+    public Color DisabledBackgroundColor { get; set; }
 
     /// <summary>
-    /// Text color in normal state
+    /// Gets or sets the text color in normal state.
     /// </summary>
-    /// <summary>
-/// Text color in normal state.
-/// </summary>
-public Color NormalTextColor { get; set; }
+    public Color NormalTextColor { get; set; }
 
     /// <summary>
-    /// Text color when hovered
+    /// Gets or sets the text color when hovered.
     /// </summary>
-    /// <summary>
-/// Text color when hovered.
-/// </summary>
-public Color HoverTextColor { get; set; }
+    public Color HoverTextColor { get; set; }
 
     /// <summary>
-    /// Text color when pressed
+    /// Gets or sets the text color when pressed.
     /// </summary>
-    /// <summary>
-/// Text color when pressed.
-/// </summary>
-public Color PressedTextColor { get; set; }
+    public Color PressedTextColor { get; set; }
 
     /// <summary>
-    /// Text color when disabled
+    /// Gets or sets the text color when disabled.
     /// </summary>
-    /// <summary>
-/// Text color when disabled.
-/// </summary>
-public Color DisabledTextColor { get; set; }
+    public Color DisabledTextColor { get; set; }
 
     /// <summary>
-    /// Border color in normal state
+    /// Gets or sets the border color in normal state.
     /// </summary>
     public Color NormalBorderColor { get; set; }
 
     /// <summary>
-    /// Border color when hovered
+    /// Gets or sets the border color when hovered.
     /// </summary>
     public Color HoverBorderColor { get; set; }
 
     /// <summary>
-    /// Border color when pressed
+    /// Gets or sets the border color when pressed.
     /// </summary>
     public Color PressedBorderColor { get; set; }
 
     /// <summary>
-    /// Border color when disabled
+    /// Gets or sets the border color when disabled.
     /// </summary>
     public Color DisabledBorderColor { get; set; }
 
     /// <summary>
-    /// Border width in pixels
+    /// Gets or sets the border width in pixels.
     /// </summary>
     public int BorderWidth { get; set; } = 1;
 
     /// <summary>
-    /// Corner radius for rounded buttons (0 for square)
+    /// Gets or sets the corner radius for rounded buttons (0 for square).
     /// </summary>
     public int CornerRadius { get; set; }
 
     /// <summary>
-    /// Padding around the text content
+    /// Gets or sets the padding around the text content.
     /// </summary>
     public Vector2 TextPadding { get; set; } = new(8, 4);
 
     /// <summary>
-    /// Text alignment within the button
+    /// Gets or sets the text alignment within the button.
     /// </summary>
     public TextAlignment TextAlignment { get; set; } = TextAlignment.Center;
 }

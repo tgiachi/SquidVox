@@ -27,7 +27,7 @@ public static class JsonUtils
     }
 
     /// <summary>
-    ///     Adds a JSON converter to the global converter list. Thread-safe.
+    /// Adds a JSON converter to the global converter list. Thread-safe.
     /// </summary>
     /// <param name="converter">The converter to add.</param>
     public static void AddJsonConverter(JsonConverter converter)
@@ -46,7 +46,7 @@ public static class JsonUtils
     }
 
     /// <summary>
-    ///     Removes all converters of the specified type. Thread-safe.
+    /// Removes all converters of the specified type. Thread-safe.
     /// </summary>
     /// <typeparam name="T">The converter type to remove.</typeparam>
     /// <returns>True if any converters were removed.</returns>
@@ -83,8 +83,9 @@ public static class JsonUtils
     }
 
     /// <summary>
-    ///     Gets a read-only view of the current JSON converters.
+    /// Gets a read-only view of the current JSON converters.
     /// </summary>
+    /// <returns>A read-only list of JSON converters.</returns>
     public static IReadOnlyList<JsonConverter> GetJsonConverters()
     {
         // Avoid ToList() allocation - JsonConverters is already thread-safe

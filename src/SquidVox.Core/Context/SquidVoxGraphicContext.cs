@@ -10,12 +10,12 @@ namespace SquidVox.Core.Context;
 public static class SquidVoxGraphicContext
 {
     /// <summary>
-    ///
+    /// Gets or sets the IoC container.
     /// </summary>
     public static IContainer Container { get; set; }
 
     /// <summary>
-    ///
+    /// Gets or sets the clear color for the graphics device.
     /// </summary>
     public static Color ClearColor { get; set; } = Color.CornflowerBlue;
 
@@ -25,13 +25,12 @@ public static class SquidVoxGraphicContext
     public static GraphicsDevice GraphicsDevice => GraphicsDeviceManager.GraphicsDevice;
 
     /// <summary>
-    ///
+    /// Gets or sets the graphics device manager.
     /// </summary>
     public static GraphicsDeviceManager GraphicsDeviceManager { get; set; }
 
-
     /// <summary>
-    ///
+    /// Gets or sets the game window.
     /// </summary>
     public static GameWindow Window { get; set; }
 

@@ -4,12 +4,30 @@ using SquidVox.GameObjects.UI.Types.Layout;
 
 namespace SquidVox.GameObjects.UI.Components.UI.Layout;
 
+/// <summary>
+/// Component for arranging child game objects in a stack layout.
+/// </summary>
 public class StackPanelComponent
 {
+    /// <summary>
+    /// Gets or sets the orientation of the stack.
+    /// </summary>
     public StackOrientation Orientation { get; set; } = StackOrientation.Vertical;
+
+    /// <summary>
+    /// Gets or sets the spacing between child elements.
+    /// </summary>
     public float Spacing { get; set; } = 5f;
+
+    /// <summary>
+    /// Gets or sets whether the parent size should be adjusted automatically.
+    /// </summary>
     public bool IsAutoSize { get; set; } = true;
 
+    /// <summary>
+    /// Arranges the child game objects in the stack layout.
+    /// </summary>
+    /// <param name="parent">The parent game object containing the children to arrange.</param>
     public void ArrangeChildren(Base2dGameObject parent)
     {
         if (parent.Children == null || !parent.Children.Any()) return;

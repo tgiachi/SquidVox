@@ -13,7 +13,7 @@ using SquidVox.GameObjects.UI.Utils;
 namespace SquidVox.GameObjects.UI.Controls;
 
 /// <summary>
-/// TextBox game object for text input with cursor, selection, and various input features
+/// TextBox game object for text input with cursor, selection, and various input features.
 /// </summary>
 public class TextBoxGameObject : Base2dGameObject
 {
@@ -41,33 +41,33 @@ public class TextBoxGameObject : Base2dGameObject
     private float _textOffset;
 
     /// <summary>
-    /// Event fired when text changes
+    /// Event fired when text changes.
     /// </summary>
     public event EventHandler<TextChangedEventArgs>? TextChanged;
 
     /// <summary>
-    /// Event fired when TextBox gains focus
+    /// Event fired when TextBox gains focus.
     /// </summary>
     public event EventHandler? GotFocus;
 
     /// <summary>
-    /// Event fired when TextBox loses focus
+    /// Event fired when TextBox loses focus.
     /// </summary>
     public event EventHandler? LostFocus;
 
     /// <summary>
-    /// Event fired when Enter key is pressed
+    /// Event fired when Enter key is pressed.
     /// </summary>
     public event EventHandler? EnterPressed;
 
     /// <summary>
-    /// Initializes a new TextBox game object
+    /// Initializes a new TextBox game object.
     /// </summary>
-    /// <param name="width">Width of the TextBox</param>
-    /// <param name="height">Height of the TextBox</param>
-    /// <param name="fontName">Font name for text display</param>
-    /// <param name="fontSize">Font size for text display</param>
-    /// <param name="assetManagerService">Asset manager service for loading resources</param>
+    /// <param name="width">Width of the TextBox.</param>
+    /// <param name="height">Height of the TextBox.</param>
+    /// <param name="fontName">Font name for text display.</param>
+    /// <param name="fontSize">Font size for text display.</param>
+    /// <param name="assetManagerService">Asset manager service for loading resources.</param>
     public TextBoxGameObject(
         float width = 200f,
         float height = 28f,
@@ -94,7 +94,7 @@ public class TextBoxGameObject : Base2dGameObject
     }
 
     /// <summary>
-    /// Initializes the textbox resources
+    /// Initializes the textbox resources.
     /// </summary>
     public void Initialize(IAssetManagerService assetManagerService, GraphicsDevice graphicsDevice)
     {
@@ -110,7 +110,7 @@ public class TextBoxGameObject : Base2dGameObject
     }
 
     /// <summary>
-    /// Loads the font for text display
+    /// Loads the font for text display.
     /// </summary>
     private void LoadFont()
     {
@@ -137,7 +137,7 @@ public class TextBoxGameObject : Base2dGameObject
     }
 
     /// <summary>
-    /// Updates the textbox state
+    /// Updates the textbox state.
     /// </summary>
     protected override void OnUpdate(GameTime gameTime)
     {
@@ -154,7 +154,7 @@ public class TextBoxGameObject : Base2dGameObject
     }
 
     /// <summary>
-    /// Handles keyboard and mouse input
+    /// Handles keyboard and mouse input.
     /// </summary>
     private void HandleInput()
     {
@@ -173,7 +173,7 @@ public class TextBoxGameObject : Base2dGameObject
     }
 
     /// <summary>
-    /// Handles mouse input for focus and cursor positioning
+    /// Handles mouse input for focus and cursor positioning.
     /// </summary>
     private void HandleMouseInput(MouseState currentMouseState)
     {
@@ -203,7 +203,7 @@ public class TextBoxGameObject : Base2dGameObject
     }
 
     /// <summary>
-    /// Handles keyboard input for text editing
+    /// Handles keyboard input for text editing.
     /// </summary>
     private void HandleKeyboardInput(KeyboardState currentKeyboardState)
     {
@@ -223,7 +223,7 @@ public class TextBoxGameObject : Base2dGameObject
     }
 
     /// <summary>
-    /// Handles individual key presses
+    /// Handles individual key presses.
     /// </summary>
     private void HandleKeyPress(Keys key, bool isShiftPressed, bool isCtrlPressed)
     {

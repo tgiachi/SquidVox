@@ -41,8 +41,10 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     private GameTime _gameTime;
 
     /// <summary>
-    ///
+    /// Adds a debugger to the render layer.
     /// </summary>
+    /// <typeparam name="T">The type of the debugger.</typeparam>
+    /// <param name="debugger">The debugger to add.</param>
     public void AddDebugger<T>(T debugger) where T : ISVoxDebuggerGameObject
     {
         lock (_addRemoveLock)
@@ -52,8 +54,11 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     }
 
     /// <summary>
-    ///
+    /// Removes a debugger from the render layer.
     /// </summary>
+    /// <typeparam name="T">The type of the debugger.</typeparam>
+    /// <param name="debugger">The debugger to remove.</param>
+    /// <returns>True if the debugger was removed, false otherwise.</returns>
     public bool RemoveDebugger<T>(T debugger) where T : ISVoxDebuggerGameObject
     {
         lock (_addRemoveLock)
@@ -64,8 +69,9 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
 
 
     /// <summary>
-    ///
+    /// Initializes a new instance of the ImGuiRenderLayer class.
     /// </summary>
+    /// <param name="game">The game instance.</param>
     public ImGuiRenderLayer(Game game)
     {
         _imGuiRenderer = new ImGuiRenderer(game);
@@ -99,19 +105,33 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     }
 
     /// <summary>
-    ///
+    /// Updates the render layer.
     /// </summary>
+    /// <param name="gameTime">The game time.</param>
     public void Update(GameTime gameTime)
     {
         _gameTime = gameTime;
     }
 
+    /// <summary>
+    /// Gets or sets whether the render layer has input focus.
+    /// </summary>
     public bool HasFocus { get; set; }
 
+    /// <summary>
+    /// Handles keyboard input.
+    /// </summary>
+    /// <param name="keyboardState">The keyboard state.</param>
+    /// <param name="gameTime">The game time.</param>
     public void HandleKeyboard(KeyboardState keyboardState, GameTime gameTime)
     {
     }
 
+    /// <summary>
+    /// Handles mouse input.
+    /// </summary>
+    /// <param name="mouseState">The mouse state.</param>
+    /// <param name="gameTime">The game time.</param>
     public void HandleMouse(MouseState mouseState, GameTime gameTime)
     {
     }

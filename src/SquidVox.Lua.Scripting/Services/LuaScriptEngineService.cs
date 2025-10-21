@@ -78,7 +78,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    /// Gets the MoonSharp script instance.
     /// </summary>
     public Script LuaScript { get; }
 
@@ -118,13 +118,14 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     public event EventHandler<ScriptErrorInfo>? OnScriptError;
 
     /// <summary>
-    /// 
+    /// Gets the script engine instance.
     /// </summary>
     public object Engine => LuaScript;
 
     /// <summary>
-    /// 
+    /// Adds an initialization script.
     /// </summary>
+    /// <param name="script">The script to add.</param>
     public void AddInitScript(string script)
     {
         if (string.IsNullOrWhiteSpace(script))
@@ -136,8 +137,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     }
 
     /// <summary>
-    /// 
+    /// Executes a script string.
     /// </summary>
+    /// <param name="script">The script to execute.</param>
     public void ExecuteScript(string script)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(script);
