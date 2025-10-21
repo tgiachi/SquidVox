@@ -1,5 +1,6 @@
 using DryIoc;
 using FontStashSharp;
+using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -11,6 +12,7 @@ using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
 using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
+using SquidVox.World3d.Scripts;
 
 namespace SquidVox.World3d;
 
@@ -94,6 +96,22 @@ public class SquidVoxWorld : Game
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(new CameraComponent());
+
+        _renderLayers.GetLayer<ImGuiRenderLayer>()
+            .AddDebugger(
+                new LuaImGuiDebuggerObject(
+                    "Camera",
+                    () =>
+                    {
+                        var cam = _renderLayers.GetLayer<GameObject3dRenderLayer>().GetComponent<CameraComponent>();
+                        ImGui.Text("Use WASD to move the camera.");
+                        ImGui.Text("Use mouse to look around.");
+                        ImGui.Text("Position: " + cam.Position);
+                        ImGui.Text("Rotation: " + cam.Rotation);
+                        ImGui.Text("Pitch: " + cam.Pitch);
+                    }
+                )
+            );
     }
 
     /// <summary>

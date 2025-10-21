@@ -119,4 +119,15 @@ public class GameObject3dRenderLayer : IRenderableLayer
             }
         }
     }
+
+    /// <summary>
+    /// Gets the first game object of the specified type, or null if not found.
+    /// </summary>
+    /// <typeparam name="TGameObject">The type of game object to retrieve.</typeparam>
+    /// <returns>The first game object of the specified type, or null.</returns>
+    public TGameObject? GetComponent<TGameObject>()
+        where TGameObject : class, ISVox3dDrawableGameObject
+    {
+        return _gameObjects.GetFirstGameObjectOfType<TGameObject>();
+    }
 }

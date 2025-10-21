@@ -94,6 +94,7 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
                 ImGui.Begin(debugger.WindowTitle);
                 debugger.Draw();
             }
+            ImGui.End();
         }
 
         if (ShowDemoWindow)

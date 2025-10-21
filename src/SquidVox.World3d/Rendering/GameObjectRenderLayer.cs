@@ -117,4 +117,15 @@ public class GameObjectRenderLayer : IRenderableLayer
     /// Gets or sets whether this layer has input focus.
     /// </summary>
     public bool HasFocus { get; set; }
+
+    /// <summary>
+    /// Gets the first game object of the specified type, or null if not found.
+    /// </summary>
+    /// <typeparam name="TGameObject">The type of game object to retrieve.</typeparam>
+    /// <returns>The first game object of the specified type, or null.</returns>
+    public TGameObject? GetComponent<TGameObject>()
+        where TGameObject : class, ISVox2dDrawableGameObject
+    {
+        return _gameObjects.GetFirstGameObjectOfType<TGameObject>();
+    }
 }
