@@ -33,6 +33,7 @@ await ConsoleApp.RunAsync(
             .WriteTo.Console(formatProvider: CultureInfo.DefaultThreadCurrentCulture)
             .CreateLogger();
 
+
         rootDirectory = rootDirectory.ResolvePathAndEnvs();
 
         rootDirectory ??= Path.Combine(Directory.GetCurrentDirectory(), "SquidVoxData");

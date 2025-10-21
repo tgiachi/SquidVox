@@ -17,7 +17,7 @@ public static class DirectoriesExtension
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            throw new ArgumentException("Path cannot be null or empty.", nameof(path));
+            return null;
         }
 
         path = path.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
