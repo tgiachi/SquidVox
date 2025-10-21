@@ -117,8 +117,8 @@ public class ChunkEntity
     public static void GetLight(ushort v, out byte r, out byte g, out byte b, out byte p)
     {
         r = (byte)((v >> 12) & 0xF);
-        g = (byte)((v >> 8)  & 0xF);
-        b = (byte)((v >> 4)  & 0xF);
+        g = (byte)((v >> 8) & 0xF);
+        b = (byte)((v >> 4) & 0xF);
         p = (byte)(v & 0xF);
     }
 

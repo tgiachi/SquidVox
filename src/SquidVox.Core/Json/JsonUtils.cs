@@ -350,6 +350,42 @@ public static class JsonUtils
     }
 
     /// <summary>
+    ///     Deserializes an object from a JSON file using a JsonSerializerContext.
+    /// </summary>
+    /// <typeparam name="T">The type to deserialize to.</typeparam>
+    /// <param name="filePath">Path to the JSON file.</param>
+    /// <param name="context">The JsonSerializerContext to use for deserialization.</param>
+    /// <returns>Deserialized object.</returns>
+    public static T DeserializeFromFile<T>(string filePath, JsonSerializerContext context)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentNullException.ThrowIfNull(context);
+
+        var normalizedPath = Path.GetFullPath(filePath);
+        if (!File.Exists(normalizedPath))
+        {
+            throw new FileNotFoundException($"The file '{normalizedPath}' does not exist.", normalizedPath);
+        }
+
+        try
+        {
+            var json = File.ReadAllText(normalizedPath);
+            var result = JsonSerializer.Deserialize(json, context.GetTypeInfo(typeof(T)));
+            return result is T typedResult
+                ? typedResult
+                : throw new JsonException($"Deserialization returned null for type {typeof(T).Name}");
+        }
+        catch (JsonException ex)
+        {
+            throw new JsonException($"Failed to deserialize file '{normalizedPath}' to type {typeof(T).Name}: {ex.Message}", ex);
+        }
+        catch (Exception ex) when (ex is not JsonException)
+        {
+            throw new JsonException($"Failed to read or deserialize file '{normalizedPath}': {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     ///     Deserializes an object from a stream asynchronously.
     /// </summary>
     /// <typeparam name="T">The type to deserialize to.</typeparam>

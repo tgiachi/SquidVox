@@ -527,30 +527,30 @@ public class CheckBoxGameObject : Base2dGameObject
             var borderColor = GetBorderColor() * Opacity;
             var borderWidth = (int)BorderWidth;
 
-        // Top border
-        spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
-            new Rectangle(checkBoxRect.X, checkBoxRect.Y, checkBoxRect.Width, borderWidth),
-            borderColor
-        );
-        // Bottom border
-        spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
-            new Rectangle(checkBoxRect.X, checkBoxRect.Bottom - borderWidth, checkBoxRect.Width, borderWidth),
-            borderColor
-        );
-        // Left border
-        spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
-            new Rectangle(checkBoxRect.X, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
-            borderColor
-        );
-        // Right border
-        spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
-            new Rectangle(checkBoxRect.Right - borderWidth, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
-            borderColor
-        );
+            // Top border
+            spriteBatch.Draw(
+                SquidVoxGraphicContext.WhitePixel,
+                new Rectangle(checkBoxRect.X, checkBoxRect.Y, checkBoxRect.Width, borderWidth),
+                borderColor
+            );
+            // Bottom border
+            spriteBatch.Draw(
+                SquidVoxGraphicContext.WhitePixel,
+                new Rectangle(checkBoxRect.X, checkBoxRect.Bottom - borderWidth, checkBoxRect.Width, borderWidth),
+                borderColor
+            );
+            // Left border
+            spriteBatch.Draw(
+                SquidVoxGraphicContext.WhitePixel,
+                new Rectangle(checkBoxRect.X, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
+                borderColor
+            );
+            // Right border
+            spriteBatch.Draw(
+                SquidVoxGraphicContext.WhitePixel,
+                new Rectangle(checkBoxRect.Right - borderWidth, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
+                borderColor
+            );
         }
 
         // Draw check mark if checked

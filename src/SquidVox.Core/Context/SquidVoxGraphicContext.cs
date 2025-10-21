@@ -45,7 +45,7 @@ public static class SquidVoxGraphicContext
     /// <summary>
     /// Gets the game time instance.
     /// </summary>
-    public static GameTime GameTime { get; } = new ();
+    public static GameTime GameTime { get; } = new();
 
     /// <summary>
     /// Disposes of all graphics resources.

@@ -10,7 +10,7 @@ namespace SquidVox.Core.Interfaces.Rendering;
 /// Defines a renderable layer in the rendering pipeline.
 /// Layers are rendered in order based on their RenderLayer priority.
 /// </summary>
-public interface IRenderableLayer: ISVoxInputReceiver
+public interface IRenderableLayer : ISVoxInputReceiver
 {
     /// <summary>
     /// Gets the rendering layer priority.

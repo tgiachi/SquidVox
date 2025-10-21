@@ -45,6 +45,12 @@ public class SquidVoxWorld : Game
         IsMouseVisible = true;
     }
 
+    /// <summary>
+    /// Initializes the game.
+    /// </summary>
+    /// <summary>
+    /// Initializes the game.
+    /// </summary>
     protected override void Initialize()
     {
         // TODO: Add your initialization logic here

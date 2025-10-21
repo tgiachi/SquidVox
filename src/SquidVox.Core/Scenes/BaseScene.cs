@@ -112,9 +112,9 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnUpdate(gameTime);
-        
+
         Components.UpdateAll(gameTime);
-        
+
         Components3d.CheckForZIndexChanges();
         for (var i = 0; i < Components3d.Count; i++)
         {
@@ -138,9 +138,9 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnRenderBegin(spriteBatch);
-        
+
         OnRender3d(spriteBatch.GraphicsDevice);
-        
+
         Components.RenderAll(spriteBatch);
         OnRenderEnd(spriteBatch);
     }
@@ -158,9 +158,9 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnHandleKeyboard(keyboardState, gameTime);
-        
+
         Components.HandleKeyboardInput(keyboardState, gameTime);
-        
+
         for (var i = 0; i < Components3d.Count; i++)
         {
             if (Components3d[i] is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
@@ -183,9 +183,9 @@ public abstract class BaseScene : ISVoxScene
         }
 
         OnHandleMouse(mouseState, gameTime);
-        
+
         Components.HandleMouseInput(mouseState, gameTime);
-        
+
         for (var i = 0; i < Components3d.Count; i++)
         {
             if (Components3d[i] is ISVoxInputReceiver inputReceiver && inputReceiver.HasFocus)
@@ -247,7 +247,7 @@ public abstract class BaseScene : ISVoxScene
     protected virtual void OnRender3d(GraphicsDevice graphicsDevice)
     {
         Components3d.CheckForZIndexChanges();
-        
+
         for (var i = 0; i < Components3d.Count; i++)
         {
             var component = Components3d[i];

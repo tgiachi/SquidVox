@@ -14,6 +14,10 @@ using SquidVox.Core.Json;
 using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
+using SquidVox.Voxel.Interfaces;
+using SquidVox.Voxel.Json;
+using SquidVox.Voxel.Modules;
+using SquidVox.Voxel.Services;
 using SquidVox.World3d;
 using SquidVox.World3d.Modules;
 using SquidVox.World3d.Services;
@@ -23,6 +27,7 @@ await ConsoleApp.RunAsync(
     async (string? rootDirectory = null) =>
     {
         JsonUtils.RegisterJsonContext(SquidVoxLuaScriptJsonContext.Default);
+        JsonUtils.RegisterJsonContext(SquidVoxVoxelJsonContext.Default);
 
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
             .WriteTo.Console(formatProvider: CultureInfo.DefaultThreadCurrentCulture)
@@ -46,6 +51,7 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<AssetManagerModule>()
             .AddLuaScriptModule<InputManagerModule>()
             .AddLuaScriptModule<RenderLayerModule>()
+            .AddLuaScriptModule<BlockManagerModule>()
             ;
 
 
@@ -59,6 +65,7 @@ await ConsoleApp.RunAsync(
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
         container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
         container.Register<IInputManager, InputManagerService>(Reuse.Singleton);
+        container.Register<IBlockManagerService, BlockManagerService>(Reuse.Singleton);
 
 
         using var game = new SquidVoxWorld(container);

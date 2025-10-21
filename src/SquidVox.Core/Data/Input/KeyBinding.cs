@@ -54,7 +54,7 @@ public readonly struct KeyBinding : IEquatable<KeyBinding>
             throw new ArgumentException("Binding string cannot be null or empty", nameof(binding));
 
         var parts = binding.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        
+
         if (parts.Length == 0)
             throw new ArgumentException("Invalid binding format", nameof(binding));
 
@@ -66,7 +66,7 @@ public readonly struct KeyBinding : IEquatable<KeyBinding>
         foreach (var part in parts)
         {
             var upperPart = part.ToUpperInvariant();
-            
+
             if (upperPart == "CTRL" || upperPart == "CONTROL")
             {
                 requiresCtrl = true;
@@ -143,7 +143,7 @@ public readonly struct KeyBinding : IEquatable<KeyBinding>
     public override string ToString()
     {
         var parts = new List<string>();
-        
+
         if (RequiresCtrl) parts.Add("Ctrl");
         if (RequiresShift) parts.Add("Shift");
         if (RequiresAlt) parts.Add("Alt");

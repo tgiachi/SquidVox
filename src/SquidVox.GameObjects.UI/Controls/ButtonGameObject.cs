@@ -55,15 +55,7 @@ public class ButtonGameObject : Base2dGameObject
     /// </summary>
     public event EventHandler? TextChanged;
 
-    /// <summary>
-    /// Initializes a new Button game object
-    /// </summary>
-    /// <param name="text">Button text</param>
-    /// <param name="width">Width of the button</param>
-    /// <param name="height">Height of the button</param>
-    /// <param name="fontName">Font name for text display</param>
-    /// <param name="fontSize">Font size for text display</param>
-    /// <param name="assetManagerService">Asset manager service for loading resources</param>
+
     /// <summary>
     /// Initializes a new Button game object.
     /// </summary>
