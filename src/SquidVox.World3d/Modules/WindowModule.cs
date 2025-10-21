@@ -13,31 +13,35 @@ namespace SquidVox.World3d.Modules;
 /// </summary>
 public class WindowModule
 {
-    [ScriptFunction("set_title", "Sets the title of the game window.")]
-    /// <summary>
-    ///
-    /// </summary>
-    public void SetTitle(string title)
+[ScriptFunction("set_title", "Sets the title of the game window.")]
+/// <summary>
+/// Sets the title of the game window.
+/// </summary>
+/// <param name="title">The new title.</param>
+public void SetTitle(string title)
     {
         SquidVoxGraphicContext.Window.Title = title;
     }
 
-    [ScriptFunction("set_size", "Sets the size of the game window.")]
-    /// <summary>
-    ///
-    /// </summary>
-    public void SetSize(int width, int height)
+[ScriptFunction("set_size", "Sets the size of the game window.")]
+/// <summary>
+/// Sets the size of the game window.
+/// </summary>
+/// <param name="width">The width of the window.</param>
+/// <param name="height">The height of the window.</param>
+public void SetSize(int width, int height)
     {
         SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferWidth = width;
         SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferHeight = height;
         SquidVoxGraphicContext.GraphicsDeviceManager.ApplyChanges();
     }
 
-    [ScriptFunction("get_size", "Gets the current size of the game window.")]
-    /// <summary>
-    ///
-    /// </summary>
-    public Vector2 GetSize()
+[ScriptFunction("get_size", "Gets the current size of the game window.")]
+/// <summary>
+/// Gets the current size of the game window.
+/// </summary>
+/// <returns>The size of the window.</returns>
+public Vector2 GetSize()
     {
         return new Vector2(
             SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferWidth,
@@ -45,11 +49,12 @@ public class WindowModule
         );
     }
 
-    [ScriptFunction("get_title", "Gets the current title of the game window.")]
-    /// <summary>
-    ///
-    /// </summary>
-    public string GetTitle()
+[ScriptFunction("get_title", "Gets the current title of the game window.")]
+/// <summary>
+/// Gets the current title of the game window.
+/// </summary>
+/// <returns>The title of the window.</returns>
+public string GetTitle()
     {
         return SquidVoxGraphicContext.Window.Title;
     }

@@ -25,5 +25,4 @@ public enum DirectoryType
     /// </summary>
     Scripts,
 
-   
 }

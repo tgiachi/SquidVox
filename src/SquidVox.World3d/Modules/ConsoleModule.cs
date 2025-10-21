@@ -32,72 +32,79 @@ public class ConsoleModule
         _logger.Information("[Console] {Message}", message);
     }
 
-    [ScriptFunction(functionName: "info")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Info(params object[] args)
+[ScriptFunction(functionName: "info")]
+/// <summary>
+/// Logs an info message to the console.
+/// </summary>
+/// <param name="args">The arguments to log.</param>
+public void Info(params object[] args)
     {
         var message = string.Join(" ", args.Select(FormatArg));
         _logger.Information("[Console] {Message}", message);
     }
 
-    [ScriptFunction(functionName: "warn")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Warn(params object[] args)
+[ScriptFunction(functionName: "warn")]
+/// <summary>
+/// Logs a warning message to the console.
+/// </summary>
+/// <param name="args">The arguments to log.</param>
+public void Warn(params object[] args)
     {
         var message = string.Join(" ", args.Select(FormatArg));
         _logger.Warning("[Console] {Message}", message);
     }
 
-    [ScriptFunction(functionName: "error")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Error(params object[] args)
+[ScriptFunction(functionName: "error")]
+/// <summary>
+/// Logs an error message to the console.
+/// </summary>
+/// <param name="args">The arguments to log.</param>
+public void Error(params object[] args)
     {
         var message = string.Join(" ", args.Select(FormatArg));
         _logger.Error("[Console] {Message}", message);
     }
 
-    [ScriptFunction(functionName: "debug")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Debug(params object[] args)
+[ScriptFunction(functionName: "debug")]
+/// <summary>
+/// Logs a debug message to the console.
+/// </summary>
+/// <param name="args">The arguments to log.</param>
+public void Debug(params object[] args)
     {
         var message = string.Join(" ", args.Select(FormatArg));
         _logger.Debug("[Console] {Message}", message);
     }
 
-    [ScriptFunction(functionName: "trace")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Trace(params object[] args)
+[ScriptFunction(functionName: "trace")]
+/// <summary>
+/// Logs a trace message to the console with stack trace.
+/// </summary>
+/// <param name="args">The arguments to log.</param>
+public void Trace(params object[] args)
     {
         var message = string.Join(" ", args.Select(FormatArg));
         var stackTrace = Environment.StackTrace;
         _logger.Debug("[Console] {Message}\n{StackTrace}", message, stackTrace);
     }
 
-    [ScriptFunction(functionName: "clear")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Clear()
+[ScriptFunction(functionName: "clear")]
+/// <summary>
+/// Clears the console.
+/// </summary>
+public void Clear()
     {
         _logger.Information("[Console] Console cleared");
         // In a real implementation, this could clear the console component
     }
 
-    [ScriptFunction(functionName: "assert")]
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Assert(bool condition, params object[] args)
+[ScriptFunction(functionName: "assert")]
+/// <summary>
+/// Asserts a condition and logs an error if false.
+/// </summary>
+/// <param name="condition">The condition to assert.</param>
+/// <param name="args">The arguments to log if assertion fails.</param>
+public void Assert(bool condition, params object[] args)
     {
         if (!condition)
         {

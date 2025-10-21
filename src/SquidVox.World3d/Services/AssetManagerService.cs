@@ -220,7 +220,7 @@ public class AssetManagerService : IAssetManagerService
         string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0
     )
     {
-        LoadTextureFromFile(name + "_atlas", fileName);
+        LoadTextureFromFile(fileName, name + "_atlas");
 
         var texture = GetTexture(name + "_atlas");
         var textureAtlas = Texture2DAtlas.Create(name, texture, tileWidth, tileHeight, int.MaxValue, margin);

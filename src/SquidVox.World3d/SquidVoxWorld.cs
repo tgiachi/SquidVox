@@ -14,7 +14,7 @@ using SquidVox.World3d.Rendering;
 namespace SquidVox.World3d;
 
 /// <summary>
-///
+/// Represents the main game world for SquidVox.
 /// </summary>
 public class SquidVoxWorld : Game
 {
@@ -24,8 +24,9 @@ public class SquidVoxWorld : Game
     private readonly RenderLayerCollection _renderLayers = new();
 
     /// <summary>
-    ///
+    /// Initializes a new instance of the SquidVoxWorld class.
     /// </summary>
+    /// <param name="container">The dependency injection container.</param>
     public SquidVoxWorld(IContainer container)
     {
         _container = container;
