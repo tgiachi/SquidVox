@@ -1,7 +1,7 @@
-﻿
-using System.Globalization;
+﻿using System.Globalization;
 using ConsoleAppFramework;
 using DryIoc;
+using ImGuiNET;
 using Microsoft.Xna.Framework;
 using MoonSharp.Interpreter;
 using Serilog;
@@ -42,12 +42,15 @@ await ConsoleApp.RunAsync(
         container
             .AddLuaScriptModule<ConsoleModule>()
             .AddLuaScriptModule<WindowModule>()
+            .AddLuaScriptModule<ImGuiModule>()
             ;
 
 
         // register custom userType for LUA
 
-        UserData.RegisterType<Vector2>();
+        UserData .RegisterType<Vector2>();
+        UserData.RegisterType<Vector3>();
+        UserData.RegisterType(typeof(ImGui));
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
@@ -58,5 +61,3 @@ await ConsoleApp.RunAsync(
         game.Run();
     }
 );
-
-

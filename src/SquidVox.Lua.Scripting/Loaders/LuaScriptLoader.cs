@@ -12,7 +12,6 @@ namespace SquidVox.Lua.Scripting.Loaders;
 /// </summary>
 public class LuaScriptLoader : ScriptLoaderBase
 {
-    private readonly DirectoriesConfig _directoriesConfig;
     private readonly ILogger _logger = Log.ForContext<LuaScriptLoader>();
     private readonly string _scriptsDirectory;
 
@@ -24,8 +23,7 @@ public class LuaScriptLoader : ScriptLoaderBase
     {
         ArgumentNullException.ThrowIfNull(directoriesConfig);
 
-        _directoriesConfig = directoriesConfig;
-        _scriptsDirectory = _directoriesConfig[DirectoryType.Scripts];
+        _scriptsDirectory = directoriesConfig[DirectoryType.Scripts];
 
         // Configure default module search paths
         ModulePaths =

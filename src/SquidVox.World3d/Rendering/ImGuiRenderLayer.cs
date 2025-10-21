@@ -22,9 +22,9 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
 
     private readonly ImGuiRenderer _imGuiRenderer;
 
-    private readonly object _addRemoveLock = new();
+    private readonly Lock _addRemoveLock = new();
 
-    private readonly List<ISVoxDebuggerGameObject> _debuggers = new();
+    private readonly List<ISVoxDebuggerGameObject> _debuggers = [];
 
 
     /// <summary>
@@ -35,7 +35,7 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     /// <summary>
     /// Gets or sets whether to show the ImGui demo window.
     /// </summary>
-    public bool ShowDemoWindow { get; set; } = true;
+    public bool ShowDemoWindow { get; set; }
 
 
     private GameTime _gameTime;

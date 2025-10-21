@@ -27,12 +27,13 @@ public class SquidVoxWorld : Game
     /// </summary>
     public SquidVoxWorld(IContainer container)
     {
+        _container = container;
+        _container.RegisterInstance(_renderLayers);
         _graphics = new GraphicsDeviceManager(this);
         SquidVoxGraphicContext.GraphicsDeviceManager = _graphics;
 
         SquidVoxGraphicContext.Window = Window;
         Content.RootDirectory = "Content";
-        _container = container;
         IsMouseVisible = true;
     }
 
@@ -42,7 +43,6 @@ public class SquidVoxWorld : Game
 
         var assetsManager = _container.Resolve<IAssetManagerService>();
         assetsManager.SetContentManager(Content);
-
 
 
         var defaultFont = ResourceUtils.GetEmbeddedResourceContent(
