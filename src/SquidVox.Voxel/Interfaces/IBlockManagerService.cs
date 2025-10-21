@@ -14,7 +14,7 @@ public interface IBlockManagerService
     /// </summary>
     /// <param name="atlasName">The name of the texture atlas.</param>
     /// <param name="blockDefinitionData">The block definition data.</param>
-    void AddBlockDefinition( BlockDefinitionData blockDefinitionData);
+    void AddBlockDefinition(string atlasName, BlockDefinitionData blockDefinitionData);
 
     /// <summary>
     /// Gets the texture for a specific block side.

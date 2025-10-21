@@ -28,11 +28,11 @@ public class BlockManagerModule
     [ScriptFunction("register_block", "Registers a new block definition.")]
     public void RegisterBlock(BlockDefinitionData blockDefinition)
     {
-        _blockManagerService.AddBlockDefinition(blockDefinition);
+        _blockManagerService.AddBlockDefinition("default", blockDefinition);
     }
 
     [ScriptFunction("from_json", "Loads block definitions from a JSON file.")]
-    public void LoadFromJson(string fileName, string atlasName = "default")
+    public void LoadFromJson(string fileName)
     {
         var path = Path.Combine(_directoriesConfig.Root, fileName);
 
@@ -42,11 +42,11 @@ public class BlockManagerModule
         }
 
 
-        var jsonObject = JsonUtils.DeserializeFromFile<BlockDefinitionData[]>(path, SquidVoxVoxelJsonContext.Default);
+        var jsonObject = JsonUtils.DeserializeFromFile<BlockDefinitionData[]>(path);
 
         foreach (var blockDefinition in jsonObject)
         {
-            _blockManagerService.AddBlockDefinition(blockDefinition);
+            _blockManagerService.AddBlockDefinition("default", blockDefinition);
         }
     }
 }

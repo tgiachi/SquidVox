@@ -10,7 +10,7 @@ namespace SquidVox.Voxel.Services;
 
 public partial class BlockManagerService : IBlockManagerService
 {
-    [GeneratedRegex(@"^([^#]+)#(\d+)$")]
+    [GeneratedRegex(@"^([^#]+)#(\d+)(?:-(\d+))?$")]
     private static partial Regex TextureAtlasRegEx();
 
     private readonly ILogger _logger = Log.ForContext<BlockManagerService>();
@@ -25,7 +25,7 @@ public partial class BlockManagerService : IBlockManagerService
         _assetManagerService = assetManagerService;
     }
 
-    public void AddBlockDefinition(BlockDefinitionData blockDefinitionData)
+    public void AddBlockDefinition(string atlasName, BlockDefinitionData blockDefinitionData)
     {
         _logger.Information(
             "Adding block definition: {BlockType} faces: {FacesCount}",
@@ -38,23 +38,32 @@ public partial class BlockManagerService : IBlockManagerService
 
         foreach (var side in blockDefinitionData.Sides)
         {
-            Texture2D texture;
             var match = TextureAtlasRegEx().Match(side.Value);
             if (match.Success)
             {
-                // Format: atlas_name#tile_index
+                // Format: atlas_name#tile_index or atlas_name#start-end
                 var atlasNameFromSide = match.Groups[1].Value;
-                var tileIndex = int.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
-                var region = _assetManagerService.GetTextureAtlasTile(atlasNameFromSide, tileIndex);
-                texture = region.Texture;
+                var startIndex = int.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+
+                if (match.Groups[3].Success)
+                {
+                    // Range format: store range info for random selection
+                    var endIndex = int.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, null, atlasNameFromSide, startIndex, endIndex));
+                }
+                else
+                {
+                    // Single index format: get texture immediately
+                    var region = _assetManagerService.GetTextureAtlasTile(atlasNameFromSide, startIndex);
+                    _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, region.Texture));
+                }
             }
             else
             {
                 // Direct texture name
-                texture = _assetManagerService.GetTexture(side.Value);
+                var texture = _assetManagerService.GetTexture(side.Value);
+                _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, texture));
             }
-
-            _blockSideEntities[blockDefinitionData.BlockType].Add(new BlockSideEntity(side.Key, texture));
         }
     }
 
@@ -63,10 +72,27 @@ public partial class BlockManagerService : IBlockManagerService
         if (_blockSideEntities.TryGetValue(blockType, out var sides))
         {
             var side = sides.Find(s => s.Side == sideType);
-            return side?.Texture;
+            if (side == null)
+            {
+                return null;
+            }
+
+            // If texture is already resolved, return it
+            if (side.Texture != null)
+            {
+                return side.Texture;
+            }
+
+            // If it's a range, select random texture from atlas
+            if (side.AtlasName != null && side.StartIndex.HasValue && side.EndIndex.HasValue)
+            {
+                var tileIndex = Random.Shared.Next(side.StartIndex.Value, side.EndIndex.Value + 1);
+                var region = _assetManagerService.GetTextureAtlasTile(side.AtlasName, tileIndex);
+                return region.Texture;
+            }
         }
 
-        _logger.Warning("Block type {BlockType}  not found", blockType);
+        _logger.Warning("Block type {BlockType} not found", blockType);
         return null;
     }
 
@@ -98,4 +124,4 @@ public partial class BlockManagerService : IBlockManagerService
     }
 }
 
-public record BlockSideEntity(BlockSide Side, Texture2D Texture);
+public record BlockSideEntity(BlockSide Side, Texture2D? Texture, string? AtlasName = null, int? StartIndex = null, int? EndIndex = null);
