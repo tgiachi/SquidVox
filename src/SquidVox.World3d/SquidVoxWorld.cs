@@ -173,7 +173,10 @@ public class SquidVoxWorld : Game
         worldManager.EnableWireframe = false;
 
 
+        var assetManager = _container.Resolve<IAssetManagerService>();
         var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());
+
+        skyPanorama.SetSkyTexture(assetManager.GetTexture("skybox"));
 
         //skyPanorama.DebugMode = true;
 

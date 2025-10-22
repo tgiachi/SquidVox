@@ -1,3 +1,4 @@
+using System;
 using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,6 +18,9 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     private readonly GraphicsDevice _graphicsDevice;
     private readonly Effect _skyEffect;
     private readonly CameraGameObject _camera;
+    private Texture2D? _skyTexture;
+    private bool _useSkyTexture;
+    private float _textureBlend = 1f;
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
     private int _indexCount;
@@ -60,9 +64,79 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     public float CycleSpeed { get; set; } = 0.01f;
 
     /// <summary>
+    /// Gets or sets the blend factor used when combining the procedural sky with the texture.
+    /// </summary>
+    public float SkyTextureBlend
+    {
+        get => _textureBlend;
+        set => _textureBlend = MathHelper.Clamp(value, 0f, 1f);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the sky texture should be used.
+    /// </summary>
+    public bool UseSkyTexture
+    {
+        get => _useSkyTexture;
+        set => _useSkyTexture = value;
+    }
+
+    /// <summary>
+    /// Gets the current sky texture.
+    /// </summary>
+    public Texture2D? SkyTexture => _skyTexture;
+
+    /// <summary>
     /// Gets or sets whether the day/night cycle is enabled.
     /// </summary>
     public bool EnableCycle { get; set; } = true;
+
+    /// <summary>
+    /// Sets the texture to blend with the procedural sky.
+    /// </summary>
+    /// <param name="texture">The texture to apply.</param>
+    /// <param name="blend">The blend factor to apply.</param>
+    public void SetSkyTexture(Texture2D texture, float blend = 1f)
+    {
+        _skyTexture = texture ?? throw new ArgumentNullException(nameof(texture));
+        SkyTextureBlend = blend;
+        _useSkyTexture = true;
+    }
+
+    /// <summary>
+    /// Attempts to load and assign a sky texture by name using the asset manager.
+    /// </summary>
+    /// <param name="textureName">The name of the texture asset.</param>
+    /// <param name="blend">The blend factor to apply.</param>
+    /// <returns>True if the texture was set; otherwise, false.</returns>
+    public bool TrySetSkyTexture(string textureName, float blend = 1f)
+    {
+        if (string.IsNullOrWhiteSpace(textureName))
+        {
+            throw new ArgumentException("Texture name cannot be null or whitespace.", nameof(textureName));
+        }
+
+        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var texture = assetManager.GetTexture(textureName);
+
+        if (texture == null)
+        {
+            _logger.Warning("Sky texture '{TextureName}' not found.", textureName);
+            return false;
+        }
+
+        SetSkyTexture(texture, blend);
+        return true;
+    }
+
+    /// <summary>
+    /// Clears the current sky texture.
+    /// </summary>
+    public void ClearSkyTexture()
+    {
+        _skyTexture = null;
+        _useSkyTexture = false;
+    }
 
     /// <summary>
     /// Updates the sky animation.
@@ -110,6 +184,13 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
         _skyEffect.Parameters["Projection"].SetValue(_camera.Projection);
         _skyEffect.Parameters["View"].SetValue(_camera.View);
         _skyEffect.Parameters["Time"].SetValue(_timeOfDay);
+        _skyEffect.Parameters["UseTexture"]?.SetValue(_useSkyTexture && _skyTexture != null && _textureBlend > 0f ? 1f : 0f);
+        _skyEffect.Parameters["TextureStrength"]?.SetValue(_textureBlend);
+
+        if (_skyTexture != null && _useSkyTexture)
+        {
+            _skyEffect.Parameters["SkyTexture"]?.SetValue(_skyTexture);
+        }
 
         var oldDepth = _graphicsDevice.DepthStencilState;
         var oldRaster = _graphicsDevice.RasterizerState;

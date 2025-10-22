@@ -6,6 +6,18 @@
 float4x4 Projection;
 float4x4 View;
 float Time;  // Time of day (0.0 to 1.0)
+float UseTexture;
+float TextureStrength;
+Texture2D SkyTexture;
+sampler SkySampler = sampler_state
+{
+    Texture = <SkyTexture>;
+    MinFilter = Linear;
+    MagFilter = Linear;
+    MipFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Clamp;
+};
 
 // Vertex shader input
 struct VertexShaderInput
@@ -136,10 +148,25 @@ float3 GetSkyColor(float3 direction, float t)
     return sky_color;
 }
 
+float3 SampleSkyTexture(float3 direction)
+{
+    float3 dir = normalize(direction);
+    float longitude = atan2(dir.x, dir.z);
+    float latitude = asin(clamp(dir.y, -1.0, 1.0));
+
+    float u = longitude / (2.0 * 3.14159265359) + 0.5;
+    float v = 0.5 - latitude / 3.14159265359;
+
+    return tex2D(SkySampler, float2(u, v)).rgb;
+}
+
 // Pixel Shader
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-    float3 sky_color = GetSkyColor(input.TexCoords, Time);
+    float3 procedural_color = GetSkyColor(input.TexCoords, Time);
+    float3 texture_color = SampleSkyTexture(input.TexCoords);
+    float blend = saturate(TextureStrength * UseTexture);
+    float3 sky_color = lerp(procedural_color, texture_color, blend);
     return float4(sky_color, 1.0);
 }
 
