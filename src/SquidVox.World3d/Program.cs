@@ -17,7 +17,6 @@ using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
 using SquidVox.Voxel.Contexts;
 using SquidVox.Voxel.Data.Entities;
-using SquidVox.Voxel.Interfaces;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Json;
 using SquidVox.Voxel.Modules;
@@ -28,7 +27,7 @@ using SquidVox.World3d.Services;
 
 await ConsoleApp.RunAsync(
     args,
-    async (string? rootDirectory = null, bool logToFile = true) =>
+    async (string? rootDirectory = null, bool logToFile = false) =>
     {
         JsonUtils.RegisterJsonContext(SquidVoxLuaScriptJsonContext.Default);
         JsonUtils.RegisterJsonContext(SquidVoxVoxelJsonContext.Default);

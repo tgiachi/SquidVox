@@ -117,6 +117,111 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     public bool EnableWireframe { get; set; }
 
     /// <summary>
+    /// Gets or sets whether chunks should use greedy meshing during mesh generation.
+    /// </summary>
+    public bool UseGreedyMeshing { get; set; }
+
+    private bool _fogEnabled = true;
+    private Vector3 _fogColor = new Vector3(0.6f, 0.75f, 0.9f);
+    private float _fogStart = 80f;
+    private float _fogEnd = 150f;
+
+    /// <summary>
+    /// Gets or sets whether distance fog is applied to chunks.
+    /// </summary>
+    public bool FogEnabled
+    {
+        get => _fogEnabled;
+        set
+        {
+            if (_fogEnabled == value)
+            {
+                return;
+            }
+
+            _fogEnabled = value;
+            foreach (var chunk in _chunks.Values)
+            {
+                chunk.FogEnabled = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the fog color applied during rendering.
+    /// </summary>
+    public Vector3 FogColor
+    {
+        get => _fogColor;
+        set
+        {
+            if (_fogColor == value)
+            {
+                return;
+            }
+
+            _fogColor = value;
+            foreach (var chunk in _chunks.Values)
+            {
+                chunk.FogColor = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the distance at which fog begins.
+    /// </summary>
+    public float FogStart
+    {
+        get => _fogStart;
+        set
+        {
+            if (Math.Abs(_fogStart - value) < float.Epsilon)
+            {
+                return;
+            }
+
+            _fogStart = value;
+            foreach (var chunk in _chunks.Values)
+            {
+                chunk.FogStart = value;
+                if (chunk.FogEnd <= value)
+                {
+                    chunk.FogEnd = value + 1f;
+                }
+            }
+
+            if (_fogEnd <= _fogStart)
+            {
+                FogEnd = _fogStart + 1f;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the distance at which fog becomes fully opaque.
+    /// </summary>
+    public float FogEnd
+    {
+        get => _fogEnd;
+        set
+        {
+            var adjusted = MathF.Max(_fogStart + 1f, value);
+
+            if (Math.Abs(_fogEnd - adjusted) < float.Epsilon)
+            {
+                return;
+            }
+
+            _fogEnd = adjusted;
+            foreach (var chunk in _chunks.Values)
+            {
+                chunk.FogEnd = adjusted;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the ambient light color for chunk rendering.
     /// </summary>
     public Vector3 AmbientLight { get; set; } = new Vector3(0.5f, 0.5f, 0.5f);
@@ -846,10 +951,11 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 RenderTransparentBlocks = true,
                 EnableFadeIn = false,
                 GetNeighborChunk = GetChunkEntity,
-                FogEnabled = true,
-                FogColor = new Vector3(0.6f, 0.75f, 0.9f),
-                FogStart = 80f,
-                FogEnd = ViewRange
+                FogEnabled = FogEnabled,
+                FogColor = FogColor,
+                FogStart = FogStart,
+                FogEnd = FogEnd,
+                UseGreedyMeshing = UseGreedyMeshing
             };
 
             chunkComponent.SetChunk(chunk);

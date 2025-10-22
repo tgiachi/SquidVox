@@ -122,8 +122,8 @@ public class SquidVoxWorld : Game
             .AddGameObject(
                 new CameraGameObject()
                 {
-                    FlyMode = false,
-                    EnableInput = true,
+                    FlyMode = true,
+                    EnableInput = false,
                 }
             );
 
@@ -171,6 +171,8 @@ public class SquidVoxWorld : Game
 
         worldManager.ChunkGenerator = CreateFlatChunkAsync;
         worldManager.EnableWireframe = false;
+        worldManager.UseGreedyMeshing = true;
+
 
 
         var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());

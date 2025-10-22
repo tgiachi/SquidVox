@@ -37,7 +37,6 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
     private Texture2D? _texture;
-    private Texture2D? _whiteTexture;
     private bool _geometryInvalidated = true;
     private int _primitiveCount;
 
@@ -101,8 +100,6 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _billboardEffect = assetManager.GetEffect("Effects/ChunkBillboard");
         _fluidEffect = assetManager.GetEffect("Effects/ChunkFluid");
 
-        _whiteTexture = new Texture2D(_graphicsDevice, 1, 1);
-        _whiteTexture.SetData(new[] { Color.White });
 
         _debugEffect = new BasicEffect(_graphicsDevice)
         {
@@ -386,6 +383,17 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         var previousDepthStencilState = _graphicsDevice.DepthStencilState;
         var previousRasterizerState = _graphicsDevice.RasterizerState;
         var previousSamplerState = _graphicsDevice.SamplerStates[0];
+        RasterizerState? wireframeState = null;
+
+        var useWireframe = SquidVoxGraphicContext.GraphicsDevice.RasterizerState.FillMode == FillMode.WireFrame;
+        if (useWireframe)
+        {
+            wireframeState = new RasterizerState
+            {
+                FillMode = FillMode.WireFrame,
+                CullMode = CullMode.None
+            };
+        }
 
         _graphicsDevice.SetVertexBuffer(_vertexBuffer);
         _graphicsDevice.Indices = _indexBuffer;
@@ -396,17 +404,18 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
             _graphicsDevice.BlendState = needsBlending ? BlendState.AlphaBlend : BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            if (previousRasterizerState.FillMode == FillMode.Solid)
-            {
-                _graphicsDevice.RasterizerState = RasterizerState.CullNone;
-            }
+            _graphicsDevice.RasterizerState = useWireframe ? wireframeState : RasterizerState.CullNone;
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             _blockEffect.Parameters["model"]?.SetValue(Position);
             _blockEffect.Parameters["view"]?.SetValue(view);
             _blockEffect.Parameters["projection"]?.SetValue(projection);
-            _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : _whiteTexture);
+            _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : SquidVoxGraphicContext.WhitePixel);
             _blockEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
+            _blockEffect.Parameters["fogEnabled"]?.SetValue(FogEnabled);
+            _blockEffect.Parameters["fogColor"]?.SetValue(FogColor);
+            _blockEffect.Parameters["fogStart"]?.SetValue(FogStart);
+            _blockEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
 
             if (_blockEffect.Parameters["ambient"] != null)
             {
@@ -436,21 +445,12 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         if (_billboardVertexBuffer != null && _billboardIndexBuffer != null && _billboardPrimitiveCount > 0)
         {
             _graphicsDevice.BlendState = BlendState.Opaque;
-
-            var depthStencilState = new DepthStencilState
-            {
-                DepthBufferEnable = true,
-                DepthBufferWriteEnable = true,
-                DepthBufferFunction = CompareFunction.LessEqual
-            };
-            _graphicsDevice.DepthStencilState = depthStencilState;
-
-            var billboardRasterizer = new RasterizerState
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = useWireframe ? wireframeState : new RasterizerState
             {
                 CullMode = CullMode.None,
                 DepthBias = -0.00001f
             };
-            _graphicsDevice.RasterizerState = billboardRasterizer;
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             _graphicsDevice.SetVertexBuffer(_billboardVertexBuffer);
@@ -478,7 +478,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         {
             _graphicsDevice.BlendState = BlendState.AlphaBlend;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            _graphicsDevice.RasterizerState = useWireframe ? wireframeState : RasterizerState.CullNone;
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             _graphicsDevice.SetVertexBuffer(_fluidVertexBuffer);
@@ -510,6 +510,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _graphicsDevice.DepthStencilState = previousDepthStencilState;
         _graphicsDevice.RasterizerState = previousRasterizerState;
         _graphicsDevice.SamplerStates[0] = previousSamplerState;
+        wireframeState?.Dispose();
     }
 
     /// <inheritdoc />
@@ -517,7 +518,6 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         ClearGeometry();
         _debugEffect?.Dispose();
-        _whiteTexture?.Dispose();
     }
 
     private MeshData BuildMeshData()
@@ -1271,6 +1271,11 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                         neighborX >= ChunkEntity.Size ? 0 : neighborX;
                     var localZ = neighborZ < 0 ? ChunkEntity.Size - 1 :
                         neighborZ >= ChunkEntity.Size ? 0 : neighborZ;
+
+                    if (neighborY < 0 || neighborY >= ChunkEntity.Height)
+                    {
+                        return false;
+                    }
 
                     var crossChunkBlock = neighborChunk.Blocks[ChunkEntity.GetIndex(localX, neighborY, localZ)];
                     return crossChunkBlock?.BlockType == currentBlockType;
