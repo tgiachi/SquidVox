@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using SquidVox.GameObjects.UI.Controls;
 
-namespace SquidVox.World3d.GameObjects._2d;
+namespace SquidVox.World3d.GameObjects;
 
 /// <summary>
 /// Text-based HUD component that displays the current frames per second.

@@ -40,12 +40,10 @@ public static class SquidVoxGraphicContext
     public static Texture2D WhitePixel { get; set; } = null!;
 
 
-
-
     /// <summary>
     /// Gets the game time instance.
     /// </summary>
-    public static GameTime GameTime { get; } = new();
+    public static GameTime GameTime { get; set; }
 
     /// <summary>
     /// Disposes of all graphics resources.

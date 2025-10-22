@@ -1,5 +1,6 @@
 using DryIoc;
 using FontStashSharp;
+using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -11,10 +12,12 @@ using SquidVox.Core.Data.Scripts;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
+using SquidVox.Voxel.GameObjects;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
+using SquidVox.World3d.Scripts;
 
 namespace SquidVox.World3d;
 
@@ -111,7 +114,24 @@ public class SquidVoxWorld : Game
 
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(new FpsComponent());
 
+        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(new CameraGameObject()
+        {
+            FlyMode = false,
+            EnableInput = true
+        });
 
+        _renderLayers.GetLayer<ImGuiRenderLayer>()
+            .AddDebugger(
+                new LuaImGuiDebuggerObject(
+                    "camera",
+                    () =>
+                    {
+                        var camera = _renderLayers.GetLayer<GameObject3dRenderLayer>().GetComponent<CameraGameObject>();
+
+                        ImGui.Text("Camera position: " + camera.Position);
+                    }
+                )
+            );
     }
 
     /// <summary>
@@ -140,11 +160,13 @@ public class SquidVoxWorld : Game
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            Keyboard.GetState().IsKeyDown(Keys.Escape))
-        {
-            Exit();
-        }
+        // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+        //     Keyboard.GetState().IsKeyDown(Keys.Escape))
+        // {
+        //     Exit();
+        // }
+
+        SquidVoxGraphicContext.GameTime = gameTime;
 
         _inputManager.Update(gameTime);
 
@@ -157,7 +179,6 @@ public class SquidVoxWorld : Game
 
     protected override void Draw(GameTime gameTime)
     {
-
         GraphicsDevice.Clear(SquidVoxGraphicContext.ClearColor);
 
         _renderLayers.RenderAll(_spriteBatch);

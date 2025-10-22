@@ -53,6 +53,7 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<InputManagerModule>()
             .AddLuaScriptModule<RenderLayerModule>()
             .AddLuaScriptModule<BlockManagerModule>()
+            .AddLuaScriptModule<GameTimeModule>()
             ;
 
 

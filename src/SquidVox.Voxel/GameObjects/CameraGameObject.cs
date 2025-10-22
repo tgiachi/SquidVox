@@ -1,31 +1,30 @@
 using Microsoft.Xna.Framework;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SquidCraft.Game.Data.Primitives;
+using SquidVox.Core.Context;
+using SquidVox.Core.GameObjects;
 
-namespace SquidCraft.Client.Components;
+namespace SquidVox.Voxel.GameObjects;
 
 /// <summary>
 /// Represents a first-person 3D camera component with input handling, physics, and collision detection.
 /// </summary>
-public sealed class CameraComponent
+public sealed class CameraGameObject : Base3dGameObject
 {
-    private Vector3 _position;
     private float _fieldOfView = MathHelper.PiOver4;
     private float _nearPlane = 0.1f;
     private float _farPlane = 1000f;
-    
+
     private readonly Vector3 _worldUp = Vector3.Up;
     private Vector3 _front;
     private Vector3 _right;
-    private Vector3 _up;
-    
+
     private Matrix _view;
     private Matrix _projection;
     private bool _viewDirty = true;
     private bool _projectionDirty = true;
-    
+
     private readonly GraphicsDevice _graphicsDevice;
 
     private float _yaw = -90f;
@@ -35,44 +34,42 @@ public sealed class CameraComponent
     private bool _firstMouseMove = true;
 
     private float _verticalVelocity;
+    private bool _isOnGround;
     private const float Gravity = 32f;
     private const float JumpVelocity = 12f;
     private const float TerminalVelocity = 50f;
 
-    // Spatial hashing for collision detection optimization
     private const float CellSize = 1.0f;
     private readonly Dictionary<(int, int, int), HashSet<Vector3>> _spatialGrid = new();
-    private bool _isOnGround;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CameraComponent"/> class.
+    /// Initializes a new instance of the <see cref="CameraGameObject"/> class.
     /// </summary>
-    /// <param name="graphicsDevice">The graphics device used for viewport calculations.</param>
-    public CameraComponent(GraphicsDevice graphicsDevice)
+    public CameraGameObject()
     {
-        _graphicsDevice = graphicsDevice ?? throw new ArgumentNullException(nameof(graphicsDevice));
-        _position = new Vector3(8f, ChunkEntity.Height + 20f, 8f);
-        
+        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        Position = new Vector3(8f, ChunkEntity.Height + 20f, 8f);
+
         _front = Vector3.UnitZ;
-        _up = Vector3.Up;
+        Up = Vector3.Up;
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
-        
+
         UpdateCameraVectors();
-        
+
         Mouse.SetPosition(_graphicsDevice.Viewport.Width / 2, _graphicsDevice.Viewport.Height / 2);
     }
 
     /// <summary>
     /// Gets or sets the camera's world position.
     /// </summary>
-    public Vector3 Position
+    public new Vector3 Position
     {
-        get => _position;
+        get => base.Position;
         set
         {
-            if (_position != value)
+            if (base.Position != value)
             {
-                _position = value;
+                base.Position = value;
                 _viewDirty = true;
             }
         }
@@ -82,17 +79,17 @@ public sealed class CameraComponent
     /// Gets the forward direction vector (normalized).
     /// </summary>
     public Vector3 Front => _front;
-    
+
     /// <summary>
     /// Gets the right direction vector (normalized).
     /// </summary>
     public Vector3 Right => _right;
-    
+
     /// <summary>
     /// Gets the up direction vector (normalized).
     /// </summary>
-    public Vector3 Up => _up;
-    
+    public Vector3 Up { get; private set; }
+
     /// <summary>
     /// Gets or sets the horizontal rotation in degrees (default: -90°).
     /// </summary>
@@ -105,7 +102,7 @@ public sealed class CameraComponent
             UpdateCameraVectors();
         }
     }
-    
+
     /// <summary>
     /// Gets or sets the vertical rotation in degrees (clamped: -89° to 89°).
     /// </summary>
@@ -118,7 +115,7 @@ public sealed class CameraComponent
             UpdateCameraVectors();
         }
     }
-    
+
     /// <summary>
     /// Gets or sets the field of view in degrees (default: 60°, range: 1-120°).
     /// </summary>
@@ -190,7 +187,7 @@ public sealed class CameraComponent
         {
             if (_viewDirty)
             {
-                _view = Matrix.CreateLookAt(_position, _position + _front, _up);
+                _view = Matrix.CreateLookAt(Position, Position + _front, Up);
                 _viewDirty = false;
             }
             return _view;
@@ -221,8 +218,197 @@ public sealed class CameraComponent
     /// <param name="delta">The translation vector to add to the current position.</param>
     public void Move(Vector3 delta)
     {
-        _position += delta;
+        Position += delta;
         _viewDirty = true;
+    }
+
+    /// <summary>
+    /// Moves the camera forward.
+    /// </summary>
+    /// <param name="distance">The distance to move.</param>
+    public void MoveForward(float distance)
+    {
+        if (!FlyMode)
+        {
+            var forwardFlat = new Vector3(_front.X, 0, _front.Z);
+            if (forwardFlat != Vector3.Zero)
+            {
+                forwardFlat.Normalize();
+                var newPos = Position + forwardFlat * distance;
+
+                var testX = Position + new Vector3(forwardFlat.X * distance, 0, 0);
+                if (!CheckCollision(testX))
+                {
+                    var pos = Position;
+                    pos.X = testX.X;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+
+                var testZ = Position + new Vector3(0, 0, forwardFlat.Z * distance);
+                if (!CheckCollision(testZ))
+                {
+                    var pos = Position;
+                    pos.Z = testZ.Z;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+            }
+        }
+        else
+        {
+            Move(_front * distance);
+        }
+    }
+
+    /// <summary>
+    /// Moves the camera backward.
+    /// </summary>
+    /// <param name="distance">The distance to move.</param>
+    public void MoveBackward(float distance)
+    {
+        if (!FlyMode)
+        {
+            var forwardFlat = new Vector3(_front.X, 0, _front.Z);
+            if (forwardFlat != Vector3.Zero)
+            {
+                forwardFlat.Normalize();
+
+                var testX = Position - new Vector3(forwardFlat.X * distance, 0, 0);
+                if (!CheckCollision(testX))
+                {
+                    var pos = Position;
+                    pos.X = testX.X;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+
+                var testZ = Position - new Vector3(0, 0, forwardFlat.Z * distance);
+                if (!CheckCollision(testZ))
+                {
+                    var pos = Position;
+                    pos.Z = testZ.Z;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+            }
+        }
+        else
+        {
+            Move(-_front * distance);
+        }
+    }
+
+    /// <summary>
+    /// Moves the camera to the right.
+    /// </summary>
+    /// <param name="distance">The distance to move.</param>
+    public void MoveRight(float distance)
+    {
+        if (!FlyMode)
+        {
+            var rightFlat = new Vector3(_right.X, 0, _right.Z);
+            if (rightFlat != Vector3.Zero)
+            {
+                rightFlat.Normalize();
+
+                var testX = Position + new Vector3(rightFlat.X * distance, 0, 0);
+                if (!CheckCollision(testX))
+                {
+                    var pos = Position;
+                    pos.X = testX.X;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+
+                var testZ = Position + new Vector3(0, 0, rightFlat.Z * distance);
+                if (!CheckCollision(testZ))
+                {
+                    var pos = Position;
+                    pos.Z = testZ.Z;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+            }
+        }
+        else
+        {
+            Move(_right * distance);
+        }
+    }
+
+    /// <summary>
+    /// Moves the camera to the left.
+    /// </summary>
+    /// <param name="distance">The distance to move.</param>
+    public void MoveLeft(float distance)
+    {
+        if (!FlyMode)
+        {
+            var rightFlat = new Vector3(_right.X, 0, _right.Z);
+            if (rightFlat != Vector3.Zero)
+            {
+                rightFlat.Normalize();
+
+                var testX = Position - new Vector3(rightFlat.X * distance, 0, 0);
+                if (!CheckCollision(testX))
+                {
+                    var pos = Position;
+                    pos.X = testX.X;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+
+                var testZ = Position - new Vector3(0, 0, rightFlat.Z * distance);
+                if (!CheckCollision(testZ))
+                {
+                    var pos = Position;
+                    pos.Z = testZ.Z;
+                    Position = pos;
+                    _viewDirty = true;
+                }
+            }
+        }
+        else
+        {
+            Move(-_right * distance);
+        }
+    }
+
+    /// <summary>
+    /// Moves the camera upward (only available in fly mode).
+    /// </summary>
+    /// <param name="distance">The distance to move.</param>
+    public void MoveUp(float distance)
+    {
+        if (FlyMode)
+        {
+            Move(_worldUp * distance);
+        }
+    }
+
+    /// <summary>
+    /// Moves the camera downward (only available in fly mode).
+    /// </summary>
+    /// <param name="distance">The distance to move.</param>
+    public void MoveDown(float distance)
+    {
+        if (FlyMode)
+        {
+            Move(-_worldUp * distance);
+        }
+    }
+
+    /// <summary>
+    /// Makes the camera jump (only available when on ground and not in fly mode).
+    /// </summary>
+    public void Jump()
+    {
+        if (!FlyMode && _isOnGround)
+        {
+            _verticalVelocity = JumpVelocity;
+            _isOnGround = false;
+        }
     }
 
     /// <summary>
@@ -235,7 +421,7 @@ public sealed class CameraComponent
         _yaw += xOffset;
         _pitch -= yOffset;
         _pitch = MathHelper.Clamp(_pitch, -89f, 89f);
-        
+
         UpdateCameraVectors();
     }
 
@@ -252,17 +438,17 @@ public sealed class CameraComponent
     {
         var yawRadians = MathHelper.ToRadians(_yaw);
         var pitchRadians = MathHelper.ToRadians(_pitch);
-        
+
         var cameraDirection = new Vector3(
             MathF.Cos(yawRadians) * MathF.Cos(pitchRadians),
             MathF.Sin(pitchRadians),
             MathF.Sin(yawRadians) * MathF.Cos(pitchRadians)
         );
-        
+
         _front = Vector3.Normalize(cameraDirection);
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
-        _up = Vector3.Normalize(Vector3.Cross(_right, _front));
-        
+        Up = Vector3.Normalize(Vector3.Cross(_right, _front));
+
         _viewDirty = true;
     }
 
@@ -272,7 +458,7 @@ public sealed class CameraComponent
     /// <returns>A ray starting from the camera position in the forward direction.</returns>
     public Ray GetPickRay()
     {
-        return new Ray(_position, _front);
+        return new Ray(Position, _front);
     }
 
     /// <summary>
@@ -284,24 +470,24 @@ public sealed class CameraComponent
     public Ray GetPickRay(int screenX, int screenY)
     {
         var viewport = _graphicsDevice.Viewport;
-        
+
         var nearPoint = viewport.Unproject(
             new Vector3(screenX, screenY, 0f),
             Projection,
             View,
             Matrix.Identity
         );
-        
+
         var farPoint = viewport.Unproject(
             new Vector3(screenX, screenY, 1f),
             Projection,
             View,
             Matrix.Identity
         );
-        
+
         var direction = farPoint - nearPoint;
         direction.Normalize();
-        
+
         return new Ray(nearPoint, direction);
     }
 
@@ -328,19 +514,17 @@ public sealed class CameraComponent
     /// <summary>
     /// Gets or sets a value indicating whether fly mode is enabled (disables physics for creative flight).
     /// </summary>
-    public bool FlyMode { get; set; } = false;
+    public bool FlyMode { get; set; }
 
     public Func<Vector3, bool>? IsBlockSolid { get; set; }
 
     public Vector3 BoundingBoxSize { get; set; } = new Vector3(0.6f, 1.8f, 0.6f);
 
     public bool IsOnGround => _isOnGround;
-    
-    /// <summary>
-    /// Updates the camera component, handling physics and input.
-    /// </summary>
-    /// <param name="gameTime">The game time information.</param>
-    public void Update(GameTime gameTime)
+
+
+
+    public override void Update(GameTime gameTime)
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -369,48 +553,28 @@ public sealed class CameraComponent
                 rightFlat.Normalize();
             }
 
-            var movement = Vector3.Zero;
+            var moveDistance = MoveSpeed * deltaTime;
+
             if (keyboardState.IsKeyDown(Keys.W))
             {
-                movement += forwardFlat;
+                MoveForward(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.S))
             {
-                movement -= forwardFlat;
+                MoveBackward(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.A))
             {
-                movement -= rightFlat;
+                MoveLeft(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.D))
             {
-                movement += rightFlat;
+                MoveRight(moveDistance);
             }
 
-            if (movement != Vector3.Zero)
+            if (keyboardState.IsKeyDown(Keys.Space))
             {
-                movement.Normalize();
-                movement *= MoveSpeed * deltaTime;
-                
-                var newPos = _position + new Vector3(movement.X, 0, 0);
-                if (!CheckCollision(newPos))
-                {
-                    _position.X = newPos.X;
-                    _viewDirty = true;
-                }
-
-                newPos = _position + new Vector3(0, 0, movement.Z);
-                if (!CheckCollision(newPos))
-                {
-                    _position.Z = newPos.Z;
-                    _viewDirty = true;
-                }
-            }
-
-            if (keyboardState.IsKeyDown(Keys.Space) && _isOnGround)
-            {
-                _verticalVelocity = JumpVelocity;
-                _isOnGround = false;
+                Jump();
             }
 
             ApplyPhysics(deltaTime);
@@ -418,38 +582,30 @@ public sealed class CameraComponent
         else
         {
             var moveDistance = MoveSpeed * deltaTime;
-            var movement = Vector3.Zero;
 
             if (keyboardState.IsKeyDown(Keys.W))
             {
-                movement += _front;
+                MoveForward(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.S))
             {
-                movement -= _front;
+                MoveBackward(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.A))
             {
-                movement -= _right;
+                MoveLeft(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.D))
             {
-                movement += _right;
+                MoveRight(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.Space))
             {
-                movement += _worldUp;
+                MoveUp(moveDistance);
             }
             if (keyboardState.IsKeyDown(Keys.LeftShift))
             {
-                movement -= _worldUp;
-            }
-
-            if (movement != Vector3.Zero)
-            {
-                movement.Normalize();
-                movement *= moveDistance;
-                Move(movement);
+                MoveDown(moveDistance);
             }
         }
     }
@@ -484,9 +640,9 @@ public sealed class CameraComponent
         {
             var xOffset = deltaX * MouseSensitivity;
             var yOffset = deltaY * MouseSensitivity;
-            
+
             ModifyDirection(xOffset, yOffset);
-            
+
             Mouse.SetPosition(centerX, centerY);
         }
     }
@@ -497,20 +653,24 @@ public sealed class CameraComponent
         _verticalVelocity = MathHelper.Clamp(_verticalVelocity, -TerminalVelocity, TerminalVelocity);
 
         var verticalMovement = _verticalVelocity * deltaTime;
-        var newPos = _position + new Vector3(0, verticalMovement, 0);
+        var newPos = Position + new Vector3(0, verticalMovement, 0);
 
         if (verticalMovement < 0)
         {
             if (CheckGroundCollision(newPos))
             {
-                _position.Y = MathF.Floor(_position.Y - BoundingBoxSize.Y / 2) + BoundingBoxSize.Y / 2 + 0.01f;
+                var pos = Position;
+                pos.Y = MathF.Floor(Position.Y - BoundingBoxSize.Y / 2) + BoundingBoxSize.Y / 2 + 0.01f;
+                Position = pos;
                 _verticalVelocity = 0;
                 _isOnGround = true;
                 _viewDirty = true;
             }
             else
             {
-                _position.Y = newPos.Y;
+                var pos = Position;
+                pos.Y = newPos.Y;
+                Position = pos;
                 _isOnGround = false;
                 _viewDirty = true;
             }
@@ -519,7 +679,9 @@ public sealed class CameraComponent
         {
             if (!CheckCollision(newPos))
             {
-                _position.Y = newPos.Y;
+                var pos = Position;
+                pos.Y = newPos.Y;
+                Position = pos;
                 _isOnGround = false;
                 _viewDirty = true;
             }
