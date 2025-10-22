@@ -800,7 +800,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         }
 
         var neighborDefinition = _blockManagerService.GetBlockDefinition(neighbor.BlockType);
-        if (neighborDefinition != null && neighborDefinition.IsBillboard)
+        if (neighborDefinition != null && (neighborDefinition.IsBillboard || neighborDefinition.IsTransparent))
         {
             return true;
         }
@@ -824,7 +824,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             }
         }
 
-        return _blockManagerService.IsTransparent(neighbor.BlockType);
+        return false;
     }
 
     private bool ShouldRenderCrossChunkFace(int x, int y, int z, BlockSide side, BlockType currentBlockType)
