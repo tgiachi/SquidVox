@@ -12,7 +12,7 @@ namespace SquidVox.GameObjects.UI.Controls;
 /// <summary>
 /// A simple component for rendering text in scenes.
 /// </summary>
-public sealed class LabelGameObject : Base2dGameObject
+public class LabelGameObject : Base2dGameObject
 {
     private DynamicSpriteFont? _font;
     private string _text;

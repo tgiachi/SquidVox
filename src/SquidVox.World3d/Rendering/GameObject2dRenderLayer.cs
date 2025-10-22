@@ -13,7 +13,7 @@ namespace SquidVox.World3d.Rendering;
 /// Render layer for game objects.
 /// Renders all visible game objects from a SvoxGameObjectCollection at the World2D layer priority.
 /// </summary>
-public class GameObjectRenderLayer : IRenderableLayer
+public class GameObject2dRenderLayer : IRenderableLayer
 {
     private readonly SvoxGameObjectCollection<ISVox2dDrawableGameObject> _gameObjects;
 
@@ -30,7 +30,7 @@ public class GameObjectRenderLayer : IRenderableLayer
     /// <summary>
     /// Initializes a new instance of the GameObjectRenderLayer class.
     /// </summary>
-    public GameObjectRenderLayer()
+    public GameObject2dRenderLayer()
     {
         _gameObjects = new SvoxGameObjectCollection<ISVox2dDrawableGameObject>();
     }

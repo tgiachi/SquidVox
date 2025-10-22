@@ -13,6 +13,7 @@ using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
+using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
 
 namespace SquidVox.World3d;
@@ -94,7 +95,7 @@ public class SquidVoxWorld : Game
         FontSystemDefaults.KernelHeight = 2;
 
         _renderLayers.Add(new ImGuiRenderLayer(this));
-        _renderLayers.Add(new GameObjectRenderLayer());
+        _renderLayers.Add(new GameObject2dRenderLayer());
         _renderLayers.Add(new SceneRenderLayer());
         _renderLayers.Add(new GameObject3dRenderLayer());
 
@@ -107,6 +108,8 @@ public class SquidVoxWorld : Game
         scriptEngine.OnScriptError += OnScriptError;
 
         scriptEngine.StartAsync().GetAwaiter().GetResult();
+
+        _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(new FpsComponent());
 
 
     }
@@ -126,12 +129,12 @@ public class SquidVoxWorld : Game
         // Handle dialog close event
         errorDialog.Closed += (s, e) =>
         {
-            var gameObjectLayer = _renderLayers.GetLayer<GameObjectRenderLayer>();
+            var gameObjectLayer = _renderLayers.GetLayer<GameObject2dRenderLayer>();
             gameObjectLayer.RemoveGameObject(errorDialog);
         };
 
         // Add to UI layer
-        var gameObjectLayer = _renderLayers.GetLayer<GameObjectRenderLayer>();
+        var gameObjectLayer = _renderLayers.GetLayer<GameObject2dRenderLayer>();
         gameObjectLayer.AddGameObject(errorDialog);
     }
 
