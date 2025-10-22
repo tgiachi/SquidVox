@@ -810,7 +810,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 EnableFadeIn = false,
                 GetNeighborChunk = GetChunkEntity,
                 FogEnabled = true,
-                FogColor = new Microsoft.Xna.Framework.Vector3(0.6f, 0.75f, 0.9f),
+                FogColor = new Vector3(0.6f, 0.75f, 0.9f),
                 FogStart = 80f,
                 FogEnd = ViewRange
             };

@@ -28,6 +28,16 @@ public interface IRenderableLayer : ISVoxInputReceiver
     /// <param name="spriteBatch">SpriteBatch for rendering textures.</param>
     void Render(SpriteBatch spriteBatch);
 
-
+    /// <summary>
+    /// Updates the layer.
+    /// </summary>
+    /// <param name="gameTime">Game timing information.</param>
     void Update(GameTime gameTime);
+
+    /// <summary>
+    /// Gets the first component of the specified type from this layer.
+    /// </summary>
+    /// <typeparam name="T">The type of the component to get.</typeparam>
+    /// <returns>The first component of the specified type if found, otherwise null.</returns>
+    T? GetComponent<T>() where T : class;
 }

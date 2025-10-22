@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Enums;
+using SquidVox.Core.Interfaces.GameObjects;
 using SquidVox.Core.Interfaces.Rendering;
 
 namespace SquidVox.Core.Collections;
@@ -157,6 +158,29 @@ public class RenderLayerCollection
             }
         }
         return default;
+    }
+
+    /// <summary>
+    /// Gets the first component of the specified type from all layers.
+    /// </summary>
+    /// <typeparam name="T">The type of the component to get.</typeparam>
+    /// <returns>The first component of the specified type if found, otherwise null.</returns>
+    public T? GetComponent<T>() where T : class
+    {
+        foreach (var layer in _layers)
+        {
+            if (!layer.Enabled)
+            {
+                continue;
+            }
+
+            var component = layer.GetComponent<T>();
+            if (component != null)
+            {
+                return component;
+            }
+        }
+        return null;
     }
 
     /// <summary>

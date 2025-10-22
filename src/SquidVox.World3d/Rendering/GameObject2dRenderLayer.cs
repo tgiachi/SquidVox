@@ -121,11 +121,17 @@ public class GameObject2dRenderLayer : IRenderableLayer
     /// <summary>
     /// Gets the first game object of the specified type, or null if not found.
     /// </summary>
-    /// <typeparam name="TGameObject">The type of game object to retrieve.</typeparam>
+    /// <typeparam name="T">The type of game object to retrieve.</typeparam>
     /// <returns>The first game object of the specified type, or null.</returns>
-    public TGameObject? GetComponent<TGameObject>()
-        where TGameObject : class, ISVox2dDrawableGameObject
+    public T? GetComponent<T>() where T : class
     {
-        return _gameObjects.GetFirstGameObjectOfType<TGameObject>();
+        foreach (var gameObject in _gameObjects)
+        {
+            if (gameObject is T component)
+            {
+                return component;
+            }
+        }
+        return null;
     }
 }

@@ -4,6 +4,7 @@ using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.ECS;
 using Serilog;
 using SquidCraft.Game.Data.Primitives;
 using SquidVox.Core.Collections;
@@ -116,7 +117,7 @@ public class SquidVoxWorld : Game
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(new CameraGameObject()
         {
-            FlyMode = false,
+            FlyMode = true,
             EnableInput = true
         });
 
@@ -132,6 +133,12 @@ public class SquidVoxWorld : Game
                     }
                 )
             );
+
+        var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
+
+        worldManager.ChunkGenerator = CreateFlatChunkAsync;
+
+        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
     }
 
     /// <summary>
@@ -156,6 +163,9 @@ public class SquidVoxWorld : Game
         // Add to UI layer
         var gameObjectLayer = _renderLayers.GetLayer<GameObject2dRenderLayer>();
         gameObjectLayer.AddGameObject(errorDialog);
+
+
+
     }
 
     protected override void Update(GameTime gameTime)

@@ -138,6 +138,26 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     {
     }
 
+    /// <summary>
+    /// Gets the first component of the specified type from this layer.
+    /// </summary>
+    /// <typeparam name="T">The type of the component to get.</typeparam>
+    /// <returns>The first component of the specified type if found, otherwise null.</returns>
+    public T? GetComponent<T>() where T : class
+    {
+        lock (_addRemoveLock)
+        {
+            foreach (var debugger in _debuggers)
+            {
+                if (debugger is T component)
+                {
+                    return component;
+                }
+            }
+        }
+        return null;
+    }
+
     public void Dispose()
     {
         _imGuiRenderer.Dispose();
