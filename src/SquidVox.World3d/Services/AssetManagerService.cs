@@ -23,12 +23,32 @@ public class AssetManagerService : IAssetManagerService
 
     private readonly Dictionary<string, Texture2DAtlas> _textureAtlases = new();
 
+    private Texture2D _fallbackTexture;
 
     private readonly int[] _initialFontSize = [16, 24, 32, 48, 64, 96, 128];
 
     public void SetContentManager(ContentManager contentManager)
     {
         _contentManager = contentManager;
+        CreateFallbackTexture();
+    }
+
+    private void CreateFallbackTexture()
+    {
+        _fallbackTexture = new Texture2D(SquidVoxGraphicContext.GraphicsDevice, 16, 16);
+        var colors = new Microsoft.Xna.Framework.Color[16 * 16];
+        for (int y = 0; y < 16; y++)
+        {
+            for (int x = 0; x < 16; x++)
+            {
+                var isBlack = (x / 4 + y / 4) % 2 == 0;
+                colors[y * 16 + x] = isBlack 
+                    ? Microsoft.Xna.Framework.Color.Black 
+                    : Microsoft.Xna.Framework.Color.White;
+            }
+        }
+        _fallbackTexture.SetData(colors);
+        _logger.Information("Created fallback checkerboard texture");
     }
 
     /// <summary>
@@ -187,9 +207,16 @@ public class AssetManagerService : IAssetManagerService
     /// </summary>
     /// <param name="fileName">The file name of the texture.</param>
     /// <param name="name">The name to assign to the texture.</param>
-    public void LoadTextureFromFile(string fileName, string name)
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
+    public void LoadTextureFromFile(string fileName, string name, bool replaceMagentaWithTransparent = false)
     {
         var texture = Texture2D.FromFile(SquidVoxGraphicContext.GraphicsDevice, fileName);
+        
+        if (replaceMagentaWithTransparent)
+        {
+            ReplaceMagentaWithTransparent(texture);
+        }
+        
         _textures[name] = texture;
         _logger.Information("Loaded texture {Name} from {File}", name, fileName);
     }
@@ -199,9 +226,16 @@ public class AssetManagerService : IAssetManagerService
     /// </summary>
     /// <param name="data">The byte array containing the image data.</param>
     /// <param name="name">The name to assign to the texture.</param>
-    public void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name)
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
+    public void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name, bool replaceMagentaWithTransparent = false)
     {
         var texture = Texture2D.FromStream(SquidVoxGraphicContext.GraphicsDevice, new MemoryStream(data.ToArray()));
+        
+        if (replaceMagentaWithTransparent)
+        {
+            ReplaceMagentaWithTransparent(texture);
+        }
+        
         _textures[name] = texture;
         _logger.Information("Loaded texture {Name} from byte array ({Width}x{Height})", name, texture.Width, texture.Height);
     }
@@ -216,11 +250,12 @@ public class AssetManagerService : IAssetManagerService
     /// <param name="tileHeight">The height of each tile in pixels.</param>
     /// <param name="spacing">The spacing between tiles in pixels.</param>
     /// <param name="margin">The margin around the atlas in pixels.</param>
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureAtlasFromFile(
-        string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0
+        string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0, bool replaceMagentaWithTransparent = true
     )
     {
-        LoadTextureFromFile(fileName, name + "_atlas");
+        LoadTextureFromFile(fileName, name + "_atlas", replaceMagentaWithTransparent);
 
         var texture = GetTexture(name + "_atlas");
         var textureAtlas = Texture2DAtlas.Create(name, texture, tileWidth, tileHeight, int.MaxValue, margin);
@@ -242,11 +277,12 @@ public class AssetManagerService : IAssetManagerService
     /// <param name="tileHeight">The height of each tile in pixels.</param>
     /// <param name="spacing">The spacing between tiles in pixels.</param>
     /// <param name="margin">The margin around the atlas in pixels.</param>
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureAtlasFromBytes(
-        ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0
+        ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0, bool replaceMagentaWithTransparent = true
     )
     {
-        LoadTextureFromBytes(data, name + "_atlas");
+        LoadTextureFromBytes(data, name + "_atlas", replaceMagentaWithTransparent);
         var texture = GetTexture(name + "_atlas");
         _textureAtlases[name] = Texture2DAtlas.Create(name, texture, tileWidth, tileHeight, int.MaxValue, margin);
         _logger.Information(
@@ -256,6 +292,35 @@ public class AssetManagerService : IAssetManagerService
         );
     }
 
+
+    /// <summary>
+    /// Replaces magenta pixels (255, 0, 255) with transparent pixels.
+    /// </summary>
+    /// <param name="texture">The texture to process.</param>
+    private void ReplaceMagentaWithTransparent(Texture2D texture)
+    {
+        var pixelCount = texture.Width * texture.Height;
+        var colorData = new Microsoft.Xna.Framework.Color[pixelCount];
+        
+        texture.GetData(colorData);
+        
+        var replacedCount = 0;
+        for (var i = 0; i < colorData.Length; i++)
+        {
+            if (colorData[i].R == 255 && colorData[i].G == 0 && colorData[i].B == 255)
+            {
+                colorData[i] = Microsoft.Xna.Framework.Color.Transparent;
+                replacedCount++;
+            }
+        }
+        
+        texture.SetData(colorData);
+        
+        if (replacedCount > 0)
+        {
+            _logger.Debug("Replaced {Count} magenta pixels with transparent in texture", replacedCount);
+        }
+    }
 
     /// <summary>
     /// Disposes of the service resources.

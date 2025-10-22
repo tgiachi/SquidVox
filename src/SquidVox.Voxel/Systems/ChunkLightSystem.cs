@@ -1,5 +1,5 @@
 using Serilog;
-using SquidCraft.Game.Data.Primitives;
+using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 
 namespace SquidVox.Voxel.Systems;

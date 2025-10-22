@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using DryIoc;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Serilog;
-using SquidCraft.Game.Data.Primitives;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Voxel.Interfaces;
+using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Systems;
 using SquidVox.Voxel.Types;
 using XnaVector3 = Microsoft.Xna.Framework.Vector3;
@@ -107,6 +108,11 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// Gets or sets the maximum number of chunk meshes to build per frame.
     /// </summary>
     public int MaxChunkBuildsPerFrame { get; set; } = 2;
+
+    /// <summary>
+    /// Gets or sets whether to render chunks in wireframe mode.
+    /// </summary>
+    public bool EnableWireframe { get; set; }
 
     /// <summary>
     /// Gets the currently selected block from raycasting.
@@ -720,6 +726,17 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         var visibleChunks = 0;
         var culledChunks = 0;
 
+        RasterizerState? previousRasterizerState = null;
+        if (EnableWireframe)
+        {
+            previousRasterizerState = SquidVoxGraphicContext.GraphicsDevice.RasterizerState;
+            SquidVoxGraphicContext.GraphicsDevice.RasterizerState = new RasterizerState
+            {
+                FillMode = FillMode.WireFrame,
+                CullMode = CullMode.None
+            };
+        }
+
         foreach (var chunk in _chunks.Values)
         {
             if (ShouldRenderChunk(chunk, cameraPosition))
@@ -731,6 +748,11 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
             {
                 culledChunks++;
             }
+        }
+
+        if (EnableWireframe && previousRasterizerState != null)
+        {
+            SquidVoxGraphicContext.GraphicsDevice.RasterizerState = previousRasterizerState;
         }
 
         if (culledChunks > 0)
@@ -787,6 +809,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
             return;
         }
 
+        chunk.TextureEnabled = !EnableWireframe;
         chunk.DrawWithCamera(gameTime, Camera.View, Camera.Projection);
     }
 

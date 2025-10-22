@@ -1,8 +1,6 @@
-using System;
 using System.Numerics;
-using SquidVox.Voxel.Primitives;
 
-namespace SquidCraft.Game.Data.Primitives;
+namespace SquidVox.Voxel.Primitives;
 
 /// <summary>
 /// Stores the runtime state for a cubic chunk, including its position and contained blocks.
@@ -12,7 +10,7 @@ public class ChunkEntity
     /// <summary>
     /// Number of blocks along the X and Z axes.
     /// </summary>
-    public const int Size = 16;
+    public const int Size = 32;
 
     /// <summary>
     /// Number of blocks along the Y axis.
@@ -33,7 +31,7 @@ public class ChunkEntity
         Blocks = new BlockEntity[Size * Size * Height];
         LightLevels = new byte[Size * Size * Height];
         Position = position;
-        
+
         for (int i = 0; i < LightLevels.Length; i++)
         {
             LightLevels[i] = 15;

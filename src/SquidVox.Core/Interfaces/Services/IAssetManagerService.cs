@@ -68,14 +68,16 @@ public interface IAssetManagerService : IDisposable
     /// </summary>
     /// <param name="fileName">The file name of the texture.</param>
     /// <param name="name">The name to assign to the texture.</param>
-    void LoadTextureFromFile(string fileName, string name);
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
+    void LoadTextureFromFile(string fileName, string name, bool replaceMagentaWithTransparent = false);
 
     /// <summary>
     /// Loads a texture from a byte array.
     /// </summary>
     /// <param name="data">The byte array containing the image data.</param>
     /// <param name="name">The name to assign to the texture.</param>
-    void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name);
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
+    void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name, bool replaceMagentaWithTransparent = false);
 
 
     /// <summary>
@@ -87,7 +89,8 @@ public interface IAssetManagerService : IDisposable
     /// <param name="tileHeight">The height of each tile in pixels.</param>
     /// <param name="spacing">The spacing between tiles in pixels.</param>
     /// <param name="margin">The margin around the atlas in pixels.</param>
-    void LoadTextureAtlasFromFile(string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0);
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
+    void LoadTextureAtlasFromFile(string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0, bool replaceMagentaWithTransparent = true);
 
     /// <summary>
     /// Loads a texture atlas from a byte array and splits it into individual tiles.
@@ -98,7 +101,8 @@ public interface IAssetManagerService : IDisposable
     /// <param name="tileHeight">The height of each tile in pixels.</param>
     /// <param name="spacing">The spacing between tiles in pixels.</param>
     /// <param name="margin">The margin around the atlas in pixels.</param>
-    void LoadTextureAtlasFromBytes(ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0);
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
+    void LoadTextureAtlasFromBytes(ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0, bool replaceMagentaWithTransparent = true);
 
     /// <summary>
     /// Gets an effect by name.

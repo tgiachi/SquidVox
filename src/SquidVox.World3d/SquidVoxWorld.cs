@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.ECS;
 using Serilog;
-using SquidCraft.Game.Data.Primitives;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Scripts;
@@ -137,6 +136,7 @@ public class SquidVoxWorld : Game
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
         worldManager.ChunkGenerator = CreateFlatChunkAsync;
+        worldManager.EnableWireframe = false;
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
     }

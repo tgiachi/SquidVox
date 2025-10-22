@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Graphics;
 using Serilog;
-using SquidCraft.Game.Data.Primitives;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Voxel.Interfaces;
@@ -35,6 +34,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
     private Texture2D? _texture;
+    private Texture2D? _whiteTexture;
     private bool _geometryInvalidated = true;
     private int _primitiveCount;
 
@@ -82,6 +82,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
         _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
+
+        _whiteTexture = new Texture2D(_graphicsDevice, 1, 1);
+        _whiteTexture.SetData(new[] { Color.White });
 
         _effect = new BasicEffect(_graphicsDevice)
         {
@@ -161,6 +164,11 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     /// Gets or sets whether fog is enabled.
     /// </summary>
     public bool FogEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether textures are enabled.
+    /// </summary>
+    public bool TextureEnabled { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the fog color.
@@ -363,7 +371,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _effect.World = world;
         _effect.View = view;
         _effect.Projection = projection;
-        _effect.Texture = _texture;
+        _effect.Texture = TextureEnabled ? _texture : _whiteTexture;
+        _effect.TextureEnabled = true;
         _effect.Alpha = Opacity;
         _effect.FogEnabled = FogEnabled;
         _effect.FogColor = FogColor;
@@ -384,13 +393,16 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         {
             _graphicsDevice.BlendState = BlendState.AlphaBlend;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            if (previousRasterizerState.FillMode == FillMode.Solid)
+            {
+                _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            }
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             _alphaTestEffect.World = world;
             _alphaTestEffect.View = view;
             _alphaTestEffect.Projection = projection;
-            _alphaTestEffect.Texture = _texture;
+            _alphaTestEffect.Texture = TextureEnabled ? _texture : _whiteTexture;
             _alphaTestEffect.FogEnabled = FogEnabled;
             _alphaTestEffect.FogColor = FogColor;
             _alphaTestEffect.FogStart = FogStart;
@@ -406,7 +418,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         {
             _graphicsDevice.BlendState = BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            if (previousRasterizerState.FillMode == FillMode.Solid)
+            {
+                _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            }
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             foreach (var pass in _effect.CurrentTechnique.Passes)
@@ -431,6 +446,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         ClearGeometry();
         _effect.Dispose();
         _alphaTestEffect.Dispose();
+        _whiteTexture?.Dispose();
     }
 
     private MeshData BuildMeshData()

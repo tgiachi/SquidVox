@@ -1,9 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SquidCraft.Game.Data.Primitives;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
+using SquidVox.Voxel.Primitives;
 
 namespace SquidVox.Voxel.GameObjects;
 

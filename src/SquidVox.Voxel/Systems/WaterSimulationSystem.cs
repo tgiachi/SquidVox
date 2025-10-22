@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using SquidCraft.Game.Data.Primitives;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 
