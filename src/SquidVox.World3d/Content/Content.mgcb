@@ -45,3 +45,12 @@
 /importer:EffectImporter
 /processor:EffectProcessor
 /build:Effects/Rain.fx
+
+#begin Effects/Snow.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:Effects/Snow.fx
+#begin Effects/Snow.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:Effects/Snow.fx

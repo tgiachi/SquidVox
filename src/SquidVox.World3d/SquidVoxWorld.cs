@@ -88,6 +88,7 @@ public class SquidVoxWorld : Game
         assetsManager.LoadEffect("Effects/DynamicSky");
         assetsManager.LoadEffect("Effects/Clouds");
         assetsManager.LoadEffect("Effects/Rain");
+        assetsManager.LoadEffect("Effects/Snow");
 
         base.Initialize();
     }
@@ -191,15 +192,20 @@ public class SquidVoxWorld : Game
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
+        // _renderLayers.GetLayer<GameObject3dRenderLayer>()
+        //     .AddGameObject(
+        //         new WeatherGameObject(_renderLayers.GetComponent<CameraGameObject>())
+        //         {
+        //             RainIntensity = 0.5f
+        //         }
+        //     );
         _renderLayers.GetLayer<GameObject3dRenderLayer>()
             .AddGameObject(
-                new WeatherGameObject(_renderLayers.GetComponent<CameraGameObject>())
+                new SnowGameObject(_renderLayers.GetComponent<CameraGameObject>())
                 {
-                    RainIntensity = 0.5f
+                    SnowIntensity = 0.5f
                 }
             );
-
-
     }
 
     /// <summary>
