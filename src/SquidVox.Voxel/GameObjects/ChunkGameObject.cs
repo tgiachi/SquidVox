@@ -407,7 +407,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _blockEffect.Parameters["projection"]?.SetValue(projection);
             _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : _whiteTexture);
             _blockEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
-            
+
             if (_blockEffect.Parameters["ambient"] != null)
             {
                 _blockEffect.Parameters["ambient"].SetValue(AmbientLight);
@@ -416,7 +416,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             {
                 _logger.Warning("ambient parameter not found in block effect");
             }
-            
+
             if (_blockEffect.Parameters["lightDirection"] != null)
             {
                 _blockEffect.Parameters["lightDirection"].SetValue(LightDirection);
@@ -916,13 +916,13 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         return side switch
         {
-            BlockSide.South  => 0,
-            BlockSide.North  => 1,
-            BlockSide.East   => 2,
-            BlockSide.West   => 3,
-            BlockSide.Top    => 4,
+            BlockSide.South => 0,
+            BlockSide.North => 1,
+            BlockSide.East => 2,
+            BlockSide.West => 3,
+            BlockSide.Top => 4,
             BlockSide.Bottom => 5,
-            _                => 6
+            _ => 6
         };
     }
 
@@ -961,7 +961,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         var lightLevel = 0.2f;
         var lightColor = Vector3.One;
-        
+
         if (_chunk != null && _chunk.IsInBounds(x, y, z))
         {
             var block = _chunk.GetBlock(x, y, z);
@@ -975,7 +975,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         var finalBrightness = ambientOcclusion * lightLevel;
         finalBrightness = Math.Max(0.1f, finalBrightness);
-        
+
         var colorR = (byte)(finalBrightness * lightColor.X * 255);
         var colorG = (byte)(finalBrightness * lightColor.Y * 255);
         var colorB = (byte)(finalBrightness * lightColor.Z * 255);
@@ -1229,13 +1229,13 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         // Check if the neighboring block is the same type
         var (offsetX, offsetY, offsetZ) = side switch
         {
-            BlockSide.Top    => (0, 1, 0),
+            BlockSide.Top => (0, 1, 0),
             BlockSide.Bottom => (0, -1, 0),
-            BlockSide.North  => (0, 0, -1),
-            BlockSide.South  => (0, 0, 1),
-            BlockSide.East   => (1, 0, 0),
-            BlockSide.West   => (-1, 0, 0),
-            _                => (0, 0, 0)
+            BlockSide.North => (0, 0, -1),
+            BlockSide.South => (0, 0, 1),
+            BlockSide.East => (1, 0, 0),
+            BlockSide.West => (-1, 0, 0),
+            _ => (0, 0, 0)
         };
 
         var neighborX = x + offsetX;

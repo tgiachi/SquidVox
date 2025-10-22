@@ -3,8 +3,6 @@ using FontStashSharp;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended.ECS;
 using Serilog;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
@@ -120,7 +118,7 @@ public class SquidVoxWorld : Game
                 new CameraGameObject()
                 {
                     FlyMode = false,
-                    EnableInput = false,
+                    EnableInput = true,
                 }
             );
 
@@ -135,7 +133,7 @@ public class SquidVoxWorld : Game
                             .GetComponent<WorldGameObject>();
 
                         ImGui.Text("Camera position: " + camera.Position);
-                        ImGui.SameLine();
+                        ImGui.Separator();
                         ImGui.Text("Camera rotation: " + camera.Rotation);
 
                         var ambientLight = worldGameObject.AmbientLight.ToNumerics();
@@ -189,6 +187,8 @@ public class SquidVoxWorld : Game
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
+
+
     }
 
     /// <summary>
@@ -228,6 +228,8 @@ public class SquidVoxWorld : Game
         _inputManager.Update(gameTime);
 
         _inputManager.DistributeInput(gameTime);
+
+
 
         _renderLayers.UpdateAll(gameTime);
 

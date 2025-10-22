@@ -1,4 +1,5 @@
-using System.Numerics;
+
+using Microsoft.Xna.Framework;
 
 namespace SquidVox.Voxel.Primitives;
 
@@ -220,7 +221,7 @@ public class ChunkEntity
 
     public override string ToString()
     {
-        return  $"{Position} ({Size})";
+        return $"{Position} ({Size})";
     }
 
     /// <summary>

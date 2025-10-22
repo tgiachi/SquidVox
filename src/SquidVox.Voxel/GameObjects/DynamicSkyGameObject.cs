@@ -30,18 +30,18 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     {
         _camera = camera ?? throw new ArgumentNullException(nameof(camera));
         _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
-        
+
         var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
         _skyEffect = assetManager.GetEffect("Effects/DynamicSky");
-        
+
         if (_skyEffect == null)
         {
             _logger.Error("Failed to load DynamicSky effect");
             throw new InvalidOperationException("DynamicSky effect not loaded");
         }
-        
+
         _logger.Information("DynamicSky initialized");
-        
+
         CreateSkyGeometry();
     }
 
@@ -94,13 +94,13 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             _logger.Error("Projection parameter not found in effect");
             return;
         }
-        
+
         if (_skyEffect.Parameters["View"] == null)
         {
             _logger.Error("View parameter not found in effect");
             return;
         }
-        
+
         if (_skyEffect.Parameters["Time"] == null)
         {
             _logger.Error("Time parameter not found in effect");
@@ -120,7 +120,7 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             DepthBufferWriteEnable = false,
             DepthBufferFunction = CompareFunction.LessEqual
         };
-        
+
         _graphicsDevice.DepthStencilState = depthStencilState;
         _graphicsDevice.RasterizerState = RasterizerState.CullNone;
 
@@ -145,27 +145,27 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             new(new Vector3( 1, -1,  1)),
             new(new Vector3(-1,  1,  1)),
             new(new Vector3( 1,  1,  1)),
-            
+
             new(new Vector3(-1, -1, -1)),
             new(new Vector3(-1,  1, -1)),
             new(new Vector3( 1, -1, -1)),
             new(new Vector3( 1,  1, -1)),
-            
+
             new(new Vector3(-1,  1, -1)),
             new(new Vector3(-1,  1,  1)),
             new(new Vector3( 1,  1, -1)),
             new(new Vector3( 1,  1,  1)),
-            
+
             new(new Vector3(-1, -1, -1)),
             new(new Vector3( 1, -1, -1)),
             new(new Vector3(-1, -1,  1)),
             new(new Vector3( 1, -1,  1)),
-            
+
             new(new Vector3( 1, -1, -1)),
             new(new Vector3( 1,  1, -1)),
             new(new Vector3( 1, -1,  1)),
             new(new Vector3( 1,  1,  1)),
-            
+
             new(new Vector3(-1, -1, -1)),
             new(new Vector3(-1, -1,  1)),
             new(new Vector3(-1,  1, -1)),
@@ -190,8 +190,8 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
                                        indices.Length, BufferUsage.WriteOnly);
         _indexBuffer.SetData(indices);
         _indexCount = indices.Length;
-        
-        _logger.Information("Sky cube created: {VertexCount} vertices, {IndexCount} indices", 
+
+        _logger.Information("Sky cube created: {VertexCount} vertices, {IndexCount} indices",
             vertices.Length, _indexCount);
     }
 

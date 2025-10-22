@@ -1,4 +1,4 @@
-using System.Numerics;
+using Microsoft.Xna.Framework;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Primitives;
 

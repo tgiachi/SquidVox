@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using SquidVox.Core.Attributes.Scripts;
 using SquidVox.Core.Data.Directories;
 using SquidVox.Core.Json;

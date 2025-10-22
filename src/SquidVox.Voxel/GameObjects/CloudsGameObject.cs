@@ -55,18 +55,18 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
     {
         _camera = camera ?? throw new ArgumentNullException(nameof(camera));
         _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
-        
+
         var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
         _cloudEffect = assetManager.GetEffect("Effects/Clouds");
-        
+
         if (_cloudEffect == null)
         {
             _logger.Error("Failed to load Clouds effect");
             throw new InvalidOperationException("Clouds effect not loaded");
         }
-        
+
         _logger.Information("CloudsGameObject initialized");
-        
+
         CreateCubeGeometry();
     }
 
@@ -112,7 +112,7 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
     public void GenerateRandomClouds(int count, Vector3 minPosition, Vector3 maxPosition, Vector3 minSize, Vector3 maxSize)
     {
         var random = new Random();
-        
+
         for (int i = 0; i < count; i++)
         {
             var position = new Vector3(
@@ -120,16 +120,16 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
                 Lerp(minPosition.Y, maxPosition.Y, (float)random.NextDouble()),
                 Lerp(minPosition.Z, maxPosition.Z, (float)random.NextDouble())
             );
-            
+
             var size = new Vector3(
                 Lerp(minSize.X, maxSize.X, (float)random.NextDouble()),
                 Lerp(minSize.Y, maxSize.Y, (float)random.NextDouble()),
                 Lerp(minSize.Z, maxSize.Z, (float)random.NextDouble())
             );
-            
+
             AddCloud(new Cloud(position, size));
         }
-        
+
         _logger.Information("Generated {Count} random clouds", count);
     }
 
@@ -253,8 +253,8 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
                                           indices.Length, BufferUsage.WriteOnly);
         _cubeIndexBuffer.SetData(indices);
         _cubeIndexCount = indices.Length;
-        
-        _logger.Information("Cloud cube geometry created: {VertexCount} vertices, {IndexCount} indices", 
+
+        _logger.Information("Cloud cube geometry created: {VertexCount} vertices, {IndexCount} indices",
             vertices.Length, _cubeIndexCount);
     }
 

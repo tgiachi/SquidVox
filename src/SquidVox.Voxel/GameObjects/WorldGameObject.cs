@@ -22,8 +22,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     private readonly ILogger _logger = Log.ForContext<WorldGameObject>();
     private readonly IBlockManagerService _blockManagerService;
 
-    private readonly ConcurrentDictionary<SysVector3, ChunkGameObject> _chunks = new();
-    private readonly ConcurrentQueue<(SysVector3 Position, ChunkEntity Chunk)> _pendingChunks = new();
+    private readonly ConcurrentDictionary<XnaVector3, ChunkGameObject> _chunks = new();
+    private readonly ConcurrentQueue<(XnaVector3 Position, ChunkEntity Chunk)> _pendingChunks = new();
     private readonly Queue<ChunkGameObject> _meshBuildQueue = new();
 
 
@@ -43,7 +43,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         _particleGameObject = new Particle3dGameObject();
         _lightSystem = new ChunkLightSystem();
         _waterSystem = new WaterSimulationSystem();
-        
+
         Camera.IsBlockSolid = pos => IsBlockSolidForCollision(pos, includeWater: false);
     }
 
@@ -69,7 +69,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets a read-only dictionary of loaded chunks.
     /// </summary>
-    public IReadOnlyDictionary<SysVector3, ChunkGameObject> Chunks => _chunks;
+    public IReadOnlyDictionary<XnaVector3, ChunkGameObject> Chunks => _chunks;
 
     /// <summary>
     /// Gets or sets the render distance for chunks.
@@ -160,7 +160,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// </summary>
     /// <param name="position">The position of the chunk to remove.</param>
     /// <returns>True if the chunk was removed; otherwise, false.</returns>
-    public bool RemoveChunk(SysVector3 position)
+    public bool RemoveChunk(XnaVector3 position)
     {
         if (_chunks.TryRemove(position, out var chunkComponent))
         {

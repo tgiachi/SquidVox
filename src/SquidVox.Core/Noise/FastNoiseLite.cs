@@ -1376,7 +1376,7 @@ public class FastNoiseLite
         float value = 0;
         var a = 0.6f - x0 * x0 - (y0 * y0 + z0 * z0);
 
-        for (var l = 0;; l++)
+        for (var l = 0; ; l++)
         {
             if (a > 0)
             {
@@ -2926,7 +2926,7 @@ public class FastNoiseLite
         vx = vy = vz = 0;
 
         var a = 0.6f - x0 * x0 - (y0 * y0 + z0 * z0);
-        for (var l = 0;; l++)
+        for (var l = 0; ; l++)
         {
             if (a > 0)
             {

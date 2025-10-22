@@ -42,8 +42,8 @@ public class AssetManagerService : IAssetManagerService
             for (int x = 0; x < 16; x++)
             {
                 var isBlack = (x / 4 + y / 4) % 2 == 0;
-                colors[y * 16 + x] = isBlack 
-                    ? Microsoft.Xna.Framework.Color.Black 
+                colors[y * 16 + x] = isBlack
+                    ? Microsoft.Xna.Framework.Color.Black
                     : Microsoft.Xna.Framework.Color.White;
             }
         }
@@ -211,12 +211,12 @@ public class AssetManagerService : IAssetManagerService
     public void LoadTextureFromFile(string fileName, string name, bool replaceMagentaWithTransparent = false)
     {
         var texture = Texture2D.FromFile(SquidVoxGraphicContext.GraphicsDevice, fileName);
-        
+
         if (replaceMagentaWithTransparent)
         {
             ReplaceMagentaWithTransparent(texture);
         }
-        
+
         _textures[name] = texture;
         _logger.Information("Loaded texture {Name} from {File}", name, fileName);
     }
@@ -230,12 +230,12 @@ public class AssetManagerService : IAssetManagerService
     public void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name, bool replaceMagentaWithTransparent = false)
     {
         var texture = Texture2D.FromStream(SquidVoxGraphicContext.GraphicsDevice, new MemoryStream(data.ToArray()));
-        
+
         if (replaceMagentaWithTransparent)
         {
             ReplaceMagentaWithTransparent(texture);
         }
-        
+
         _textures[name] = texture;
         _logger.Information("Loaded texture {Name} from byte array ({Width}x{Height})", name, texture.Width, texture.Height);
     }
@@ -301,9 +301,9 @@ public class AssetManagerService : IAssetManagerService
     {
         var pixelCount = texture.Width * texture.Height;
         var colorData = new Microsoft.Xna.Framework.Color[pixelCount];
-        
+
         texture.GetData(colorData);
-        
+
         var replacedCount = 0;
         for (var i = 0; i < colorData.Length; i++)
         {
@@ -313,9 +313,9 @@ public class AssetManagerService : IAssetManagerService
                 replacedCount++;
             }
         }
-        
+
         texture.SetData(colorData);
-        
+
         if (replacedCount > 0)
         {
             _logger.Debug("Replaced {Count} magenta pixels with transparent in texture", replacedCount);
