@@ -246,6 +246,8 @@ public class SquidVoxWorld : Game
         {
             for (int z = 0; z < ChunkEntity.Size; z++)
             {
+                bool isInLake = (x >= 4 && x <= 11 && z >= 4 && z <= 11);
+                
                 for (int y = 0; y < ChunkEntity.Height; y++)
                 {
                     BlockType blockType = BlockType.Air;
@@ -260,9 +262,13 @@ public class SquidVoxWorld : Game
                     }
                     else if (y == 60)
                     {
-                        blockType = BlockType.Grass;
+                        blockType = isInLake ? BlockType.Dirt : BlockType.Grass;
                     }
-                    else if (y == 61)
+                    else if (y == 61 && isInLake)
+                    {
+                        blockType = BlockType.Water;
+                    }
+                    else if (y == 61 && !isInLake)
                     {
                         var rand = random.NextDouble();
                         if (rand < 0.15)

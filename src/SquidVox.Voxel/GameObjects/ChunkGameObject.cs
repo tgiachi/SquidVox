@@ -7,6 +7,7 @@ using MonoGame.Extended.Graphics;
 using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
+using SquidVox.Core.Interfaces.Services;
 using SquidVox.Voxel.Interfaces;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
@@ -29,6 +30,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private readonly IBlockManagerService _blockManagerService;
     private readonly BasicEffect _effect;
     private readonly AlphaTestEffect _alphaTestEffect;
+    private readonly Effect _billboardEffect;
+    private readonly Effect _fluidEffect;
     private readonly ILogger _logger = Log.ForContext<ChunkGameObject>();
 
     private VertexBuffer? _vertexBuffer;
@@ -37,6 +40,14 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private Texture2D? _whiteTexture;
     private bool _geometryInvalidated = true;
     private int _primitiveCount;
+
+    private VertexBuffer? _billboardVertexBuffer;
+    private IndexBuffer? _billboardIndexBuffer;
+    private int _billboardPrimitiveCount;
+
+    private VertexBuffer? _fluidVertexBuffer;
+    private IndexBuffer? _fluidIndexBuffer;
+    private int _fluidPrimitiveCount;
 
     private ChunkEntity? _chunk;
     private float _rotationY;
@@ -58,11 +69,13 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private static readonly ObjectPool<List<int>> _indexPool =
         ObjectPool.Create(new IndexListPolicy());
 
+    private static readonly ObjectPool<List<VertexPositionColorTextureDirectionTop>> _fluidVertexPool =
+        ObjectPool.Create(new FluidVertexListPolicy());
+
     // GPU upload thread for mesh data
     private static readonly ConcurrentQueue<MeshData> _gpuUploadQueue = new();
     private static Thread? _gpuUploadThread;
     private static readonly AutoResetEvent _gpuUploadSignal = new(false);
-
 
 
     /// <summary>
@@ -82,6 +95,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
         _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
+
+        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        _billboardEffect = assetManager.GetEffect("Effects/ChunkBillboard");
+        _fluidEffect = assetManager.GetEffect("Effects/ChunkFluid");
 
         _whiteTexture = new Texture2D(_graphicsDevice, 1, 1);
         _whiteTexture.SetData(new[] { Color.White });
@@ -297,6 +314,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 
+        _fluidEffect.Parameters["time"]?.SetValue((float)gameTime.TotalGameTime.TotalSeconds);
+
         CheckMeshBuildCompletion();
 
         if (_isFadingIn)
@@ -397,6 +416,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             {
                 _graphicsDevice.RasterizerState = RasterizerState.CullNone;
             }
+
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             _alphaTestEffect.World = world;
@@ -422,12 +442,66 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             {
                 _graphicsDevice.RasterizerState = RasterizerState.CullNone;
             }
+
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             foreach (var pass in _effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _primitiveCount);
+            }
+        }
+
+        if (_billboardVertexBuffer != null && _billboardIndexBuffer != null && _billboardPrimitiveCount > 0)
+        {
+            _graphicsDevice.BlendState = BlendState.AlphaBlend;
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
+
+            _graphicsDevice.SetVertexBuffer(_billboardVertexBuffer);
+            _graphicsDevice.Indices = _billboardIndexBuffer;
+
+            if (_billboardEffect != null)
+            {
+                _billboardEffect.Parameters["model"]?.SetValue(Position);
+                _billboardEffect.Parameters["view"]?.SetValue(view);
+                _billboardEffect.Parameters["projection"]?.SetValue(projection);
+                _billboardEffect.Parameters["tex"]?.SetValue(_texture);
+                _billboardEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
+
+                foreach (var pass in _billboardEffect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _billboardPrimitiveCount);
+                }
+            }
+        }
+
+        if (_fluidVertexBuffer != null && _fluidIndexBuffer != null && _fluidPrimitiveCount > 0)
+        {
+            _graphicsDevice.BlendState = BlendState.AlphaBlend;
+            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
+
+            _graphicsDevice.SetVertexBuffer(_fluidVertexBuffer);
+            _graphicsDevice.Indices = _fluidIndexBuffer;
+
+            if (_fluidEffect != null)
+            {
+                _fluidEffect.Parameters["model"]?.SetValue(Position);
+                _fluidEffect.Parameters["view"]?.SetValue(view);
+                _fluidEffect.Parameters["projection"]?.SetValue(projection);
+                _fluidEffect.Parameters["tex"]?.SetValue(_texture);
+                _fluidEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
+                _fluidEffect.Parameters["time"]?.SetValue((float)gameTime.TotalGameTime.TotalSeconds);
+
+                foreach (var pass in _fluidEffect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _fluidPrimitiveCount);
+                }
             }
         }
 
@@ -458,6 +532,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         var vertices = _vertexPool.Get();
         var indices = _indexPool.Get();
+        var billboardVertices = _vertexPool.Get();
+        var billboardIndices = _indexPool.Get();
+        var fluidVertices = _fluidVertexPool.Get();
+        var fluidIndices = _indexPool.Get();
         Texture2D? atlasTexture = null;
 
         for (int x = 0; x < ChunkEntity.Size; x++)
@@ -496,12 +574,12 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                             var uv = ExtractUv(region);
                             var faceColor = CalculateFaceColor(x, y, z, BlockSide.Top);
 
-                            var billboardVertices = GetBillboardVertices(x, y, z, uv, faceColor, blockHeight);
-                            var baseIndex = vertices.Count;
+                            var billboardVerts = GetBillboardVertices(x, y, z, uv, faceColor, blockHeight);
+                            var baseIndex = billboardVertices.Count;
 
-                            vertices.AddRange(billboardVertices);
+                            billboardVertices.AddRange(billboardVerts);
 
-                            indices.AddRange(
+                            billboardIndices.AddRange(
                                 new[]
                                 {
                                     baseIndex, baseIndex + 1, baseIndex + 2,
@@ -509,6 +587,59 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
                                     baseIndex + 4, baseIndex + 5, baseIndex + 6,
                                     baseIndex + 6, baseIndex + 7, baseIndex + 4
+                                }
+                            );
+                        }
+                    }
+                    else if (definition.IsLiquid)
+                    {
+                        foreach (var side in AllSides)
+                        {
+                            if (!ShouldRenderFace(x, y, z, side))
+                            {
+                                continue;
+                            }
+
+                            var region = _blockManagerService.GetBlockSide(block.BlockType, side);
+
+                            if (region == null)
+                            {
+                                continue;
+                            }
+
+                            atlasTexture ??= region.Texture;
+
+                            var uv = ExtractUv(region);
+                            var faceColor = CalculateFaceColor(x, y, z, side);
+                            var faceVertices = GetFaceVertices(side, x, y, z, uv, faceColor, blockHeight);
+
+                            var baseIndex = fluidVertices.Count;
+
+                            var direction = GetDirectionIndex(side);
+                            var isTop = side == BlockSide.Top ? 1.0f : 0.0f;
+
+                            foreach (var vertex in faceVertices)
+                            {
+                                fluidVertices.Add(
+                                    new VertexPositionColorTextureDirectionTop(
+                                        vertex.Position,
+                                        vertex.Color,
+                                        vertex.TextureCoordinate,
+                                        direction,
+                                        isTop
+                                    )
+                                );
+                            }
+
+                            fluidIndices.AddRange(
+                                new[]
+                                {
+                                    baseIndex,
+                                    baseIndex + 1,
+                                    baseIndex + 2,
+                                    baseIndex + 2,
+                                    baseIndex + 3,
+                                    baseIndex
                                 }
                             );
                         }
@@ -522,7 +653,6 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                                 continue;
                             }
 
-                            // Additional greedy meshing check - skip faces between same block types
                             if (UseGreedyMeshing && ShouldSkipFace(x, y, z, side, block.BlockType))
                             {
                                 continue;
@@ -564,12 +694,26 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         {
             Vertices = vertices.ToArray(),
             Indices = indices.ToArray(),
+            BillboardVertices = billboardVertices.ToArray(),
+            BillboardIndices = billboardIndices.ToArray(),
+            FluidVertices = fluidVertices.ToArray(),
+            FluidIndices = fluidIndices.ToArray(),
             Texture = atlasTexture
         };
 
-        // Return lists to pool
+        _logger.Debug(
+            "Mesh built: {SolidVerts} solid, {BillboardVerts} billboard, {FluidVerts} fluid vertices",
+            vertices.Count,
+            billboardVertices.Count,
+            fluidVertices.Count
+        );
+
         _vertexPool.Return(vertices);
         _indexPool.Return(indices);
+        _vertexPool.Return(billboardVertices);
+        _indexPool.Return(billboardIndices);
+        _fluidVertexPool.Return(fluidVertices);
+        _indexPool.Return(fluidIndices);
 
         return meshData;
     }
@@ -578,34 +722,84 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         ClearGeometry();
 
-        if (meshData.Vertices.Length == 0 || meshData.Indices.Length == 0 || meshData.Texture == null)
+        if (meshData.Texture == null)
         {
             return;
         }
 
-        _vertexBuffer = new VertexBuffer(
-            _graphicsDevice,
-            typeof(VertexPositionColorTexture),
-            meshData.Vertices.Length,
-            BufferUsage.WriteOnly
-        );
-        _vertexBuffer.SetData(meshData.Vertices);
+        if (meshData.Vertices.Length > 0 && meshData.Indices.Length > 0)
+        {
+            _vertexBuffer = new VertexBuffer(
+                _graphicsDevice,
+                typeof(VertexPositionColorTexture),
+                meshData.Vertices.Length,
+                BufferUsage.WriteOnly
+            );
+            _vertexBuffer.SetData(meshData.Vertices);
 
-        _indexBuffer = new IndexBuffer(
-            _graphicsDevice,
-            IndexElementSize.ThirtyTwoBits,
-            meshData.Indices.Length,
-            BufferUsage.WriteOnly
-        );
-        _indexBuffer.SetData(meshData.Indices);
+            _indexBuffer = new IndexBuffer(
+                _graphicsDevice,
+                IndexElementSize.ThirtyTwoBits,
+                meshData.Indices.Length,
+                BufferUsage.WriteOnly
+            );
+            _indexBuffer.SetData(meshData.Indices);
+
+            _primitiveCount = meshData.Indices.Length / 3;
+        }
+
+        if (meshData.BillboardVertices.Length > 0 && meshData.BillboardIndices.Length > 0)
+        {
+            _billboardVertexBuffer = new VertexBuffer(
+                _graphicsDevice,
+                typeof(VertexPositionColorTexture),
+                meshData.BillboardVertices.Length,
+                BufferUsage.WriteOnly
+            );
+            _billboardVertexBuffer.SetData(meshData.BillboardVertices);
+
+            _billboardIndexBuffer = new IndexBuffer(
+                _graphicsDevice,
+                IndexElementSize.ThirtyTwoBits,
+                meshData.BillboardIndices.Length,
+                BufferUsage.WriteOnly
+            );
+            _billboardIndexBuffer.SetData(meshData.BillboardIndices);
+
+            _billboardPrimitiveCount = meshData.BillboardIndices.Length / 3;
+        }
+
+        if (meshData.FluidVertices.Length > 0 && meshData.FluidIndices.Length > 0)
+        {
+            _fluidVertexBuffer = new VertexBuffer(
+                _graphicsDevice,
+                typeof(VertexPositionColorTextureDirectionTop),
+                meshData.FluidVertices.Length,
+                BufferUsage.WriteOnly
+            );
+            _fluidVertexBuffer.SetData(meshData.FluidVertices);
+
+            _fluidIndexBuffer = new IndexBuffer(
+                _graphicsDevice,
+                IndexElementSize.ThirtyTwoBits,
+                meshData.FluidIndices.Length,
+                BufferUsage.WriteOnly
+            );
+            _fluidIndexBuffer.SetData(meshData.FluidIndices);
+
+            _fluidPrimitiveCount = meshData.FluidIndices.Length / 3;
+        }
 
         _texture = meshData.Texture;
-        _primitiveCount = meshData.Indices.Length / 3;
 
         _logger.Information(
-            "Chunk mesh uploaded: {Vertices} vertices, {Faces} faces",
+            "Chunk mesh uploaded: {Vertices} solid ({Faces} faces), {BillboardVerts} billboard ({BillboardFaces} faces), {FluidVerts} fluid ({FluidFaces} faces)",
             meshData.Vertices.Length,
-            meshData.Indices.Length / 3
+            meshData.Indices.Length / 3,
+            meshData.BillboardVertices.Length,
+            meshData.BillboardIndices.Length / 3,
+            meshData.FluidVertices.Length,
+            meshData.FluidIndices.Length / 3
         );
     }
 
@@ -713,6 +907,20 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         return x >= 0 && x < ChunkEntity.Size &&
                y >= 0 && y < ChunkEntity.Height &&
                z >= 0 && z < ChunkEntity.Size;
+    }
+
+    private static float GetDirectionIndex(BlockSide side)
+    {
+        return side switch
+        {
+            BlockSide.South  => 0,
+            BlockSide.North  => 1,
+            BlockSide.East   => 2,
+            BlockSide.West   => 3,
+            BlockSide.Top    => 4,
+            BlockSide.Bottom => 5,
+            _                => 6
+        };
     }
 
     private Color CalculateFaceColor(int x, int y, int z, BlockSide side)
@@ -913,8 +1121,22 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _indexBuffer?.Dispose();
         _indexBuffer = null;
 
+        _billboardVertexBuffer?.Dispose();
+        _billboardVertexBuffer = null;
+
+        _billboardIndexBuffer?.Dispose();
+        _billboardIndexBuffer = null;
+
+        _fluidVertexBuffer?.Dispose();
+        _fluidVertexBuffer = null;
+
+        _fluidIndexBuffer?.Dispose();
+        _fluidIndexBuffer = null;
+
         _texture = null;
         _primitiveCount = 0;
+        _billboardPrimitiveCount = 0;
+        _fluidPrimitiveCount = 0;
     }
 
     // Object pool policies for mesh data
@@ -939,10 +1161,24 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             return
                 new List<int>(
                     24576
-                ); // Pre-allocate capacity for typical chunk (6 indices per quad * 4 quads per block * 1024 blocks)
+                );
         }
 
         public bool Return(List<int> obj)
+        {
+            obj.Clear();
+            return true;
+        }
+    }
+
+    private class FluidVertexListPolicy : IPooledObjectPolicy<List<VertexPositionColorTextureDirectionTop>>
+    {
+        public List<VertexPositionColorTextureDirectionTop> Create()
+        {
+            return new List<VertexPositionColorTextureDirectionTop>(16384);
+        }
+
+        public bool Return(List<VertexPositionColorTextureDirectionTop> obj)
         {
             obj.Clear();
             return true;

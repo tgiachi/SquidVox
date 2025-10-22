@@ -21,4 +21,24 @@ public sealed class MeshData
     /// Gets or sets the texture of the mesh.
     /// </summary>
     public Texture2D? Texture { get; set; }
+
+    /// <summary>
+    /// Gets or sets the billboard vertices of the mesh.
+    /// </summary>
+    public VertexPositionColorTexture[] BillboardVertices { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the billboard indices of the mesh.
+    /// </summary>
+    public int[] BillboardIndices { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the fluid vertices of the mesh.
+    /// </summary>
+    public VertexPositionColorTextureDirectionTop[] FluidVertices { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the fluid indices of the mesh.
+    /// </summary>
+    public int[] FluidIndices { get; set; } = [];
 }

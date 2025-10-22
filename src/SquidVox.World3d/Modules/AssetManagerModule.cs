@@ -49,6 +49,12 @@ public class AssetManagerModule
     }
 
 
+    [ScriptFunction("load_effect", "Loads a shader effect by name.")]
+    public void LoadEffect(string name)
+    {
+        _assetManagerService.LoadEffect(name);
+    }
+
     [ScriptFunction("load_atlas", "Loads a texture atlas from a file.")]
     public void LoadAtlas(string filename, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0)
     {
