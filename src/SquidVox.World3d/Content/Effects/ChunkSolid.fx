@@ -7,6 +7,10 @@ float3 model;
 float4x4 view;
 float4x4 projection;
 
+// Lighting uniforms
+float3 ambient;
+float3 lightDirection;
+
 // Texture
 texture tex;
 sampler texSampler = sampler_state
@@ -18,10 +22,6 @@ sampler texSampler = sampler_state
     AddressU = Wrap;
     AddressV = Wrap;
 };
-
-// Lighting constants
-static const float3 ambient = float3(0.7, 0.7, 0.7);
-static const float3 lightDirection = float3(0.8, 1.0, 0.7);
 
 // Array of possible normals based on direction
 static const float3 normals[7] = {
@@ -38,8 +38,8 @@ static const float3 normals[7] = {
 struct VertexShaderInput
 {
     float3 Position : POSITION0;
+    float4 Color : COLOR0;
     float2 TexCoords : TEXCOORD0;
-    float Direction : TEXCOORD1;
 };
 
 // Vertex shader output / Pixel shader input
@@ -60,7 +60,9 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.Position = mul(viewPosition, projection);
 
     output.TexCoord = input.TexCoords * texMultiplier;
-    output.Normal = normals[int(input.Direction)];
+    
+    int direction = int(input.Color.a);
+    output.Normal = normals[clamp(direction, 0, 6)];
 
     return output;
 }

@@ -188,6 +188,16 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     public float FogEnd { get; set; } = 150f;
 
     /// <summary>
+    /// Gets or sets the ambient light color.
+    /// </summary>
+    public Vector3 AmbientLight { get; set; } = new Vector3(0.5f, 0.5f, 0.5f);
+
+    /// <summary>
+    /// Gets or sets the directional light direction.
+    /// </summary>
+    public Vector3 LightDirection { get; set; } = new Vector3(0.8f, 1.0f, 0.7f);
+
+    /// <summary>
     /// Gets or sets the speed of the fade-in animation.
     /// </summary>
     /// <summary>
@@ -397,12 +407,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _blockEffect.Parameters["projection"]?.SetValue(projection);
             _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : _whiteTexture);
             _blockEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
-            _blockEffect.Parameters["fogEnabled"]?.SetValue(FogEnabled);
-            _blockEffect.Parameters["fogColor"]?.SetValue(FogColor);
-            _blockEffect.Parameters["fogStart"]?.SetValue(FogStart);
-            _blockEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
-
-            _blockEffect.CurrentTechnique = _blockEffect.Techniques["ChunkBlockSimple"];
+            _blockEffect.Parameters["ambient"]?.SetValue(AmbientLight);
+            _blockEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
 
             foreach (var pass in _blockEffect.CurrentTechnique.Passes)
             {
@@ -441,6 +447,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 _billboardEffect.Parameters["projection"]?.SetValue(projection);
                 _billboardEffect.Parameters["tex"]?.SetValue(_texture);
                 _billboardEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
+                _billboardEffect.Parameters["ambient"]?.SetValue(AmbientLight);
+                _billboardEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
 
                 foreach (var pass in _billboardEffect.CurrentTechnique.Passes)
                 {
@@ -468,6 +476,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 _fluidEffect.Parameters["tex"]?.SetValue(_texture);
                 _fluidEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
                 _fluidEffect.Parameters["time"]?.SetValue((float)gameTime.TotalGameTime.TotalSeconds);
+                _fluidEffect.Parameters["ambient"]?.SetValue(AmbientLight);
+                _fluidEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
 
                 foreach (var pass in _fluidEffect.CurrentTechnique.Passes)
                 {

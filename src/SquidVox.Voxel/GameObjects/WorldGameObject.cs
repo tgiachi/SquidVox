@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
-using SquidVox.Voxel.Interfaces;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Systems;
@@ -44,6 +43,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         _particleGameObject = new Particle3dGameObject();
         _lightSystem = new ChunkLightSystem();
         _waterSystem = new WaterSimulationSystem();
+        
+        Camera.IsBlockSolid = pos => IsBlockSolidForCollision(pos, includeWater: false);
     }
 
     /// <summary>
@@ -114,6 +115,16 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// Gets or sets whether to render chunks in wireframe mode.
     /// </summary>
     public bool EnableWireframe { get; set; }
+
+    /// <summary>
+    /// Gets or sets the ambient light color for chunk rendering.
+    /// </summary>
+    public Vector3 AmbientLight { get; set; } = new Vector3(0.5f, 0.5f, 0.5f);
+
+    /// <summary>
+    /// Gets or sets the directional light direction for chunk rendering.
+    /// </summary>
+    public Vector3 LightDirection { get; set; } = new Vector3(0.8f, 1.0f, 0.7f);
 
     /// <summary>
     /// Gets the currently selected block from raycasting.
@@ -811,6 +822,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         }
 
         chunk.TextureEnabled = !EnableWireframe;
+        chunk.AmbientLight = AmbientLight;
+        chunk.LightDirection = LightDirection;
         chunk.DrawWithCamera(gameTime, Camera.View, Camera.Projection);
     }
 

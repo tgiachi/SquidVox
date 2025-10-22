@@ -9,6 +9,10 @@ float4x4 view;
 float4x4 projection;
 float time;
 
+// Lighting uniforms
+float3 ambient;
+float3 lightDirection;
+
 // Texture
 texture tex;
 sampler texSampler = sampler_state
@@ -20,10 +24,6 @@ sampler texSampler = sampler_state
     AddressU = Wrap;
     AddressV = Wrap;
 };
-
-// Lighting constants
-static const float3 ambient = float3(0.5, 0.5, 0.5);
-static const float3 lightDirection = float3(0.8, 1.0, 0.7);
 
 // Animation constants
 static const int aFrames = 32;

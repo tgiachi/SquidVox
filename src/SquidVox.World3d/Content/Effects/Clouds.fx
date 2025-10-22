@@ -7,6 +7,10 @@ float4x4 Model;
 float4x4 View;
 float4x4 Projection;
 
+// Lighting uniforms
+float3 ambient;
+float3 lightDirection;
+
 // Vertex shader input
 struct VertexShaderInput
 {

@@ -116,11 +116,14 @@ public class SquidVoxWorld : Game
 
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(new FpsComponent());
 
-        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(new CameraGameObject()
-        {
-            FlyMode = true,
-            EnableInput = true
-        });
+        _renderLayers.GetLayer<GameObject3dRenderLayer>()
+            .AddGameObject(
+                new CameraGameObject()
+                {
+                    FlyMode = false,
+                    EnableInput = false,
+                }
+            );
 
         _renderLayers.GetLayer<ImGuiRenderLayer>()
             .AddDebugger(
@@ -129,20 +132,43 @@ public class SquidVoxWorld : Game
                     () =>
                     {
                         var camera = _renderLayers.GetLayer<GameObject3dRenderLayer>().GetComponent<CameraGameObject>();
+                        var worldGameObject = _renderLayers.GetLayer<GameObject3dRenderLayer>()
+                            .GetComponent<WorldGameObject>();
 
                         ImGui.Text("Camera position: " + camera.Position);
+                        ImGui.SameLine();
+                        ImGui.Text("Camera rotation: " + camera.Rotation);
+
+                        var ambientLight = worldGameObject.AmbientLight.ToNumerics();
+                        var lightDir = worldGameObject.LightDirection.ToNumerics();
+
+                        // Editor ImGui
+                        if (ImGui.ColorEdit3("Ambient Light", ref ambientLight))
+                        {
+                            worldGameObject.AmbientLight = new Vector3(
+                                ambientLight.X,
+                                ambientLight.Y,
+                                ambientLight.Z
+                            );
+                        }
+
+                        if (ImGui.SliderFloat3("Light Direction", ref lightDir, -2f, 2f))
+                        {
+                            worldGameObject.LightDirection = new Vector3(
+                                lightDir.X,
+                                lightDir.Y,
+                                lightDir.Z
+                            );
+                        }
                     }
                 )
             );
-
-
 
 
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
         worldManager.ChunkGenerator = CreateFlatChunkAsync;
         worldManager.EnableWireframe = false;
-
 
 
         var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());
@@ -153,11 +179,11 @@ public class SquidVoxWorld : Game
         var clouds = (new CloudsGameObject(_renderLayers.GetComponent<CameraGameObject>()));
 
         clouds.GenerateRandomClouds(
-            count: 20,                                // Numero di nuvole
-            minPosition: new Vector3(-200, 80, -200), // Bounds min
-            maxPosition: new Vector3(200, 120, 200),  // Bounds max
-            minSize: new Vector3(8, 4, 8),            // Dimensione minima
-            maxSize: new Vector3(20, 10, 20)          // Dimensione massima
+            count: 20,
+            minPosition: new Vector3(-200, 80, -200),
+            maxPosition: new Vector3(200, 120, 200),
+            minSize: new Vector3(8, 4, 8),
+            maxSize: new Vector3(20, 10, 20)
         );
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(skyPanorama);
@@ -188,9 +214,6 @@ public class SquidVoxWorld : Game
         // Add to UI layer
         var gameObjectLayer = _renderLayers.GetLayer<GameObject2dRenderLayer>();
         gameObjectLayer.AddGameObject(errorDialog);
-
-
-
     }
 
     protected override void Update(GameTime gameTime)

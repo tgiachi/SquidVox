@@ -8,6 +8,10 @@ float3 model;
 float4x4 view;
 float4x4 projection;
 
+// Lighting uniforms
+float3 ambient;
+float3 lightDirection;
+
 // Texture
 texture tex;
 sampler texSampler = sampler_state
@@ -21,8 +25,6 @@ sampler texSampler = sampler_state
 };
 
 // Lighting constants
-static const float3 ambient = float3(0.5, 0.5, 0.5);
-static const float3 lightDirection = float3(0.8, 1.0, 0.7);
 static const float3 normal = float3(0, -1, 0);
 
 // Vertex shader input
