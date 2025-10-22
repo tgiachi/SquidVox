@@ -413,9 +413,22 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         if (_billboardVertexBuffer != null && _billboardIndexBuffer != null && _billboardPrimitiveCount > 0)
         {
-            _graphicsDevice.BlendState = BlendState.AlphaBlend;
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            _graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            _graphicsDevice.BlendState = BlendState.Opaque;
+            
+            var depthStencilState = new DepthStencilState
+            {
+                DepthBufferEnable = true,
+                DepthBufferWriteEnable = true,
+                DepthBufferFunction = CompareFunction.LessEqual
+            };
+            _graphicsDevice.DepthStencilState = depthStencilState;
+            
+            var billboardRasterizer = new RasterizerState
+            {
+                CullMode = CullMode.None,
+                DepthBias = -0.00001f
+            };
+            _graphicsDevice.RasterizerState = billboardRasterizer;
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
             _graphicsDevice.SetVertexBuffer(_billboardVertexBuffer);
@@ -786,6 +799,12 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             return true;
         }
 
+        var neighborDefinition = _blockManagerService.GetBlockDefinition(neighbor.BlockType);
+        if (neighborDefinition != null && neighborDefinition.IsBillboard)
+        {
+            return true;
+        }
+
         if (currentBlock.BlockType == neighbor.BlockType)
         {
             var currentDef = _blockManagerService.GetBlockDefinition(currentBlock.BlockType);
@@ -1036,25 +1055,23 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         var (min, max) = uv;
         float x = blockX + 0.5f;
-        float y = blockY;
+        float yBottom = blockY;
         float z = blockZ + 0.5f;
-        float y1 = blockY + height;
+        float yTop = blockY + height;
 
         const float offset = 0.4f;
 
-        // No wind animation - leaves and flowers should not move
-
         return new[]
         {
-            new VertexPositionColorTexture(new Vector3(x - offset, y1, z - offset), color, new Vector2(min.X, min.Y)),
-            new VertexPositionColorTexture(new Vector3(x - offset, y, z - offset), color, new Vector2(min.X, max.Y)),
-            new VertexPositionColorTexture(new Vector3(x + offset, y, z + offset), color, new Vector2(max.X, max.Y)),
-            new VertexPositionColorTexture(new Vector3(x + offset, y1, z + offset), color, new Vector2(max.X, min.Y)),
+            new VertexPositionColorTexture(new Vector3(x - offset, yTop, z - offset), color, new Vector2(min.X, min.Y)),
+            new VertexPositionColorTexture(new Vector3(x - offset, yBottom, z - offset), color, new Vector2(min.X, max.Y)),
+            new VertexPositionColorTexture(new Vector3(x + offset, yBottom, z + offset), color, new Vector2(max.X, max.Y)),
+            new VertexPositionColorTexture(new Vector3(x + offset, yTop, z + offset), color, new Vector2(max.X, min.Y)),
 
-            new VertexPositionColorTexture(new Vector3(x + offset, y1, z - offset), color, new Vector2(min.X, min.Y)),
-            new VertexPositionColorTexture(new Vector3(x + offset, y, z - offset), color, new Vector2(min.X, max.Y)),
-            new VertexPositionColorTexture(new Vector3(x - offset, y, z + offset), color, new Vector2(max.X, max.Y)),
-            new VertexPositionColorTexture(new Vector3(x - offset, y1, z + offset), color, new Vector2(max.X, min.Y))
+            new VertexPositionColorTexture(new Vector3(x + offset, yTop, z - offset), color, new Vector2(min.X, min.Y)),
+            new VertexPositionColorTexture(new Vector3(x + offset, yBottom, z - offset), color, new Vector2(min.X, max.Y)),
+            new VertexPositionColorTexture(new Vector3(x - offset, yBottom, z + offset), color, new Vector2(max.X, max.Y)),
+            new VertexPositionColorTexture(new Vector3(x - offset, yTop, z + offset), color, new Vector2(max.X, min.Y))
         };
     }
 

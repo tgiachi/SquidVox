@@ -263,22 +263,25 @@ public class SquidVoxWorld : Game
                     }
                     else if (y == 60)
                     {
-                        blockType = isInLake ? BlockType.Dirt : BlockType.Grass;
+                        blockType = BlockType.Grass;
                     }
-                    else if (y == 61 && isInLake)
+                    else if (y == 61)
                     {
-                        blockType = BlockType.Water;
-                    }
-                    else if (y == 61 && !isInLake)
-                    {
-                        var rand = random.NextDouble();
-                        if (rand < 0.15)
+                        if (isInLake)
                         {
-                            blockType = BlockType.TallGrass;
+                            blockType = BlockType.Water;
                         }
-                        else if (rand < 0.20)
+                        else
                         {
-                            blockType = BlockType.Flower;
+                            var rand = random.NextDouble();
+                            if (rand < 0.15)
+                            {
+                                blockType = BlockType.TallGrass;
+                            }
+                            else if (rand < 0.20)
+                            {
+                                blockType = BlockType.Flower;
+                            }
                         }
                     }
 
