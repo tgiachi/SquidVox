@@ -959,15 +959,26 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 break;
         }
 
-        var lightLevel = 0.2f; // Minimum ambient brightness
+        var lightLevel = 0.2f;
+        var lightColor = Vector3.One;
+        
         if (_chunk != null && _chunk.IsInBounds(x, y, z))
         {
-            var rawLight = _chunk.GetLightLevel(x, y, z);
-            lightLevel = Math.Max(0.2f, rawLight / 15f); // Never below 0.2f (20% brightness)
+            var block = _chunk.GetBlock(x, y, z);
+            if (block != null)
+            {
+                var rawLight = block.LightLevel;
+                lightLevel = Math.Max(0.2f, rawLight / 15f);
+                lightColor = block.LightColor;
+            }
         }
 
         var finalBrightness = ambientOcclusion * lightLevel;
-        finalBrightness = Math.Max(0.1f, finalBrightness); // Absolute minimum brightness
+        finalBrightness = Math.Max(0.1f, finalBrightness);
+        
+        var colorR = (byte)(finalBrightness * lightColor.X * 255);
+        var colorG = (byte)(finalBrightness * lightColor.Y * 255);
+        var colorB = (byte)(finalBrightness * lightColor.Z * 255);
 
         // Apply dynamic shadows based on sun direction
         // var shadowFactor = 1.0f;
@@ -1002,14 +1013,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         //     sunIntensity = _dayNightCycle.GetSunIntensity();
         // }
 
-        // Combine brightness with sun color
-        // var r = finalBrightness * sunColor.R * sunIntensity;
-        // var g = finalBrightness * sunColor.G * sunIntensity;
-        // var b = finalBrightness * sunColor.B * sunIntensity;
-
-        // return new Color(r, g, b, 1.0f);
-
-        return new Color(finalBrightness, finalBrightness, finalBrightness, 1.0f);
+        return new Color(colorR, colorG, colorB, (byte)255);
     }
 
     private static VertexPositionColorTexture[] GetFaceVertices(

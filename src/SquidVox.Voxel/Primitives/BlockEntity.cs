@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework;
 using SquidVox.Voxel.Types;
 
 namespace SquidVox.Voxel.Primitives;
@@ -23,6 +24,16 @@ public class BlockEntity
     public byte WaterLevel { get; set; }
 
     /// <summary>
+    /// Gets or sets the light level (0-15, where 15 is full brightness, 0 is dark).
+    /// </summary>
+    public byte LightLevel { get; set; }
+
+    /// <summary>
+    /// Gets or sets the light color (RGB values 0-1).
+    /// </summary>
+    public Vector3 LightColor { get; set; }
+
+    /// <summary>
     /// Initializes a new <see cref="BlockEntity"/> with the provided identifier and type.
     /// </summary>
     /// <param name="id">Unique identifier assigned to the block.</param>
@@ -32,6 +43,8 @@ public class BlockEntity
         Id = id;
         BlockType = blockType;
         WaterLevel = blockType == BlockType.Water ? (byte)7 : (byte)0;
+        LightLevel = 15;
+        LightColor = Vector3.One;
     }
 
     public override string ToString() => $"BlockEntity({Id}, {BlockType})";
