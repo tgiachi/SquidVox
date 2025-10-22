@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Serilog;
+using SquidCraft.Game.Data.Primitives;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Scripts;
@@ -14,8 +15,8 @@ using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
 using SquidVox.Voxel.Data;
 using SquidVox.Voxel.Interfaces;
+using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
-using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
 using SquidVox.World3d.Scripts;
 using SquidVox.World3d.Services;
@@ -33,6 +34,7 @@ public class SquidVoxWorld : Game
     private readonly IContainer _container;
     private readonly RenderLayerCollection _renderLayers = new();
     private IInputManager _inputManager;
+
 
     /// <summary>
     /// Initializes a new instance of the SquidVoxWorld class.
@@ -112,9 +114,6 @@ public class SquidVoxWorld : Game
 
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
-        // TODO: Setup camera and world components when WorldComponent is implemented
-
-
 
     }
 
@@ -144,6 +143,12 @@ public class SquidVoxWorld : Game
 
     protected override void Update(GameTime gameTime)
     {
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+            Keyboard.GetState().IsKeyDown(Keys.Escape))
+        {
+            Exit();
+        }
+
         _inputManager.Update(gameTime);
 
         _inputManager.DistributeInput(gameTime);
@@ -155,13 +160,13 @@ public class SquidVoxWorld : Game
 
     protected override void Draw(GameTime gameTime)
     {
+
         GraphicsDevice.Clear(SquidVoxGraphicContext.ClearColor);
 
         _renderLayers.RenderAll(_spriteBatch);
 
         base.Draw(gameTime);
     }
-
 
     private static Task<ChunkEntity> CreateFlatChunkAsync(int chunkX, int chunkY, int chunkZ)
     {
@@ -217,7 +222,7 @@ public class SquidVoxWorld : Game
 
                     if (blockType != BlockType.Air)
                     {
-                        chunk[x, y, z] = new BlockCell(blockType, 0);
+                        chunk.SetBlock(x, y, z, new BlockEntity(id++, blockType));
                     }
                 }
             }
@@ -225,7 +230,4 @@ public class SquidVoxWorld : Game
 
         return Task.FromResult(chunk);
     }
-
-
-
 }
