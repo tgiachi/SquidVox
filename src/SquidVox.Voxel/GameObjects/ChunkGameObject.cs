@@ -8,9 +8,9 @@ using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
-using SquidVox.Voxel.Interfaces;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
+using IBlockManagerService = SquidVox.Voxel.Interfaces.Services.IBlockManagerService;
 
 namespace SquidVox.Voxel.GameObjects;
 
@@ -28,11 +28,11 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
     private readonly GraphicsDevice _graphicsDevice;
     private readonly IBlockManagerService _blockManagerService;
-    private readonly BasicEffect _effect;
-    private readonly AlphaTestEffect _alphaTestEffect;
+    private readonly Effect _blockEffect;
     private readonly Effect _billboardEffect;
     private readonly Effect _fluidEffect;
     private readonly ILogger _logger = Log.ForContext<ChunkGameObject>();
+    private BasicEffect? _debugEffect;
 
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
@@ -97,32 +97,17 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
 
         var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        _blockEffect = assetManager.GetEffect("Effects/ChunkBlockSimple");
         _billboardEffect = assetManager.GetEffect("Effects/ChunkBillboard");
         _fluidEffect = assetManager.GetEffect("Effects/ChunkFluid");
 
         _whiteTexture = new Texture2D(_graphicsDevice, 1, 1);
         _whiteTexture.SetData(new[] { Color.White });
 
-        _effect = new BasicEffect(_graphicsDevice)
-        {
-            TextureEnabled = true,
-            LightingEnabled = false,
-            VertexColorEnabled = true,
-            FogEnabled = true,
-            FogColor = new Vector3(0.7f, 0.8f, 0.9f),
-            FogStart = 80f,
-            FogEnd = 150f
-        };
-
-        _alphaTestEffect = new AlphaTestEffect(_graphicsDevice)
+        _debugEffect = new BasicEffect(_graphicsDevice)
         {
             VertexColorEnabled = true,
-            AlphaFunction = CompareFunction.Greater,
-            ReferenceAlpha = 128,
-            FogEnabled = true,
-            FogColor = new Vector3(0.7f, 0.8f, 0.9f),
-            FogStart = 80f,
-            FogEnd = 150f
+            LightingEnabled = false
         };
     }
 
@@ -387,65 +372,39 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             rotation *
             Matrix.CreateTranslation(_chunkCenter + Position);
 
-        _effect.World = world;
-        _effect.View = view;
-        _effect.Projection = projection;
-        _effect.Texture = TextureEnabled ? _texture : _whiteTexture;
-        _effect.TextureEnabled = true;
-        _effect.Alpha = Opacity;
-        _effect.FogEnabled = FogEnabled;
-        _effect.FogColor = FogColor;
-        _effect.FogStart = FogStart;
-        _effect.FogEnd = FogEnd;
-
         var previousBlendState = _graphicsDevice.BlendState;
         var previousDepthStencilState = _graphicsDevice.DepthStencilState;
         var previousRasterizerState = _graphicsDevice.RasterizerState;
         var previousSamplerState = _graphicsDevice.SamplerStates[0];
 
-        var needsBlending = RenderTransparentBlocks || _opacity < 1f;
-
         _graphicsDevice.SetVertexBuffer(_vertexBuffer);
         _graphicsDevice.Indices = _indexBuffer;
 
-        if (needsBlending)
+        if (_blockEffect != null && _primitiveCount > 0)
         {
-            _graphicsDevice.BlendState = BlendState.AlphaBlend;
+            var needsBlending = RenderTransparentBlocks || _opacity < 1f;
+
+            _graphicsDevice.BlendState = needsBlending ? BlendState.AlphaBlend : BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             if (previousRasterizerState.FillMode == FillMode.Solid)
             {
                 _graphicsDevice.RasterizerState = RasterizerState.CullNone;
             }
-
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
-            _alphaTestEffect.World = world;
-            _alphaTestEffect.View = view;
-            _alphaTestEffect.Projection = projection;
-            _alphaTestEffect.Texture = TextureEnabled ? _texture : _whiteTexture;
-            _alphaTestEffect.FogEnabled = FogEnabled;
-            _alphaTestEffect.FogColor = FogColor;
-            _alphaTestEffect.FogStart = FogStart;
-            _alphaTestEffect.FogEnd = FogEnd;
+            _blockEffect.Parameters["model"]?.SetValue(Position);
+            _blockEffect.Parameters["view"]?.SetValue(view);
+            _blockEffect.Parameters["projection"]?.SetValue(projection);
+            _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : _whiteTexture);
+            _blockEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
+            _blockEffect.Parameters["fogEnabled"]?.SetValue(FogEnabled);
+            _blockEffect.Parameters["fogColor"]?.SetValue(FogColor);
+            _blockEffect.Parameters["fogStart"]?.SetValue(FogStart);
+            _blockEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
+            
+            _blockEffect.CurrentTechnique = _blockEffect.Techniques["ChunkBlockSimple"];
 
-            foreach (var pass in _alphaTestEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _primitiveCount);
-            }
-        }
-        else
-        {
-            _graphicsDevice.BlendState = BlendState.Opaque;
-            _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            if (previousRasterizerState.FillMode == FillMode.Solid)
-            {
-                _graphicsDevice.RasterizerState = RasterizerState.CullNone;
-            }
-
-            _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
-
-            foreach (var pass in _effect.CurrentTechnique.Passes)
+            foreach (var pass in _blockEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 _graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _primitiveCount);
@@ -518,8 +477,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     public void Dispose()
     {
         ClearGeometry();
-        _effect.Dispose();
-        _alphaTestEffect.Dispose();
+        _debugEffect?.Dispose();
         _whiteTexture?.Dispose();
     }
 
@@ -1021,49 +979,52 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         float y1 = blockY + height;
         float z1 = blockZ + 1f;
 
+        var direction = (byte)GetDirectionIndex(side);
+        var colorWithDir = new Color(color.R, color.G, color.B, direction);
+
         return side switch
         {
             BlockSide.Top => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y1, z), color, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y1, z1), color, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z1), color, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z), color, new Vector2(max.X, min.Y))
+                new VertexPositionColorTexture(new Vector3(x, y1, z), colorWithDir, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y1, z1), colorWithDir, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z1), colorWithDir, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z), colorWithDir, new Vector2(max.X, min.Y))
             },
             BlockSide.Bottom => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y, z1), color, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z), color, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z), color, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z1), color, new Vector2(max.X, min.Y))
+                new VertexPositionColorTexture(new Vector3(x, y, z1), colorWithDir, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z), colorWithDir, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z), colorWithDir, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z1), colorWithDir, new Vector2(max.X, min.Y))
             },
             BlockSide.North => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y1, z), color, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z), color, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z), color, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z), color, new Vector2(max.X, min.Y))
+                new VertexPositionColorTexture(new Vector3(x, y1, z), colorWithDir, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z), colorWithDir, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z), colorWithDir, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z), colorWithDir, new Vector2(max.X, min.Y))
             },
             BlockSide.South => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x1, y1, z1), color, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z1), color, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z1), color, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y1, z1), color, new Vector2(max.X, min.Y))
+                new VertexPositionColorTexture(new Vector3(x1, y1, z1), colorWithDir, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z1), colorWithDir, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z1), colorWithDir, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y1, z1), colorWithDir, new Vector2(max.X, min.Y))
             },
             BlockSide.East => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x1, y1, z), color, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z), color, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z1), color, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z1), color, new Vector2(max.X, min.Y))
+                new VertexPositionColorTexture(new Vector3(x1, y1, z), colorWithDir, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z), colorWithDir, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z1), colorWithDir, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z1), colorWithDir, new Vector2(max.X, min.Y))
             },
             BlockSide.West => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y1, z1), color, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z1), color, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z), color, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y1, z), color, new Vector2(max.X, min.Y))
+                new VertexPositionColorTexture(new Vector3(x, y1, z1), colorWithDir, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z1), colorWithDir, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z), colorWithDir, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y1, z), colorWithDir, new Vector2(max.X, min.Y))
             },
             _ => throw new ArgumentOutOfRangeException(nameof(side), side, "Unsupported side type")
         };

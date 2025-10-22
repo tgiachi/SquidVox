@@ -7,6 +7,7 @@ using Serilog;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Voxel.Data.Entities;
 using SquidVox.Voxel.Interfaces;
+using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Types;
 
 namespace SquidVox.Voxel.Services;

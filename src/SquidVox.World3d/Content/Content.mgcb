@@ -53,3 +53,8 @@
 /processor:EffectProcessor
 /build:Effects/Clouds.fx
 
+#begin Effects/ChunkBlockSimple.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:Effects/ChunkBlockSimple.fx
+

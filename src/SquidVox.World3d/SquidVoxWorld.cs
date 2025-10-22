@@ -87,6 +87,7 @@ public class SquidVoxWorld : Game
         assetsManager.LoadEffect("Effects/ChunkBlock");
         assetsManager.LoadEffect("Effects/SkyPanorama");
         assetsManager.LoadEffect("Effects/DynamicSky");
+        assetsManager.LoadEffect("Effects/ChunkBlockSimple");
 
         assetsManager.LoadEffect("Effects/Clouds");
 
@@ -247,7 +248,7 @@ public class SquidVoxWorld : Game
             for (int z = 0; z < ChunkEntity.Size; z++)
             {
                 bool isInLake = (x >= 4 && x <= 11 && z >= 4 && z <= 11);
-                
+
                 for (int y = 0; y < ChunkEntity.Height; y++)
                 {
                     BlockType blockType = BlockType.Air;

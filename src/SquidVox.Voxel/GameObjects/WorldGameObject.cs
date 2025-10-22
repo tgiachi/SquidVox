@@ -6,6 +6,7 @@ using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Voxel.Interfaces;
+using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Systems;
 using SquidVox.Voxel.Types;

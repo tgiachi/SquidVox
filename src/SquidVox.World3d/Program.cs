@@ -15,6 +15,7 @@ using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
 using SquidVox.Voxel.Interfaces;
+using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Json;
 using SquidVox.Voxel.Modules;
 using SquidVox.Voxel.Services;

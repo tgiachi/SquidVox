@@ -1,9 +1,8 @@
+using MonoGame.Extended.Graphics;
 using SquidVox.Voxel.Data.Entities;
 using SquidVox.Voxel.Types;
-using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Extended.Graphics;
 
-namespace SquidVox.Voxel.Interfaces;
+namespace SquidVox.Voxel.Interfaces.Services;
 
 /// <summary>
 /// Defines the contract for block management services.
