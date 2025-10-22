@@ -85,10 +85,7 @@ public class SquidVoxWorld : Game
         assetsManager.LoadEffect("Effects/ChunkFluid");
         assetsManager.LoadEffect("Effects/ChunkSolid");
         assetsManager.LoadEffect("Effects/ChunkBlock");
-        assetsManager.LoadEffect("Effects/SkyPanorama");
         assetsManager.LoadEffect("Effects/DynamicSky");
-        assetsManager.LoadEffect("Effects/ChunkBlockSimple");
-
         assetsManager.LoadEffect("Effects/Clouds");
 
         base.Initialize();

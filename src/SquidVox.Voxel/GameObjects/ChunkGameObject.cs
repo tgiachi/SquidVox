@@ -97,7 +97,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
 
         var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
-        _blockEffect = assetManager.GetEffect("Effects/ChunkBlockSimple");
+        _blockEffect = assetManager.GetEffect("Effects/ChunkBlock");
         _billboardEffect = assetManager.GetEffect("Effects/ChunkBillboard");
         _fluidEffect = assetManager.GetEffect("Effects/ChunkFluid");
 
@@ -401,7 +401,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _blockEffect.Parameters["fogColor"]?.SetValue(FogColor);
             _blockEffect.Parameters["fogStart"]?.SetValue(FogStart);
             _blockEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
-            
+
             _blockEffect.CurrentTechnique = _blockEffect.Techniques["ChunkBlockSimple"];
 
             foreach (var pass in _blockEffect.CurrentTechnique.Passes)
@@ -414,7 +414,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         if (_billboardVertexBuffer != null && _billboardIndexBuffer != null && _billboardPrimitiveCount > 0)
         {
             _graphicsDevice.BlendState = BlendState.Opaque;
-            
+
             var depthStencilState = new DepthStencilState
             {
                 DepthBufferEnable = true,
@@ -422,7 +422,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 DepthBufferFunction = CompareFunction.LessEqual
             };
             _graphicsDevice.DepthStencilState = depthStencilState;
-            
+
             var billboardRasterizer = new RasterizerState
             {
                 CullMode = CullMode.None,

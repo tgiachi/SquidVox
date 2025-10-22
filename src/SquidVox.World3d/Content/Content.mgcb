@@ -32,11 +32,6 @@
 /build:Effects/ChunkSolid.fx
 
 
-#begin Effects/SkyPanorama.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Effects/SkyPanorama.fx
 
 #begin Effects/ChunkBlock.fx
 /importer:EffectImporter
@@ -52,9 +47,3 @@
 /importer:EffectImporter
 /processor:EffectProcessor
 /build:Effects/Clouds.fx
-
-#begin Effects/ChunkBlockSimple.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/build:Effects/ChunkBlockSimple.fx
-
