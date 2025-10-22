@@ -14,7 +14,7 @@ namespace SquidVox.World3d.GameObjects;
 /// <summary>
 /// Renders a single chunk with basic meshing.
 /// </summary>
-public sealed class ChunkComponent : Base3dGameObject
+public sealed class ChunkComponent : Base3dGameObject, IDisposable
 {
     private static readonly Dictionary<BlockSide, (int X, int Y, int Z)> NeighborOffsets = new()
     {
@@ -129,10 +129,10 @@ public sealed class ChunkComponent : Base3dGameObject
                 for (int z = 0; z < ChunkEntity.Depth; z++)
                 {
                     ref var cell = ref _chunk.At(x, y, z);
-                    if (cell.Type == BlockType.Air)
+                    if (cell.BlockType == BlockType.Air)
                         continue;
 
-                    var blockColor = GetBlockColor(cell.Type);
+                    var blockColor = GetBlockColor(cell.BlockType);
 
                     foreach (BlockSide side in Enum.GetValues<BlockSide>())
                     {
@@ -180,7 +180,7 @@ public sealed class ChunkComponent : Base3dGameObject
 
         if (nx >= 0 && nx < ChunkEntity.Width && ny >= 0 && ny < ChunkEntity.Height && nz >= 0 && nz < ChunkEntity.Depth)
         {
-            return _chunk!.At(nx, ny, nz).Type == BlockType.Air;
+            return _chunk!.At(nx, ny, nz).BlockType == BlockType.Air;
         }
 
         return true;
@@ -305,5 +305,11 @@ public sealed class ChunkComponent : Base3dGameObject
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
+    }
+
+    public void Dispose()
+    {
+        _vertexBuffer?.Dispose();
+        _indexBuffer?.Dispose();
     }
 }

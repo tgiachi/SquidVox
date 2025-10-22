@@ -186,6 +186,19 @@ public class ChunkEntity
     }
 
     /// <summary>
+    /// Checks if the specified coordinates are within the bounds of the chunk.
+    /// </summary>
+    /// <param name="x">The x coordinate.</param>
+    /// <param name="y">The y coordinate.</param>
+    /// <param name="z">The z coordinate.</param>
+    /// <returns>True if the coordinates are within bounds, false otherwise.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsInBounds(int x, int y, int z)
+    {
+        return x >= 0 && x < Width && y >= 0 && y < Height && z >= 0 && z < Depth;
+    }
+
+    /// <summary>
     /// Initializes a new instance of the ChunkEntity class from a vector position.
     /// </summary>
     /// <param name="chunkPos">The chunk position.</param>

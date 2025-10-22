@@ -12,7 +12,7 @@ public struct BlockCell
     /// <summary>
     /// Gets or sets the block type.
     /// </summary>
-    public BlockType Type;
+    public BlockType BlockType;
 
     /// <summary>
     /// Gets or sets the block metadata.
@@ -22,21 +22,21 @@ public struct BlockCell
     /// <summary>
     /// Initializes a new instance of the BlockCell struct.
     /// </summary>
-    /// <param name="type">The block type.</param>
+    /// <param name="blockType">The block type.</param>
     /// <param name="metadata">The block metadata.</param>
-    public BlockCell(BlockType type, BlockMetadata metadata = default)
+    public BlockCell(BlockType blockType, BlockMetadata metadata = default)
     {
-        Type = type;
+        BlockType = blockType;
         Metadata = metadata;
     }
 
     /// <summary>
     /// Initializes a new instance of the BlockCell struct with metadata from a byte.
     /// </summary>
-    /// <param name="type">The block type.</param>
+    /// <param name="blockType">The block type.</param>
     /// <param name="metadata">The metadata value as a byte.</param>
-    public BlockCell(BlockType type, byte metadata)
-        : this(type, new BlockMetadata(metadata))
+    public BlockCell(BlockType blockType, byte metadata)
+        : this(blockType, new BlockMetadata(metadata))
     {
     }
 
