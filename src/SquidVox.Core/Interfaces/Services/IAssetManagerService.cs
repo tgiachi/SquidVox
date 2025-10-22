@@ -12,6 +12,10 @@ namespace SquidVox.Core.Interfaces.Services;
 public interface IAssetManagerService : IDisposable
 {
 
+    /// <summary>
+    /// Sets the content manager.
+    /// </summary>
+    /// <param name="contentManager">The content manager.</param>
     void SetContentManager(ContentManager contentManager);
 
     /// <summary>

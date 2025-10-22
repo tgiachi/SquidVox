@@ -12,6 +12,9 @@ using SquidVox.Voxel.Types;
 
 namespace SquidVox.Voxel.Services;
 
+/// <summary>
+/// Manages block definitions and textures.
+/// </summary>
 public partial class BlockManagerService : IBlockManagerService
 {
     [GeneratedRegex(@"^([^#]+)#(\d+)(?:-(\d+))?$")]
@@ -141,6 +144,9 @@ public partial class BlockManagerService : IBlockManagerService
     }
 }
 
+/// <summary>
+/// Represents a block side entity.
+/// </summary>
 public record BlockSideEntity(
     BlockSide Side,
     Texture2DRegion? Region,

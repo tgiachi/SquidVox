@@ -11,6 +11,7 @@ using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
 using SquidVox.Voxel.GameObjects;
+using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 using SquidVox.World3d.GameObjects;
@@ -62,6 +63,8 @@ public class SquidVoxWorld : Game
         SquidVoxGraphicContext.WhitePixel = new Texture2D(GraphicsDevice, 1, 1);
         SquidVoxGraphicContext.WhitePixel.SetData([Color.White]);
         var assetsManager = _container.Resolve<IAssetManagerService>();
+        _ = _container.Resolve<ITimerService>();
+        _ = _container.Resolve<IChunkGeneratorService>();
         assetsManager.SetContentManager(Content);
 
 

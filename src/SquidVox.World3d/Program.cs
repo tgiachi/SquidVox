@@ -69,6 +69,9 @@ await ConsoleApp.RunAsync(
         container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
         container.Register<IInputManager, InputManagerService>(Reuse.Singleton);
         container.Register<IBlockManagerService, BlockManagerService>(Reuse.Singleton);
+        container.Register<IChunkGeneratorService, ChunkGeneratorService>(Reuse.Singleton);
+        container.Register<ITimerService, TimerService>(Reuse.Singleton);
+
 
 
         using var game = new SquidVoxWorld(container);
