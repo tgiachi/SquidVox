@@ -25,7 +25,7 @@ internal struct MergedFace
     /// <summary>
     /// Gets or sets the Z position.
     /// </summary>
-    public int Z;
+    public int Z ;
 
     /// <summary>
     /// Gets or sets the width.

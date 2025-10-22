@@ -87,6 +87,7 @@ public class SquidVoxWorld : Game
         assetsManager.LoadEffect("Effects/ChunkBlock");
         assetsManager.LoadEffect("Effects/DynamicSky");
         assetsManager.LoadEffect("Effects/Clouds");
+        assetsManager.LoadEffect("Effects/Rain");
 
         base.Initialize();
     }
@@ -179,7 +180,7 @@ public class SquidVoxWorld : Game
         var clouds = (new CloudsGameObject(_renderLayers.GetComponent<CameraGameObject>()));
 
         clouds.GenerateRandomClouds(
-            count: 20,
+            count: 100,
             minPosition: new Vector3(-200, 80, -200),
             maxPosition: new Vector3(200, 120, 200),
             minSize: new Vector3(8, 4, 8),
@@ -190,6 +191,13 @@ public class SquidVoxWorld : Game
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
+        _renderLayers.GetLayer<GameObject3dRenderLayer>()
+            .AddGameObject(
+                new WeatherGameObject(_renderLayers.GetComponent<CameraGameObject>())
+                {
+                    RainIntensity = 0.5f
+                }
+            );
 
 
     }

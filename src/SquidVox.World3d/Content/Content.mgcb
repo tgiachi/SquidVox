@@ -40,3 +40,8 @@
 /importer:EffectImporter
 /processor:EffectProcessor
 /build:Effects/Clouds.fx
+
+#begin Effects/Rain.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:Effects/Rain.fx

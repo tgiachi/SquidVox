@@ -14,6 +14,8 @@ using SquidVox.Core.Json;
 using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
+using SquidVox.Voxel.Contexts;
+using SquidVox.Voxel.Data.Entities;
 using SquidVox.Voxel.Interfaces;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Json;
@@ -55,6 +57,7 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<RenderLayerModule>()
             .AddLuaScriptModule<BlockManagerModule>()
             .AddLuaScriptModule<GameTimeModule>()
+            .AddLuaScriptModule<GenerationModule>()
             ;
 
 
@@ -63,6 +66,8 @@ await ConsoleApp.RunAsync(
         UserData.RegisterType<Vector2>();
         UserData.RegisterType<Vector3>();
         UserData.RegisterType(typeof(ImGui));
+        UserData.RegisterType<BlockDefinitionData>();
+        UserData.RegisterType<GeneratorContext>();
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
