@@ -173,10 +173,7 @@ public class SquidVoxWorld : Game
         worldManager.EnableWireframe = false;
 
 
-        var assetManager = _container.Resolve<IAssetManagerService>();
         var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());
-
-        skyPanorama.SetSkyTexture(assetManager.GetTexture("skybox"));
 
         //skyPanorama.DebugMode = true;
 
@@ -192,7 +189,6 @@ public class SquidVoxWorld : Game
         );
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(skyPanorama);
-
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
         // _renderLayers.GetLayer<GameObject3dRenderLayer>()
@@ -202,13 +198,13 @@ public class SquidVoxWorld : Game
         //             RainIntensity = 0.5f
         //         }
         //     );
-        _renderLayers.GetLayer<GameObject3dRenderLayer>()
-            .AddGameObject(
-                new SnowGameObject(_renderLayers.GetComponent<CameraGameObject>())
-                {
-                    SnowIntensity = 0.5f
-                }
-            );
+        // _renderLayers.GetLayer<GameObject3dRenderLayer>()
+        //     .AddGameObject(
+        //         new SnowGameObject(_renderLayers.GetComponent<CameraGameObject>())
+        //         {
+        //             SnowIntensity = 0.5f
+        //         }
+        //     );
     }
 
     /// <summary>

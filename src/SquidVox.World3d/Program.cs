@@ -5,6 +5,7 @@ using ImGuiNET;
 using Microsoft.Xna.Framework;
 using MoonSharp.Interpreter;
 using Serilog;
+using Serilog.Formatting.Compact;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Directories;
 using SquidVox.Core.Enums;
@@ -27,14 +28,13 @@ using SquidVox.World3d.Services;
 
 await ConsoleApp.RunAsync(
     args,
-    async (string? rootDirectory = null) =>
+    async (string? rootDirectory = null, bool logToFile = true) =>
     {
         JsonUtils.RegisterJsonContext(SquidVoxLuaScriptJsonContext.Default);
         JsonUtils.RegisterJsonContext(SquidVoxVoxelJsonContext.Default);
 
-        Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
-            .WriteTo.Console(formatProvider: CultureInfo.DefaultThreadCurrentCulture)
-            .CreateLogger();
+        var loggingConfiguration = new LoggerConfiguration().MinimumLevel.Debug()
+            .WriteTo.Console(formatProvider: CultureInfo.DefaultThreadCurrentCulture);
 
 
         rootDirectory = rootDirectory.ResolvePathAndEnvs();
@@ -43,6 +43,16 @@ await ConsoleApp.RunAsync(
 
         var directoriesConfig = new DirectoriesConfig(rootDirectory, Enum.GetNames<DirectoryType>());
 
+        if (logToFile)
+        {
+            loggingConfiguration = loggingConfiguration.WriteTo.File(
+                new CompactJsonFormatter(),
+                path: Path.Combine(directoriesConfig[DirectoryType.Logs], "squidvox_world_.log"),
+                rollingInterval: RollingInterval.Day
+            );
+        }
+
+        Log.Logger = loggingConfiguration.CreateLogger();
 
         var container = new Container();
         SquidVoxGraphicContext.Container = container;
@@ -76,7 +86,6 @@ await ConsoleApp.RunAsync(
         container.Register<IBlockManagerService, BlockManagerService>(Reuse.Singleton);
         container.Register<IChunkGeneratorService, ChunkGeneratorService>(Reuse.Singleton);
         container.Register<ITimerService, TimerService>(Reuse.Singleton);
-
 
 
         using var game = new SquidVoxWorld(container);
