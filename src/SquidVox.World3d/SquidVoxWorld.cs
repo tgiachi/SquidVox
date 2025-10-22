@@ -85,6 +85,10 @@ public class SquidVoxWorld : Game
         assetsManager.LoadEffect("Effects/ChunkFluid");
         assetsManager.LoadEffect("Effects/ChunkSolid");
         assetsManager.LoadEffect("Effects/ChunkBlock");
+        assetsManager.LoadEffect("Effects/SkyPanorama");
+        assetsManager.LoadEffect("Effects/DynamicSky");
+
+        assetsManager.LoadEffect("Effects/Clouds");
 
         base.Initialize();
     }
@@ -133,12 +137,35 @@ public class SquidVoxWorld : Game
                 )
             );
 
+
+
+
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
         worldManager.ChunkGenerator = CreateFlatChunkAsync;
         worldManager.EnableWireframe = false;
 
+
+
+        var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());
+
+        //skyPanorama.DebugMode = true;
+
+
+        var clouds = (new CloudsGameObject(_renderLayers.GetComponent<CameraGameObject>()));
+
+        clouds.GenerateRandomClouds(
+            count: 20,                                // Numero di nuvole
+            minPosition: new Vector3(-200, 80, -200), // Bounds min
+            maxPosition: new Vector3(200, 120, 200),  // Bounds max
+            minSize: new Vector3(8, 4, 8),            // Dimensione minima
+            maxSize: new Vector3(20, 10, 20)          // Dimensione massima
+        );
+
+        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(skyPanorama);
+
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
+        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
     }
 
     /// <summary>

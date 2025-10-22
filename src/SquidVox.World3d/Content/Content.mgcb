@@ -43,3 +43,13 @@
 /processor:EffectProcessor
 /build:Effects/ChunkBlock.fx
 
+#begin Effects/DynamicSky.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:Effects/DynamicSky.fx
+
+#begin Effects/Clouds.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:Effects/Clouds.fx
+

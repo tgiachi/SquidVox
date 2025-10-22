@@ -51,7 +51,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
     // Animate UV coordinates: scroll horizontally based on timer
-    float2 animatedUV = float2(Timer, input.UV.y);
+    float2 animatedUV = float2(input.UV.x + Timer, input.UV.y);
 
     // Sample the sky texture with animated coordinates
     return tex2D(SkyTextureSampler, animatedUV);
