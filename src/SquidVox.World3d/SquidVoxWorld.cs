@@ -1,6 +1,5 @@
 using DryIoc;
 using FontStashSharp;
-using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -9,17 +8,12 @@ using SquidCraft.Game.Data.Primitives;
 using SquidVox.Core.Collections;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Scripts;
-using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
-using SquidVox.Voxel.Data;
-using SquidVox.Voxel.Interfaces;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 using SquidVox.World3d.Rendering;
-using SquidVox.World3d.Scripts;
-using SquidVox.World3d.Services;
 
 namespace SquidVox.World3d;
 

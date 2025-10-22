@@ -87,7 +87,7 @@ public class GameObject3dRenderLayer : IRenderableLayer
     {
         _gameObjects.CheckForZIndexChanges();
 
-        _gameObjects.RenderAll(spriteBatch.GraphicsDevice);
+        _gameObjects.DrawAll(new GameTime());
     }
 
     /// <summary>

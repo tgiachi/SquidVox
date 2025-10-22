@@ -16,6 +16,11 @@ public abstract class Base2dGameObject : ISVox2dDrawableGameObject, ISVoxInputRe
     private readonly SvoxGameObjectCollection<ISVox2dDrawableGameObject> _children = [];
 
     /// <summary>
+    /// Gets the unique identifier of the game object.
+    /// </summary>
+    public string Id { get; } = Guid.NewGuid().ToString();
+
+    /// <summary>
     /// Gets or sets the name of the game object.
     /// </summary>
     public virtual string Name { get; set; } = "Unnamed GameObject";

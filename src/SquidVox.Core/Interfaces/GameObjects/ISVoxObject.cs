@@ -8,6 +8,11 @@ namespace SquidVox.Core.Interfaces.GameObjects;
 public interface ISVoxObject
 {
     /// <summary>
+    /// Gets the unique identifier of the game object.
+    /// </summary>
+    string Id { get; }
+
+    /// <summary>
     /// Gets or sets the name of the game object.
     /// </summary>
     string Name { get; set; }

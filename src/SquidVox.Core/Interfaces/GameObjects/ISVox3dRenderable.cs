@@ -19,13 +19,18 @@ public interface ISVox3dRenderable
     Vector3 Scale { get; set; }
 
     /// <summary>
-    /// Gets or sets the rotation of the 3D object as a quaternion.
+    /// Gets or sets the rotation of the 3D object as a vector (Yaw, Pitch, Roll in radians).
     /// </summary>
-    Quaternion Rotation { get; set; }
+    Vector3 Rotation { get; set; }
 
     /// <summary>
-    /// Renders the 3D object using the provided graphics device.
+    /// Gets or sets the opacity of the 3D object (0.0 to 1.0).
     /// </summary>
-    /// <param name="graphicsDevice">The graphics device for rendering.</param>
-    void Render(GraphicsDevice graphicsDevice);
+    float Opacity { get; set; }
+
+    /// <summary>
+    /// Draws the 3D object.
+    /// </summary>
+    /// <param name="gameTime">Game timing information.</param>
+    void Draw3d(GameTime gameTime);
 }

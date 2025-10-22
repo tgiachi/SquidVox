@@ -13,6 +13,11 @@ public class MockGameObject : ISVox2dDrawableGameObject
     /// <summary>
     /// 
     /// </summary>
+    public string Id { get; } = Guid.NewGuid().ToString();
+
+    /// <summary>
+    /// 
+    /// </summary>
     public string Name { get; set; } = string.Empty;
     /// <summary>
     /// 

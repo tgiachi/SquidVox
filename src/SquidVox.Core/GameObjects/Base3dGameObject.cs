@@ -14,6 +14,11 @@ public abstract class Base3dGameObject : ISVox3dDrawableGameObject, ISVoxInputRe
     private readonly SvoxGameObjectCollection<ISVox3dDrawableGameObject> _children = [];
 
     /// <summary>
+    /// Gets the unique identifier of the game object.
+    /// </summary>
+    public string Id { get; } = Guid.NewGuid().ToString();
+
+    /// <summary>
     /// Gets or sets the name of the game object.
     /// </summary>
     public virtual string Name { get; set; } = "Unnamed 3D GameObject";
@@ -44,9 +49,14 @@ public abstract class Base3dGameObject : ISVox3dDrawableGameObject, ISVoxInputRe
     public virtual Vector3 Scale { get; set; } = Vector3.One;
 
     /// <summary>
-    /// Gets or sets the rotation of the game object as a quaternion.
+    /// Gets or sets the rotation of the game object as a vector (Yaw, Pitch, Roll in radians).
     /// </summary>
-    public virtual Quaternion Rotation { get; set; } = Quaternion.Identity;
+    public virtual Vector3 Rotation { get; set; } = Vector3.Zero;
+
+    /// <summary>
+    /// Gets or sets the opacity of the game object (0.0 to 1.0).
+    /// </summary>
+    public virtual float Opacity { get; set; } = 1.0f;
 
     /// <summary>
     /// Gets the children of this game object.
@@ -118,7 +128,7 @@ public abstract class Base3dGameObject : ISVox3dDrawableGameObject, ISVoxInputRe
     /// This considers the rotation of all parent objects in the hierarchy.
     /// </summary>
     /// <returns>The absolute rotation in world space.</returns>
-    public Quaternion GetAbsoluteRotation()
+    public Vector3 GetAbsoluteRotation()
     {
         if (Parent == null)
         {
@@ -127,12 +137,12 @@ public abstract class Base3dGameObject : ISVox3dDrawableGameObject, ISVoxInputRe
 
         if (Parent is Base3dGameObject parentGameObject)
         {
-            return Rotation * parentGameObject.GetAbsoluteRotation();
+            return Rotation + parentGameObject.GetAbsoluteRotation();
         }
 
         if (Parent is ISVox3dRenderable renderable3d)
         {
-            return Rotation * renderable3d.Rotation;
+            return Rotation + renderable3d.Rotation;
         }
 
         return Rotation;
@@ -210,24 +220,24 @@ public abstract class Base3dGameObject : ISVox3dDrawableGameObject, ISVoxInputRe
     }
 
     /// <summary>
-    /// Renders the game object and all its visible children.
+    /// Draws the game object and all its visible children.
     /// </summary>
-    /// <param name="graphicsDevice">The graphics device for rendering.</param>
-    public virtual void Render(GraphicsDevice graphicsDevice)
+    /// <param name="gameTime">Game timing information.</param>
+    public virtual void Draw3d(GameTime gameTime)
     {
         if (!IsVisible)
         {
             return;
         }
 
-        OnRender(graphicsDevice);
+        OnDraw3d(gameTime);
 
         for (var i = 0; i < _children.Count; i++)
         {
             var child = _children[i];
             if (child.IsVisible)
             {
-                child.Render(graphicsDevice);
+                child.Draw3d(gameTime);
             }
         }
     }
@@ -288,11 +298,11 @@ public abstract class Base3dGameObject : ISVox3dDrawableGameObject, ISVoxInputRe
     }
 
     /// <summary>
-    /// Called during Render() before children are rendered.
-    /// Override this to add custom rendering logic.
+    /// Called during Draw3d() before children are drawn.
+    /// Override this to add custom drawing logic.
     /// </summary>
-    /// <param name="graphicsDevice">The graphics device for rendering.</param>
-    protected virtual void OnRender(GraphicsDevice graphicsDevice)
+    /// <param name="gameTime">Game timing information.</param>
+    protected virtual void OnDraw3d(GameTime gameTime)
     {
     }
 
@@ -332,5 +342,16 @@ public abstract class Base3dGameObject : ISVox3dDrawableGameObject, ISVoxInputRe
     /// <param name="child">The child that was removed.</param>
     protected virtual void OnChildRemoved(ISVoxObject child)
     {
+    }
+
+    /// <summary>
+    /// Gets the world transformation matrix for this component.
+    /// </summary>
+    /// <returns>World matrix combining scale, rotation, and translation.</returns>
+    public Matrix GetWorldMatrix()
+    {
+        return Matrix.CreateScale(Scale) *
+               Matrix.CreateFromYawPitchRoll(Rotation.Y, Rotation.X, Rotation.Z) *
+               Matrix.CreateTranslation(Position);
     }
 }

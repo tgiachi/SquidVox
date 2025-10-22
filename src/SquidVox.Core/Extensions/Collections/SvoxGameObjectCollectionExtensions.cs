@@ -34,12 +34,12 @@ public static class SvoxGameObjectCollectionExtensions
     }
 
     /// <summary>
-    /// Renders all visible 3D game objects in the collection.
+    /// Draws all visible 3D game objects in the collection.
     /// </summary>
     /// <typeparam name="T">Type implementing ISVox3dDrawableGameObject</typeparam>
     /// <param name="collection">Collection of 3D game objects.</param>
-    /// <param name="graphicsDevice">The graphics device for rendering.</param>
-    public static void RenderAll<T>(this SvoxGameObjectCollection<T> collection, GraphicsDevice graphicsDevice)
+    /// <param name="gameTime">Game timing information.</param>
+    public static void DrawAll<T>(this SvoxGameObjectCollection<T> collection, GameTime gameTime)
         where T : class, ISVox3dDrawableGameObject
     {
         collection.CheckForZIndexChanges();
@@ -49,7 +49,7 @@ public static class SvoxGameObjectCollectionExtensions
             var gameObject = collection[i];
             if (gameObject.IsVisible)
             {
-                gameObject.Render(graphicsDevice);
+                gameObject.Draw3d(gameTime);
             }
         }
     }

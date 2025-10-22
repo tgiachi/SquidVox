@@ -139,7 +139,7 @@ public abstract class BaseScene : ISVoxScene
 
         OnRenderBegin(spriteBatch);
 
-        OnRender3d(spriteBatch.GraphicsDevice);
+        OnDraw3d(new GameTime());
 
         Components.RenderAll(spriteBatch);
         OnRenderEnd(spriteBatch);
@@ -239,12 +239,12 @@ public abstract class BaseScene : ISVoxScene
     }
 
     /// <summary>
-    /// Called during Render() to render 3D components.
-    /// Override this to add custom 3D rendering logic or control rendering order.
-    /// By default, renders all visible 3D components in the Components3d collection.
+    /// Called during Render() to draw 3D components.
+    /// Override this to add custom 3D drawing logic or control drawing order.
+    /// By default, draws all visible 3D components in the Components3d collection.
     /// </summary>
-    /// <param name="graphicsDevice">The graphics device for rendering.</param>
-    protected virtual void OnRender3d(GraphicsDevice graphicsDevice)
+    /// <param name="gameTime">Game timing information.</param>
+    protected virtual void OnDraw3d(GameTime gameTime)
     {
         Components3d.CheckForZIndexChanges();
 
@@ -253,7 +253,7 @@ public abstract class BaseScene : ISVoxScene
             var component = Components3d[i];
             if (component.IsVisible)
             {
-                component.Render(graphicsDevice);
+                component.Draw3d(gameTime);
             }
         }
     }
