@@ -12,7 +12,9 @@ using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
+using SquidVox.Voxel.Data;
 using SquidVox.Voxel.Interfaces;
+using SquidVox.Voxel.Types;
 using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.Rendering;
 using SquidVox.World3d.Scripts;
@@ -161,29 +163,69 @@ public class SquidVoxWorld : Game
     }
 
 
-
-    private Texture2D CreateColorTexture(Color color)
+    private static Task<ChunkEntity> CreateFlatChunkAsync(int chunkX, int chunkY, int chunkZ)
     {
-        var texture = new Texture2D(GraphicsDevice, 16, 16);
-        var data = new Color[16 * 16];
-        for (int i = 0; i < data.Length; i++)
-            data[i] = color;
-        texture.SetData(data);
-        return texture;
-    }
+        var chunkOrigin = new System.Numerics.Vector3(
+            chunkX * ChunkEntity.Size,
+            chunkY * ChunkEntity.Height,
+            chunkZ * ChunkEntity.Size
+        );
 
-    private Texture2D CreateGrassSideTexture()
-    {
-        var texture = new Texture2D(GraphicsDevice, 16, 16);
-        var data = new Color[16 * 16];
-        for (int i = 0; i < data.Length; i++)
+        var chunk = new ChunkEntity(chunkOrigin);
+
+        if (chunkY > 0)
         {
-            int row = i / 16;
-            data[i] = row < 4 ? new Color(34, 139, 34) : new Color(139, 69, 19);
+            return Task.FromResult(chunk);
         }
-        texture.SetData(data);
-        return texture;
+
+        long id = (chunkX * 1000000L) + (chunkZ * 1000L) + 1;
+
+        var random = new Random((chunkX * 73856093) ^ (chunkZ * 19349663));
+
+        for (int x = 0; x < ChunkEntity.Size; x++)
+        {
+            for (int z = 0; z < ChunkEntity.Size; z++)
+            {
+                for (int y = 0; y < ChunkEntity.Height; y++)
+                {
+                    BlockType blockType = BlockType.Air;
+
+                    if (y == 0)
+                    {
+                        blockType = BlockType.Bedrock;
+                    }
+                    else if (y < 60)
+                    {
+                        blockType = BlockType.Dirt;
+                    }
+                    else if (y == 60)
+                    {
+                        blockType = BlockType.Grass;
+                    }
+                    else if (y == 61)
+                    {
+                        var rand = random.NextDouble();
+                        if (rand < 0.15)
+                        {
+                            blockType = BlockType.TallGrass;
+                        }
+                        else if (rand < 0.20)
+                        {
+                            blockType = BlockType.Flower;
+                        }
+                    }
+
+                    if (blockType != BlockType.Air)
+                    {
+                        chunk[x, y, z] = new BlockCell(blockType, 0);
+                    }
+                }
+            }
+        }
+
+        return Task.FromResult(chunk);
     }
 
-    private readonly Dictionary<string, Texture2D> _blockTextures = new();
+
+
 }
