@@ -407,8 +407,24 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _blockEffect.Parameters["projection"]?.SetValue(projection);
             _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : _whiteTexture);
             _blockEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
-            _blockEffect.Parameters["ambient"]?.SetValue(AmbientLight);
-            _blockEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
+            
+            if (_blockEffect.Parameters["ambient"] != null)
+            {
+                _blockEffect.Parameters["ambient"].SetValue(AmbientLight);
+            }
+            else
+            {
+                _logger.Warning("ambient parameter not found in block effect");
+            }
+            
+            if (_blockEffect.Parameters["lightDirection"] != null)
+            {
+                _blockEffect.Parameters["lightDirection"].SetValue(LightDirection);
+            }
+            else
+            {
+                _logger.Warning("lightDirection parameter not found in block effect");
+            }
 
             foreach (var pass in _blockEffect.CurrentTechnique.Passes)
             {

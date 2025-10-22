@@ -14,6 +14,10 @@ float3 fogColor;
 float fogStart;
 float fogEnd;
 
+// Lighting uniforms
+float3 ambient;
+float3 lightDirection;
+
 // Texture
 texture tex;
 sampler texSampler = sampler_state
@@ -25,10 +29,6 @@ sampler texSampler = sampler_state
     AddressU = Wrap;
     AddressV = Wrap;
 };
-
-// Lighting constants
-static const float3 ambient = float3(0.5, 0.5, 0.5);
-static const float3 lightDirection = float3(0.8, 1.0, 0.7);
 
 // Array of possible normals based on direction
 static const float3 normals[7] = {
