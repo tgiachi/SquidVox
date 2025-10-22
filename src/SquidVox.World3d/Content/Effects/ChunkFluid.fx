@@ -94,15 +94,14 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
     float4 texResult = tex2D(texSampler, input.TexCoord);
-    clip(texResult.a - 0.001); // Discard if alpha < 0.001
 
     float3 lightDir = normalize(-lightDirection);
     float diff = max(dot(input.Normal, lightDir), 0.0);
     float3 diffuse = diff * float3(1, 1, 1);
 
-    float4 lighting = float4(ambient + diffuse, 1.0);
+    float3 color = texResult.rgb * (ambient + diffuse);
 
-    return texResult * lighting;
+    return float4(color, 0.7);
 }
 
 // Technique
