@@ -1,3 +1,4 @@
+using System;
 using DryIoc;
 using FontStashSharp;
 using ImGuiNET;
@@ -10,6 +11,8 @@ using SquidVox.Core.Data.Scripts;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Utils;
 using SquidVox.GameObjects.UI.Controls;
+using SquidVox.Core.Notifications;
+using SquidVox.GameObjects.UI.Notifications;
 using SquidVox.Voxel.GameObjects;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
@@ -30,6 +33,8 @@ public class SquidVoxWorld : Game
     private SpriteBatch _spriteBatch;
     private readonly IContainer _container;
     private readonly RenderLayerCollection _renderLayers = new();
+    private QuakeConsoleGameObject? _console;
+    private INotificationService? _notificationService;
     private IInputManager _inputManager;
 
 
@@ -116,6 +121,19 @@ public class SquidVoxWorld : Game
 
         scriptEngine.StartAsync().GetAwaiter().GetResult();
 
+        var assetManager = _container.Resolve<IAssetManagerService>();
+        _notificationService = _container.Resolve<INotificationService>();
+        var notificationHud = new NotificationHudGameObject();
+        notificationHud.Initialize(assetManager, _notificationService);
+        _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(notificationHud);
+
+        _console = new QuakeConsoleGameObject();
+        _console.WelcomeLines.Add("SquidVox console ready.");
+        _console.WelcomeLines.Add("Type 'help' for available commands.");
+        _console.Initialize(assetManager, _inputManager);
+        _console.CommandSubmitted += HandleConsoleCommand;
+        _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(_console);
+
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(new FpsComponent());
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>()
@@ -144,9 +162,8 @@ public class SquidVoxWorld : Game
                         var ambientLight = worldGameObject.AmbientLight.ToNumerics();
                         var lightDir = worldGameObject.LightDirection.ToNumerics();
                         var fogColor = worldGameObject.FogColor.ToNumerics();
-                        var fogStart = worldGameObject.FogStart;;
+                        var fogStart = worldGameObject.FogStart;
                         var fogEnd = worldGameObject.FogEnd;
-
 
 
                         var chunkDistance = worldGameObject.ChunkLoadDistance;
@@ -158,9 +175,21 @@ public class SquidVoxWorld : Game
                         }
 
 
+                        var useGreedyMeshing = worldGameObject.UseGreedyMeshing;
+                        if (ImGui.Checkbox("Use Greedy Meshing", ref useGreedyMeshing))
+                        {
+                            worldGameObject.UseGreedyMeshing = useGreedyMeshing;
+                        }
+
+                        var useFlyMode = camera.FlyMode;
+                        if (ImGui.Checkbox("Use Fly Mode", ref useFlyMode))
+                        {
+                            camera.FlyMode = useFlyMode;
+                        }
 
 
                         var enableWireframe = worldGameObject.EnableWireframe;
+
                         if (ImGui.Checkbox("Enable Wireframe", ref enableWireframe))
                         {
                             worldGameObject.EnableWireframe = enableWireframe;
@@ -219,7 +248,6 @@ public class SquidVoxWorld : Game
         worldManager.ChunkGenerator = CreateFlatChunkAsync;
         worldManager.EnableWireframe = false;
         worldManager.UseGreedyMeshing = true;
-
 
 
         var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());
@@ -295,7 +323,6 @@ public class SquidVoxWorld : Game
         _inputManager.DistributeInput(gameTime);
 
 
-
         _renderLayers.UpdateAll(gameTime);
 
         base.Update(gameTime);
@@ -308,6 +335,90 @@ public class SquidVoxWorld : Game
         _renderLayers.RenderAll(_spriteBatch);
 
         base.Draw(gameTime);
+    }
+
+    protected override void UnloadContent()
+    {
+        if (_console != null)
+        {
+            _console.CommandSubmitted -= HandleConsoleCommand;
+            _console.Dispose();
+            _console = null;
+        }
+
+        base.UnloadContent();
+    }
+
+    private void HandleConsoleCommand(object? sender, string command)
+    {
+        if (string.IsNullOrWhiteSpace(command))
+        {
+            return;
+        }
+
+        if (sender is not QuakeConsoleGameObject console)
+        {
+            return;
+        }
+
+        var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return;
+        }
+
+        if (string.Equals(parts[0], "notify", StringComparison.OrdinalIgnoreCase))
+        {
+            if (parts.Length == 1)
+            {
+                console.AddLine("Usage: notify [info|success|warning|error] <message>", Color.Yellow);
+                return;
+            }
+
+            var notificationType = NotificationType.Info;
+            var messageStartIndex = 1;
+
+            if (TryParseNotificationType(parts[1], out var parsedType))
+            {
+                notificationType = parsedType;
+                messageStartIndex = 2;
+            }
+
+            if (messageStartIndex >= parts.Length)
+            {
+                console.AddLine("notify: missing message text", Color.Yellow);
+                return;
+            }
+
+            var message = string.Join(" ", parts[messageStartIndex..]);
+            _notificationService?.ShowMessage(message, notificationType);
+            console.AddLine($"Notification queued ({notificationType})", Color.LightBlue);
+            return;
+        }
+
+        console.AddLine($"Unknown command: {command}", Color.OrangeRed);
+    }
+
+    private static bool TryParseNotificationType(string value, out NotificationType type)
+    {
+        switch (value.ToLowerInvariant())
+        {
+            case "info":
+                type = NotificationType.Info;
+                return true;
+            case "success":
+                type = NotificationType.Success;
+                return true;
+            case "warning":
+                type = NotificationType.Warning;
+                return true;
+            case "error":
+                type = NotificationType.Error;
+                return true;
+            default:
+                type = NotificationType.Info;
+                return false;
+        }
     }
 
     private static Task<ChunkEntity> CreateFlatChunkAsync(int chunkX, int chunkY, int chunkZ)

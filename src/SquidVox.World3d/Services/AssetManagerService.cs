@@ -1,4 +1,5 @@
 using FontStashSharp;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Graphics;
@@ -108,6 +109,37 @@ public class AssetManagerService : IAssetManagerService
 
         _logger.Warning("Texture atlas {Name} not found", atlasName);
         return null;
+    }
+
+    /// <summary>
+    /// Creates a <see cref="Texture2D"/> from the specified texture region.
+    /// </summary>
+    /// <param name="region">The region to convert.</param>
+    /// <returns>A new texture containing the region pixels, or null when region is invalid.</returns>
+    public Texture2D? CreateTextureFromRegion(Texture2DRegion? region)
+    {
+        if (region == null)
+        {
+            _logger.Warning("Cannot create texture: region is null");
+            return null;
+        }
+
+        var bounds = region.Bounds;
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+        {
+            _logger.Warning(
+                "Cannot create texture: region has invalid dimensions {Width}x{Height}",
+                bounds.Width,
+                bounds.Height
+            );
+            return null;
+        }
+
+        var texture = new Texture2D(region.Texture.GraphicsDevice, bounds.Width, bounds.Height);
+        var data = new Microsoft.Xna.Framework.Color[bounds.Width * bounds.Height];
+        region.Texture.GetData(0, bounds, data, 0, data.Length);
+        texture.SetData(data);
+        return texture;
     }
 
     /// <summary>
@@ -296,7 +328,7 @@ public class AssetManagerService : IAssetManagerService
     private void ReplaceMagentaWithTransparent(Texture2D texture)
     {
         var pixelCount = texture.Width * texture.Height;
-        var colorData = new Microsoft.Xna.Framework.Color[pixelCount];
+        var colorData = new Color[pixelCount];
 
         texture.GetData(colorData);
 
@@ -305,7 +337,7 @@ public class AssetManagerService : IAssetManagerService
         {
             if (colorData[i].R == 255 && colorData[i].G == 0 && colorData[i].B == 255)
             {
-                colorData[i] = Microsoft.Xna.Framework.Color.Transparent;
+                colorData[i] = Color.Transparent;
                 replacedCount++;
             }
         }

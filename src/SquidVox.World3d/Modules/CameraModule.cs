@@ -7,7 +7,7 @@ namespace SquidVox.World3d.Modules;
 [ScriptModule("camera", "Provides camera functionality for 3D rendering.")]
 public class CameraModule
 {
-    public readonly RenderLayerCollection _renderLayers;
+    private readonly RenderLayerCollection _renderLayers;
     private CameraGameObject _camera => _renderLayers.GetComponent<CameraGameObject>();
     private WorldGameObject _world => _renderLayers.GetComponent<WorldGameObject>();
 

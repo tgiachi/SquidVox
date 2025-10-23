@@ -43,7 +43,12 @@ public interface IAssetManagerService : IDisposable
     /// <returns>The texture tile if found, otherwise null.</returns>
     Texture2DRegion GetTextureAtlasTile(string atlasName, int tileIndex);
 
-
+    /// <summary>
+    /// Creates a <see cref="Texture2D"/> from a <see cref="Texture2DRegion"/>.
+    /// </summary>
+    /// <param name="region">The texture region to convert.</param>
+    /// <returns>The converted texture if successful; otherwise null.</returns>
+    Texture2D? CreateTextureFromRegion(Texture2DRegion? region);
 
     /// <summary>
     /// Gets a font by name and size.
