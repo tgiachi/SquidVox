@@ -1849,12 +1849,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         );
     }
 
-    private readonly record struct GreedyCell(
-        BlockType BlockType,
-        Color Color,
-        Vector2 UvMin,
-        Vector2 UvMax,
-        float Height);
+
 
     private void UpdateLightTexture()
     {
@@ -1906,78 +1901,15 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     }
 
     // Object pool policies for mesh data
-    private class ChunkVertexListPolicy : IPooledObjectPolicy<List<ChunkVertex>>
-    {
-        public List<ChunkVertex> Create()
-        {
-            return new List<ChunkVertex>(16384); // Pre-allocate capacity for typical chunk
-        }
 
-        public bool Return(List<ChunkVertex> obj)
-        {
-            obj.Clear();
-            return true;
-        }
-    }
 
-    private class BillboardVertexListPolicy : IPooledObjectPolicy<List<VertexPositionColorTexture>>
-    {
-        public List<VertexPositionColorTexture> Create()
-        {
-            return new List<VertexPositionColorTexture>(4096);
-        }
 
-        public bool Return(List<VertexPositionColorTexture> obj)
-        {
-            obj.Clear();
-            return true;
-        }
-    }
 
-    private class ItemBillboardVertexListPolicy : IPooledObjectPolicy<List<VertexBillboardItem>>
-    {
-        public List<VertexBillboardItem> Create()
-        {
-            return new List<VertexBillboardItem>(1024);
-        }
 
-        public bool Return(List<VertexBillboardItem> obj)
-        {
-            obj.Clear();
-            return true;
-        }
-    }
 
-    private class IndexListPolicy : IPooledObjectPolicy<List<int>>
-    {
-        public List<int> Create()
-        {
-            return
-                new List<int>(
-                    24576
-                );
-        }
 
-        public bool Return(List<int> obj)
-        {
-            obj.Clear();
-            return true;
-        }
-    }
 
-    private class FluidVertexListPolicy : IPooledObjectPolicy<List<VertexPositionColorTextureDirectionTop>>
-    {
-        public List<VertexPositionColorTextureDirectionTop> Create()
-        {
-            return new List<VertexPositionColorTextureDirectionTop>(16384);
-        }
 
-        public bool Return(List<VertexPositionColorTextureDirectionTop> obj)
-        {
-            obj.Clear();
-            return true;
-        }
-    }
 
     // GPU upload thread management
     private static void StartGpuUploadThread()
