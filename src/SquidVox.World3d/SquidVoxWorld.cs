@@ -38,6 +38,7 @@ public class SquidVoxWorld : Game
     private TextureAtlasDebugger? _atlasDebugger;
     private LuaImGuiDebuggerObject? _atlasDebuggerObject;
     private IInputManager _inputManager;
+    private IPerformanceProfilerService _performanceProfilerService;
 
 
     /// <summary>
@@ -125,6 +126,7 @@ public class SquidVoxWorld : Game
 
         var assetManager = _container.Resolve<IAssetManagerService>();
         _notificationService = _container.Resolve<INotificationService>();
+        _performanceProfilerService = _container.Resolve<IPerformanceProfilerService>();
         var notificationHud = new NotificationHudGameObject();
         notificationHud.Initialize(assetManager, _notificationService);
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(notificationHud);
@@ -133,6 +135,9 @@ public class SquidVoxWorld : Game
         _atlasDebugger = new TextureAtlasDebugger();
         _atlasDebuggerObject = _atlasDebugger.CreateDebugger();
         imguiLayer.AddDebugger(_atlasDebuggerObject);
+
+        var performanceProfilerDebugger = new PerformanceProfilerDebugger(_performanceProfilerService);
+        imguiLayer.AddDebugger(performanceProfilerDebugger);
 
         _console = new QuakeConsoleGameObject();
         _console.WelcomeLines.Add("SquidVox console ready.");
@@ -323,6 +328,8 @@ public class SquidVoxWorld : Game
         //     Exit();
         // }
 
+        var updateStartTime = DateTime.UtcNow;
+
         SquidVoxEngineContext.GameTime = gameTime;
 
         _inputManager.Update(gameTime);
@@ -333,15 +340,29 @@ public class SquidVoxWorld : Game
         _renderLayers.UpdateAll(gameTime);
 
         base.Update(gameTime);
+
+        var updateEndTime = DateTime.UtcNow;
+        var updateTime = (updateEndTime - updateStartTime).TotalMilliseconds;
+        _performanceProfilerService.UpdateUpdateTime(updateTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
+        var drawStartTime = DateTime.UtcNow;
+
         GraphicsDevice.Clear(SquidVoxEngineContext.ClearColor);
 
         _renderLayers.RenderAll(_spriteBatch);
 
         base.Draw(gameTime);
+
+        var drawEndTime = DateTime.UtcNow;
+        var drawTime = (drawEndTime - drawStartTime).TotalMilliseconds;
+        _performanceProfilerService.UpdateDrawTime(drawTime);
+
+        // Update frame time (total frame time)
+        var frameTime = gameTime.ElapsedGameTime.TotalMilliseconds;
+        _performanceProfilerService.UpdateFrameTime(frameTime);
     }
 
     protected override void UnloadContent()

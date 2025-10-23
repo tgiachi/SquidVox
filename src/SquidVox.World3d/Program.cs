@@ -91,6 +91,7 @@ await ConsoleApp.RunAsync(
         container.Register<IChunkGeneratorService, ChunkGeneratorService>(Reuse.Singleton);
         container.Register<ITimerService, TimerService>(Reuse.Singleton);
         container.Register<INotificationService, NotificationService>(Reuse.Singleton);
+        container.Register<IPerformanceProfilerService, PerformanceProfilerService>(Reuse.Singleton);
 
 
         using var game = new SquidVoxWorld(container);
