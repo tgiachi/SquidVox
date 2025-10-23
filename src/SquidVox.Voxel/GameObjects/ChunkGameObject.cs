@@ -56,39 +56,17 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private VertexBuffer? _fluidVertexBuffer;
     private IndexBuffer? _fluidIndexBuffer;
     private int _fluidPrimitiveCount;
-    private Texture3D? _lightTexture;
-    private Color[]? _lightData;
+    private readonly ChunkLightingManager _lightingManager;
+    private readonly ChunkAnimationController _animationController;
     private static readonly Vector3 ChunkDimensionsVector = new(ChunkEntity.Size, ChunkEntity.Height, ChunkEntity.Size);
     private const float FluidTextureFrameMultiplier = 1f;
 
     private ChunkEntity? _chunk;
-    private float _rotationY;
     private readonly Vector3 _chunkCenter = new(ChunkEntity.Size / 2f, ChunkEntity.Height / 2f, ChunkEntity.Size / 2f);
     private Vector3? _customCameraTarget;
 
-    private float _opacity = 0f;
-    private readonly float _targetOpacity = 1f;
-    private bool _isFadingIn;
-
     private Task<MeshData>? _meshBuildTask;
     private MeshData? _pendingMeshData;
-
-
-    // Object pools for mesh data to reduce GC pressure
-    private static readonly ObjectPool<List<ChunkVertex>> _chunkVertexPool =
-        ObjectPool.Create(new ChunkVertexListPolicy());
-
-    private static readonly ObjectPool<List<VertexPositionColorTexture>> _billboardVertexPool =
-        ObjectPool.Create(new BillboardVertexListPolicy());
-
-    private static readonly ObjectPool<List<VertexBillboardItem>> _itemVertexPool =
-        ObjectPool.Create(new ItemBillboardVertexListPolicy());
-
-    private static readonly ObjectPool<List<int>> _indexPool =
-        ObjectPool.Create(new IndexListPolicy());
-
-    private static readonly ObjectPool<List<VertexPositionColorTextureDirectionTop>> _fluidVertexPool =
-        ObjectPool.Create(new FluidVertexListPolicy());
 
     // GPU upload thread for mesh data
     private static readonly ConcurrentQueue<MeshData> _gpuUploadQueue = new();
@@ -113,6 +91,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
         _blockManagerService = SquidVoxEngineContext.Container.Resolve<IBlockManagerService>();
+        _lightingManager = new ChunkLightingManager(_graphicsDevice);
+        _animationController = new ChunkAnimationController();
 
         var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         _blockEffect = assetManager.GetEffect("Effects/ChunkBlock");
@@ -136,17 +116,29 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets the manual rotation applied to the chunk (Yaw, Pitch, Roll).
     /// </summary>
-    public Vector3 ManualRotation { get; set; } = Vector3.Zero;
+    public Vector3 ManualRotation
+    {
+        get => _animationController.ManualRotation;
+        set => _animationController.ManualRotation = value;
+    }
 
     /// <summary>
     /// Enables a simple idle rotation animation around the Y axis.
     /// </summary>
-    public bool AutoRotate { get; set; } = true;
+    public bool AutoRotate
+    {
+        get => _animationController.AutoRotate;
+        set => _animationController.AutoRotate = value;
+    }
 
     /// <summary>
     /// Rotation speed in radians per second when <see cref="AutoRotate"/> is enabled.
     /// </summary>
-    public float RotationSpeed { get; set; } = MathHelper.ToRadians(10f);
+    public float RotationSpeed
+    {
+        get => _animationController.RotationSpeed;
+        set => _animationController.RotationSpeed = value;
+    }
 
     /// <summary>
     /// Gets or sets the camera position used when drawing the chunk.
@@ -217,18 +209,20 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets the speed of the fade-in animation.
     /// </summary>
-    /// <summary>
-    /// Gets or sets the speed of the fade-in animation.
-    /// </summary>
-    public float FadeInSpeed { get; set; } = 2f;
+    public float FadeInSpeed
+    {
+        get => _animationController.FadeInSpeed;
+        set => _animationController.FadeInSpeed = value;
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether fade-in animation is enabled.
     /// </summary>
-    /// <summary>
-    /// Gets or sets a value indicating whether fade-in animation is enabled.
-    /// </summary>
-    public bool EnableFadeIn { get; set; } = true;
+    public bool EnableFadeIn
+    {
+        get => _animationController.EnableFadeIn;
+        set => _animationController.EnableFadeIn = value;
+    }
 
     /// <summary>
     /// Binds a chunk to the component and schedules a geometry rebuild.
@@ -241,16 +235,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _customCameraTarget = null; // Reset to automatic center tracking
         InvalidateGeometry();
 
-        if (EnableFadeIn)
-        {
-            Opacity = 0f;
-            _isFadingIn = true;
-        }
-        else
-        {
-            Opacity = 1f;
-            _isFadingIn = false;
-        }
+        _animationController.Initialize();
+        Opacity = _animationController.Opacity;
     }
 
     /// <summary>
@@ -309,11 +295,8 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _pendingMeshData = null;
             _geometryInvalidated = false;
 
-            if (EnableFadeIn && _opacity < 0.01f)
-            {
-                _opacity = 0f;
-                _isFadingIn = true;
-            }
+            _animationController.ResetFadeIn();
+            Opacity = _animationController.Opacity;
         }
     }
 
@@ -330,20 +313,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         CheckMeshBuildCompletion();
 
-        if (_isFadingIn)
-        {
-            Opacity += FadeInSpeed * elapsedSeconds;
-            if (Opacity >= _targetOpacity)
-            {
-                Opacity = _targetOpacity;
-                _isFadingIn = false;
-            }
-        }
-
-        if (AutoRotate)
-        {
-            _rotationY = (_rotationY + RotationSpeed * elapsedSeconds) % MathHelper.TwoPi;
-        }
+        // Update animations (fade-in, rotation)
+        _animationController.Update(elapsedSeconds);
+        Opacity = _animationController.Opacity;
 
 
         base.Update(gameTime);
@@ -392,7 +364,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             return;
         }
 
-        var rotation = Matrix.CreateFromYawPitchRoll(_rotationY + ManualRotation.Y, ManualRotation.X, ManualRotation.Z);
+        var rotation = _animationController.GetRotationMatrix();
         var world =
             Matrix.CreateTranslation(-_chunkCenter) *
             Matrix.CreateScale(BlockScale) *
@@ -416,9 +388,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             };
         }
 
-        if (_chunk != null && (_lightTexture == null || _chunk.IsLightingDirty))
+        if (_chunk != null && (_lightingManager.LightTexture == null || _chunk.IsLightingDirty))
         {
-            UpdateLightTexture();
+            _lightingManager.UpdateLightTexture(_chunk);
             _chunk.IsLightingDirty = false;
         }
 
@@ -427,7 +399,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         if (_blockEffect != null && _primitiveCount > 0)
         {
-            var needsBlending = RenderTransparentBlocks || _opacity < 1f;
+            var needsBlending = RenderTransparentBlocks || _animationController.Opacity < 1f;
 
             _graphicsDevice.BlendState = needsBlending ? BlendState.AlphaBlend : BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -445,9 +417,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _blockEffect.Parameters["fogStart"]?.SetValue(FogStart);
             _blockEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
             _blockEffect.Parameters["ChunkDimensions"]?.SetValue(ChunkDimensionsVector);
-            if (_lightTexture != null)
+            if (_lightingManager.LightTexture != null)
             {
-                _blockEffect.Parameters["BlockLightTexture"]?.SetValue(_lightTexture);
+                _blockEffect.Parameters["BlockLightTexture"]?.SetValue(_lightingManager.LightTexture);
             }
 
             if (_blockEffect.Parameters["ambient"] != null)
@@ -604,9 +576,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         ClearGeometry();
         _debugEffect?.Dispose();
-        _lightTexture?.Dispose();
-        _lightTexture = null;
-        _lightData = null;
+        _lightingManager.Dispose();
     }
 
     private MeshData BuildMeshData()
@@ -616,14 +586,14 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             return new MeshData();
         }
 
-        var vertices = _chunkVertexPool.Get();
-        var indices = _indexPool.Get();
-        var billboardVertices = _billboardVertexPool.Get();
-        var billboardIndices = _indexPool.Get();
-        var itemVertices = _itemVertexPool.Get();
-        var itemIndices = _indexPool.Get();
-        var fluidVertices = _fluidVertexPool.Get();
-        var fluidIndices = _indexPool.Get();
+        var vertices = ChunkMeshPools.ChunkVertexPool.Get();
+        var indices = ChunkMeshPools.IndexPool.Get();
+        var billboardVertices = ChunkMeshPools.BillboardVertexPool.Get();
+        var billboardIndices = ChunkMeshPools.IndexPool.Get();
+        var itemVertices = ChunkMeshPools.ItemVertexPool.Get();
+        var itemIndices = ChunkMeshPools.IndexPool.Get();
+        var fluidVertices = ChunkMeshPools.FluidVertexPool.Get();
+        var fluidIndices = ChunkMeshPools.IndexPool.Get();
         Texture2D? atlasTexture = null;
 
         for (int x = 0; x < ChunkEntity.Size; x++)
@@ -660,7 +630,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                         {
                             atlasTexture ??= region.Texture;
                             var uv = ExtractUv(region);
-                            var faceColor = CalculateFaceColor(x, y, z, BlockSide.Top);
+                            var faceColor = ChunkLightingManager.CalculateFaceColor(_chunk, x, y, z, BlockSide.Top);
 
                             var billboardVerts = GetBillboardVertices(x, y, z, uv, faceColor, blockHeight);
                             var baseIndex = billboardVertices.Count;
@@ -686,7 +656,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                         {
                             atlasTexture ??= region.Texture;
                             var uv = ExtractUv(region);
-                            var faceColor = CalculateFaceColor(x, y, z, BlockSide.Top);
+                            var faceColor = ChunkLightingManager.CalculateFaceColor(_chunk, x, y, z, BlockSide.Top);
 
                             var itemVerts = GetItemBillboardVertices(x, y, z, uv, faceColor, blockHeight);
                             var baseIndex = itemVertices.Count;
@@ -725,7 +695,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                             atlasTexture ??= region.Texture;
 
                             var uv = ExtractUv(region);
-                            var faceColor = CalculateFaceColor(x, y, z, side);
+                            var faceColor = ChunkLightingManager.CalculateFaceColor(_chunk, x, y, z, side);
                             var faceVertices = GetFluidFaceVertices(side, x, y, z, uv, faceColor, blockHeight);
 
                             var baseIndex = fluidVertices.Count;
@@ -780,7 +750,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                                 atlasTexture ??= region.Texture;
 
                                 var uv = ExtractUv(region);
-                                var faceColor = CalculateFaceColor(x, y, z, side);
+                                var faceColor = ChunkLightingManager.CalculateFaceColor(_chunk, x, y, z, side);
                                 var faceVertices = GetFaceVertices(side, x, y, z, uv, faceColor, blockHeight);
 
                                 var baseIndex = vertices.Count;
@@ -829,14 +799,14 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             fluidVertices.Count
         );
 
-        _chunkVertexPool.Return(vertices);
-        _indexPool.Return(indices);
-        _billboardVertexPool.Return(billboardVertices);
-        _indexPool.Return(billboardIndices);
-        _itemVertexPool.Return(itemVertices);
-        _indexPool.Return(itemIndices);
-        _fluidVertexPool.Return(fluidVertices);
-        _indexPool.Return(fluidIndices);
+        ChunkMeshPools.ChunkVertexPool.Return(vertices);
+        ChunkMeshPools.IndexPool.Return(indices);
+        ChunkMeshPools.BillboardVertexPool.Return(billboardVertices);
+        ChunkMeshPools.IndexPool.Return(billboardIndices);
+        ChunkMeshPools.ItemVertexPool.Return(itemVertices);
+        ChunkMeshPools.IndexPool.Return(itemIndices);
+        ChunkMeshPools.FluidVertexPool.Return(fluidVertices);
+        ChunkMeshPools.IndexPool.Return(fluidIndices);
 
         return meshData;
     }
@@ -1071,92 +1041,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         };
     }
 
-    private Color CalculateFaceColor(int x, int y, int z, BlockSide side)
-    {
-        var ambientOcclusion = 1.0f;
-        var faceNormal = Vector3.Zero;
-
-        switch (side)
-        {
-            case BlockSide.Top:
-                ambientOcclusion = 1.0f;
-                faceNormal = Vector3.Up;
-                break;
-            case BlockSide.Bottom:
-                ambientOcclusion = 0.5f;
-                faceNormal = Vector3.Down;
-                break;
-            case BlockSide.North:
-                ambientOcclusion = 0.8f;
-                faceNormal = Vector3.Backward;
-                break;
-            case BlockSide.South:
-                ambientOcclusion = 0.8f;
-                faceNormal = Vector3.Forward;
-                break;
-            case BlockSide.East:
-                ambientOcclusion = 0.75f;
-                faceNormal = Vector3.Right;
-                break;
-            case BlockSide.West:
-                ambientOcclusion = 0.75f;
-                faceNormal = Vector3.Left;
-                break;
-        }
-
-        var lightLevel = 0.2f;
-        var lightColor = Vector3.One;
-
-        if (_chunk != null && _chunk.IsInBounds(x, y, z))
-        {
-            var block = _chunk.GetBlock(x, y, z);
-            var rawLight = block.LightLevel;
-            lightLevel = Math.Max(0.2f, rawLight / 15f);
-            lightColor = block.LightColor;
-        }
-
-        var finalBrightness = ambientOcclusion * lightLevel;
-        finalBrightness = Math.Max(0.1f, finalBrightness);
-
-        var colorR = (byte)(finalBrightness * lightColor.X * 255);
-        var colorG = (byte)(finalBrightness * lightColor.Y * 255);
-        var colorB = (byte)(finalBrightness * lightColor.Z * 255);
-
-        // Apply dynamic shadows based on sun direction
-        // var shadowFactor = 1.0f;
-        // if (_dayNightCycle != null)
-        // {
-        //     var sunDirection = _dayNightCycle.GetSunDirection();
-        //     // Normalize the sun direction
-        //     sunDirection = Vector3.Normalize(sunDirection);
-
-        //     // Dot product between face normal and sun direction
-        //     // Positive values mean face is facing toward sun (more light)
-        //     // Negative values mean face is facing away from sun (less light)
-        //     var dotProduct = Vector3.Dot(faceNormal, sunDirection);
-
-        //     // Map from [-1,1] to [0.2,1.0] for very visible shadows
-        //     shadowFactor = Math.Max(0.2f, (dotProduct + 1.0f) * 0.4f);
-
-        //     // Make shadows more pronounced during day
-        //     var currentSunIntensity = _dayNightCycle.GetSunIntensity();
-        //     shadowFactor = MathHelper.Lerp(0.8f, shadowFactor, currentSunIntensity);
-        // }
-
-        // finalBrightness *= shadowFactor;
-
-        // Apply sun color and intensity
-        // var sunColor = Color.White;
-        // var sunIntensity = 1.0f;
-
-        // if (_dayNightCycle != null)
-        // {
-        //     sunColor = _dayNightCycle.GetSunColor();
-        //     sunIntensity = _dayNightCycle.GetSunIntensity();
-        // }
-
-        return new Color(colorR, colorG, colorB, (byte)255);
-    }
+    // Face color calculation now handled by ChunkLightingManager
 
     private static ChunkVertex[] GetFaceVertices(
         BlockSide side, int blockX, int blockY, int blockZ, (Vector2 Min, Vector2 Max) uv, Color color, float height = 1.0f
@@ -1455,7 +1340,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     atlasTexture ??= region.Texture;
 
                     var uv = ExtractUv(region);
-                    var color = CalculateFaceColor(x, y, z, side);
+                    var color = ChunkLightingManager.CalculateFaceColor(_chunk, x, y, z, side);
 
                     mask[x, z] = new GreedyCell(block.BlockType, color, uv.Min, uv.Max, definition.Height);
                 }
@@ -1643,7 +1528,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     atlasTexture ??= region.Texture;
 
                     var uv = ExtractUv(region);
-                    var color = CalculateFaceColor(x, y, z, side);
+                    var color = ChunkLightingManager.CalculateFaceColor(_chunk, x, y, z, side);
 
                     mask[u, y] = new GreedyCell(block.BlockType, color, uv.Min, uv.Max, definition.Height);
                 }
@@ -1825,7 +1710,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         atlasTexture ??= region.Texture;
 
         var uv = ExtractUv(region);
-        var faceColor = CalculateFaceColor(x, y, z, side);
+        var faceColor = ChunkLightingManager.CalculateFaceColor(_chunk, x, y, z, side);
         var faceVertices = GetFaceVertices(side, x, y, z, uv, faceColor, definition.Height);
 
         var baseIndex = vertices.Count;
@@ -1845,56 +1730,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
 
 
-    private void UpdateLightTexture()
-    {
-        if (_chunk == null)
-        {
-            return;
-        }
-
-        var expectedCount = ChunkEntity.Size * ChunkEntity.Height * ChunkEntity.Size;
-
-        if (_lightTexture == null ||
-            _lightTexture.Width != ChunkEntity.Size ||
-            _lightTexture.Height != ChunkEntity.Height ||
-            _lightTexture.Depth != ChunkEntity.Size)
-        {
-            _lightTexture?.Dispose();
-            _lightTexture = new Texture3D(
-                _graphicsDevice,
-                ChunkEntity.Size,
-                ChunkEntity.Height,
-                ChunkEntity.Size,
-                false,
-                SurfaceFormat.Color
-            );
-
-            _lightData = new Color[expectedCount];
-        }
-
-        if (_lightData == null || _lightData.Length != expectedCount)
-        {
-            _lightData = new Color[expectedCount];
-        }
-
-        var data = _lightData;
-        if (data == null)
-        {
-            return;
-        }
-
-        var lightLevels = _chunk.LightLevels;
-        for (int i = 0; i < lightLevels.Length && i < data.Length; i++)
-        {
-            float normalized = Math.Clamp(lightLevels[i] / 15f, 0f, 1f);
-            byte value = (byte)(normalized * 255f);
-            data[i] = new Color(value, value, value, (byte)255);
-        }
-
-        _lightTexture!.SetData(data);
-    }
-
-    // Object pool policies for mesh data
+    // Lighting management now handled by ChunkLightingManager
 
 
 

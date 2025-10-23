@@ -36,6 +36,7 @@ public class SquidVoxWorld : Game
     private readonly RenderLayerCollection _renderLayers = new();
     private QuakeConsoleGameObject? _console;
     private ChatBoxGameObject? _chatBox;
+    private DebugInfoPanel? _debugInfoPanel;
     private INotificationService? _notificationService;
     private TextureAtlasDebugger? _atlasDebugger;
     private LuaImGuiDebuggerObject? _atlasDebuggerObject;
@@ -173,6 +174,18 @@ public class SquidVoxWorld : Game
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(_chatBox);
 
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(new FpsComponent());
+
+        // Position debug info panel at top-right of screen
+        var screenWidth = GraphicsDevice.Viewport.Width;
+        var debugPanelWidth = 250f;
+        var debugPanelPosition = new Vector2(screenWidth - debugPanelWidth - margin, margin);
+
+        _debugInfoPanel = new DebugInfoPanel(
+            fontName: "DefaultMono",
+            fontSize: 14,
+            position: debugPanelPosition
+        );
+        _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(_debugInfoPanel);
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>()
             .AddGameObject(
@@ -362,6 +375,26 @@ public class SquidVoxWorld : Game
 
         _inputManager.DistributeInput(gameTime);
 
+        // Update debug info panel
+        if (_debugInfoPanel != null)
+        {
+            var camera = _renderLayers.GetLayer<GameObject3dRenderLayer>().GetComponent<CameraGameObject>();
+            var world = _renderLayers.GetLayer<GameObject3dRenderLayer>().GetComponent<WorldGameObject>();
+
+            if (camera != null)
+            {
+                _debugInfoPanel.CurrentPosition = camera.Position;
+            }
+
+            if (world != null)
+            {
+                _debugInfoPanel.ChunksLoaded = world.Chunks.Count;
+                // TODO: Add proper entity counting when available
+                _debugInfoPanel.EntitiesRendered = world.Chunks.Count;
+            }
+
+            _debugInfoPanel.MemoryUsageBytes = GC.GetTotalMemory(false);
+        }
 
         _renderLayers.UpdateAll(gameTime);
 
@@ -406,6 +439,8 @@ public class SquidVoxWorld : Game
             _chatBox.CommandExecuted -= HandleChatCommand;
             _chatBox = null;
         }
+
+        _debugInfoPanel = null;
 
         if (_atlasDebuggerObject != null)
         {
