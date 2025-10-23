@@ -119,6 +119,15 @@ public class GameObject2dRenderLayer : IRenderableLayer
     public bool HasFocus { get; set; }
 
     /// <summary>
+    /// Gets all game objects in the layer.
+    /// </summary>
+    /// <returns>An enumerable of all game objects in the layer.</returns>
+    public IEnumerable<ISVox2dDrawableGameObject> GetAllComponents()
+    {
+        return _gameObjects;
+    }
+
+    /// <summary>
     /// Gets the first game object of the specified type, or null if not found.
     /// </summary>
     /// <typeparam name="T">The type of game object to retrieve.</typeparam>

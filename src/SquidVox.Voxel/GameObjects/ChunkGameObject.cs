@@ -11,6 +11,7 @@ using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Voxel.Data.Entities;
+using SquidVox.Voxel.GameObjects.Policies;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 using IBlockManagerService = SquidVox.Voxel.Interfaces.Services.IBlockManagerService;

@@ -175,6 +175,18 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     }
 
     /// <summary>
+    /// Gets all components in the layer.
+    /// </summary>
+    /// <returns>An enumerable of all components in the layer.</returns>
+    public IEnumerable<ISVoxDebuggerGameObject> GetAllComponents()
+    {
+        lock (_addRemoveLock)
+        {
+            return _debuggers.ToArray();
+        }
+    }
+
+    /// <summary>
     /// Gets the first component of the specified type from this layer.
     /// </summary>
     /// <typeparam name="T">The type of the component to get.</typeparam>

@@ -18,6 +18,7 @@ using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 using SquidVox.World3d.GameObjects;
 using SquidVox.World3d.GameObjects.Debug;
+using SquidVox.World3d.ImGUI;
 using SquidVox.World3d.Rendering;
 using SquidVox.World3d.Scripts;
 
@@ -34,6 +35,7 @@ public class SquidVoxWorld : Game
     private readonly IContainer _container;
     private readonly RenderLayerCollection _renderLayers = new();
     private QuakeConsoleGameObject? _console;
+    private ChatBoxGameObject? _chatBox;
     private INotificationService? _notificationService;
     private TextureAtlasDebugger? _atlasDebugger;
     private LuaImGuiDebuggerObject? _atlasDebuggerObject;
@@ -140,12 +142,35 @@ public class SquidVoxWorld : Game
         var performanceProfilerDebugger = new PerformanceProfilerDebugger(_performanceProfilerService);
         imguiLayer.AddDebugger(performanceProfilerDebugger);
 
+        var gameObjectTreeDebugger = new GameObjectTreeDebugger(_renderLayers);
+        imguiLayer.AddDebugger(gameObjectTreeDebugger);
+
         _console = new QuakeConsoleGameObject();
         _console.WelcomeLines.Add("SquidVox console ready.");
         _console.WelcomeLines.Add("Type 'help' for available commands.");
         _console.Initialize(assetManager, _inputManager);
         _console.CommandSubmitted += HandleConsoleCommand;
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(_console);
+
+
+        // Position chat box at bottom-left of screen
+        var screenHeight = GraphicsDevice.Viewport.Height;
+        var chatHeight = 280f;
+        var chatWidth = 450f;
+        var margin = 12f;
+        var chatPosition = new Vector2(margin, screenHeight - chatHeight - margin);
+
+        _chatBox = new ChatBoxGameObject(
+            position: chatPosition,
+            size: new Vector2(chatWidth, chatHeight),
+            fontName: "DefaultMono",
+            fontSize: 14
+        );
+        _chatBox.AlwaysVisible = false;
+        _chatBox.FadeDelay = 5f;
+        _chatBox.MessageSent += HandleChatMessageSent;
+        _chatBox.CommandExecuted += HandleChatCommand;
+        _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(_chatBox);
 
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(new FpsComponent());
 
@@ -375,6 +400,13 @@ public class SquidVoxWorld : Game
             _console = null;
         }
 
+        if (_chatBox != null)
+        {
+            _chatBox.MessageSent -= HandleChatMessageSent;
+            _chatBox.CommandExecuted -= HandleChatCommand;
+            _chatBox = null;
+        }
+
         if (_atlasDebuggerObject != null)
         {
             var imguiLayer = _renderLayers.GetLayer<ImGuiRenderLayer>();
@@ -438,6 +470,78 @@ public class SquidVoxWorld : Game
         console.AddLine($"Unknown command: {command}", Color.OrangeRed);
     }
 
+    private void HandleChatMessageSent(object? sender, string message)
+    {
+        _logger.Information("Chat message sent: {Message}", message);
+        // Here you can add logic to send the message to other players in multiplayer
+        // or process it in any other way
+    }
+
+    private void HandleChatCommand(object? sender, string command)
+    {
+        if (string.IsNullOrWhiteSpace(command))
+        {
+            return;
+        }
+
+        _logger.Information("Chat command executed: {Command}", command);
+
+        var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return;
+        }
+
+        var commandName = parts[0].TrimStart('/');
+
+        if (string.Equals(commandName, "help", StringComparison.OrdinalIgnoreCase))
+        {
+            _chatBox?.AddSystemMessage("Available commands:");
+            _chatBox?.AddSystemMessage("/help - Show this help message");
+            _chatBox?.AddSystemMessage("/clear - Clear chat history");
+            _chatBox?.AddSystemMessage("/notify <type> <message> - Send a notification");
+            return;
+        }
+
+        if (string.Equals(commandName, "clear", StringComparison.OrdinalIgnoreCase))
+        {
+            _chatBox?.Clear();
+            _chatBox?.AddSystemMessage("Chat cleared.");
+            return;
+        }
+
+        if (string.Equals(commandName, "notify", StringComparison.OrdinalIgnoreCase))
+        {
+            if (parts.Length == 1)
+            {
+                _chatBox?.AddErrorMessage("Usage: /notify [info|success|warning|error] <message>");
+                return;
+            }
+
+            var notificationType = NotificationType.Info;
+            var messageStartIndex = 1;
+
+            if (TryParseNotificationType(parts[1], out var parsedType))
+            {
+                notificationType = parsedType;
+                messageStartIndex = 2;
+            }
+
+            if (messageStartIndex >= parts.Length)
+            {
+                _chatBox?.AddErrorMessage("notify: missing message text");
+                return;
+            }
+
+            var notifyMessage = string.Join(" ", parts[messageStartIndex..]);
+            _notificationService?.ShowMessage(notifyMessage, notificationType);
+            _chatBox?.AddSystemMessage($"Notification queued ({notificationType})");
+            return;
+        }
+
+        _chatBox?.AddErrorMessage($"Unknown command: {command}");
+    }
+
     private static bool TryParseNotificationType(string value, out NotificationType type)
     {
         switch (value.ToLowerInvariant())
@@ -462,75 +566,78 @@ public class SquidVoxWorld : Game
 
     private static Task<ChunkEntity> CreateFlatChunkAsync(int chunkX, int chunkY, int chunkZ)
     {
-        var chunkOrigin = new System.Numerics.Vector3(
-            chunkX * ChunkEntity.Size,
-            chunkY * ChunkEntity.Height,
-            chunkZ * ChunkEntity.Size
-        );
-
-        var chunk = new ChunkEntity(chunkOrigin);
-
-        if (chunkY > 0)
-        {
-            return Task.FromResult(chunk);
-        }
-
-        long id = (chunkX * 1000000L) + (chunkZ * 1000L) + 1;
-
-        var random = new Random((chunkX * 73856093) ^ (chunkZ * 19349663));
-
-        for (int x = 0; x < ChunkEntity.Size; x++)
-        {
-            for (int z = 0; z < ChunkEntity.Size; z++)
+        return Task.Run(
+            () =>
             {
-                bool isInLake = (x >= 4 && x <= 11 && z >= 4 && z <= 11);
+                var chunkOrigin = new System.Numerics.Vector3(
+                    chunkX * ChunkEntity.Size,
+                    chunkY * ChunkEntity.Height,
+                    chunkZ * ChunkEntity.Size
+                );
 
+                var chunk = new ChunkEntity(chunkOrigin);
 
-
-                for (int y = 0; y < ChunkEntity.Height; y++)
+                if (chunkY > 0)
                 {
-                    BlockType blockType = BlockType.Air;
+                    return chunk;
+                }
 
-                    if (y == 0)
-                    {
-                        blockType = BlockType.Bedrock;
-                    }
-                    else if (y < 60)
-                    {
-                        blockType = BlockType.Dirt;
-                    }
-                    else if (y == 60)
-                    {
-                        blockType = BlockType.Grass;
-                    }
-                    else if (y == 61)
-                    {
-                        if (isInLake)
-                        {
-                            blockType = BlockType.Water;
-                        }
-                        else
-                        {
-                            var rand = random.NextDouble();
-                            if (rand < 0.15)
-                            {
-                                blockType = BlockType.TallGrass;
-                            }
-                            else if (rand < 0.20)
-                            {
-                                blockType = BlockType.Flower;
-                            }
-                        }
-                    }
+                long id = (chunkX * 1000000L) + (chunkZ * 1000L) + 1;
 
-                    if (blockType != BlockType.Air)
+                var random = new Random((chunkX * 73856093) ^ (chunkZ * 19349663));
+
+                for (int x = 0; x < ChunkEntity.Size; x++)
+                {
+                    for (int z = 0; z < ChunkEntity.Size; z++)
                     {
-                        chunk.SetBlock(x, y, z, new BlockEntity(blockType));
+                        bool isInLake = (x >= 4 && x <= 11 && z >= 4 && z <= 11);
+
+                        for (int y = 0; y < ChunkEntity.Height; y++)
+                        {
+                            BlockType blockType = BlockType.Air;
+
+                            if (y == 0)
+                            {
+                                blockType = BlockType.Bedrock;
+                            }
+                            else if (y < 60)
+                            {
+                                blockType = BlockType.Dirt;
+                            }
+                            else if (y == 60)
+                            {
+                                blockType = BlockType.Grass;
+                            }
+                            else if (y == 61)
+                            {
+                                if (isInLake)
+                                {
+                                    blockType = BlockType.Water;
+                                }
+                                else
+                                {
+                                    var rand = random.NextDouble();
+                                    if (rand < 0.15)
+                                    {
+                                        blockType = BlockType.TallGrass;
+                                    }
+                                    else if (rand < 0.20)
+                                    {
+                                        blockType = BlockType.Flower;
+                                    }
+                                }
+                            }
+
+                            if (blockType != BlockType.Air)
+                            {
+                                chunk.SetBlock(x, y, z, new BlockEntity(blockType));
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        return Task.FromResult(chunk);
+                return chunk;
+            }
+        );
     }
 }

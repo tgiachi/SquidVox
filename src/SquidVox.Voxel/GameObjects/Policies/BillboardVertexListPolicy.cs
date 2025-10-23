@@ -1,20 +1,20 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace SquidVox.Voxel.GameObjects;
+namespace SquidVox.Voxel.GameObjects.Policies;
 
 /// <summary>
-/// Object pool policy for index lists.
+/// Object pool policy for billboard vertex lists.
 /// </summary>
-internal class IndexListPolicy : IPooledObjectPolicy<List<int>>
+internal class BillboardVertexListPolicy : IPooledObjectPolicy<List<VertexPositionColorTexture>>
 {
     /// <summary>
     /// Creates a new list instance.
     /// </summary>
     /// <returns>A new list with pre-allocated capacity.</returns>
-    public List<int> Create()
+    public List<VertexPositionColorTexture> Create()
     {
-        return new List<int>(24576);
+        return new List<VertexPositionColorTexture>(4096);
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ internal class IndexListPolicy : IPooledObjectPolicy<List<int>>
     /// </summary>
     /// <param name="obj">The object to return.</param>
     /// <returns>True if the object can be returned to the pool.</returns>
-    public bool Return(List<int> obj)
+    public bool Return(List<VertexPositionColorTexture> obj)
     {
         obj.Clear();
         return true;

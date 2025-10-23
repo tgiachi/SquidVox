@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,6 +26,13 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     private readonly ConcurrentDictionary<XnaVector3, ChunkGameObject> _chunks = new();
     private readonly ConcurrentQueue<(XnaVector3 Position, ChunkEntity Chunk)> _pendingChunks = new();
     private readonly Queue<ChunkGameObject> _meshBuildQueue = new();
+    private static readonly XnaVector3[] NeighborChunkOffsets =
+    {
+        new(ChunkEntity.Size, 0f, 0f),
+        new(-ChunkEntity.Size, 0f, 0f),
+        new(0f, 0f, ChunkEntity.Size),
+        new(0f, 0f, -ChunkEntity.Size)
+    };
 
 
     private readonly Particle3dGameObject _particleGameObject;
@@ -504,8 +512,6 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
 
     private void LoadChunksAroundPlayer(int centerX, int centerY, int centerZ)
     {
-        var loadedNewChunks = false;
-
         _logger.Information(
             "Loading chunks around player: Y=[{MinY}, {MaxY}], X=[{MinX}, {MaxX}], Z=[{MinZ}, {MaxZ}]",
             centerY - VerticalChunkDistance,
@@ -527,20 +533,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                     if (!_chunks.ContainsKey(chunkPos))
                     {
                         _ = RequestChunkAsync(x, y, z);
-                        loadedNewChunks = true;
                     }
-                }
-            }
-        }
-
-        if (loadedNewChunks)
-        {
-            foreach (var chunk in _chunks.Values)
-            {
-                if (chunk.HasMesh)
-                {
-                    chunk.InvalidateGeometry();
-                    _meshBuildQueue.Enqueue(chunk);
                 }
             }
         }
@@ -967,6 +960,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
             if (_chunks.TryAdd(position, chunkComponent))
             {
                 _meshBuildQueue.Enqueue(chunkComponent);
+                QueueNeighborChunkRebuilds(position, chunkComponent);
                 _logger.Information("Chunk added at position {Position}, queued for mesh build", position);
             }
             else
@@ -974,6 +968,39 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 _logger.Warning("Failed to add chunk at position {Position}", position);
                 chunkComponent.Dispose();
             }
+        }
+    }
+
+    private void QueueNeighborChunkRebuilds(XnaVector3 chunkPosition, ChunkGameObject chunkComponent)
+    {
+        var affectedChunks = new HashSet<ChunkGameObject> { chunkComponent };
+
+        foreach (var offset in NeighborChunkOffsets)
+        {
+            var neighborPosition = chunkPosition + offset;
+            if (_chunks.TryGetValue(neighborPosition, out var neighborChunk))
+            {
+                if (affectedChunks.Add(neighborChunk))
+                {
+                    neighborChunk.InvalidateGeometry();
+                    _meshBuildQueue.Enqueue(neighborChunk);
+                    _logger.Debug("Neighbor chunk invalidated at {Position}", neighborPosition);
+                }
+            }
+        }
+
+        var affectedEntities = affectedChunks
+            .Where(c => c.Chunk != null)
+            .Select(c => c.Chunk!)
+            .ToList();
+
+        if (affectedEntities.Count > 0)
+        {
+            _lightSystem.CalculateCrossChunkLighting(affectedEntities, GetChunkEntityForLighting);
+            _logger.Debug(
+                "Cross-chunk lighting recalculated for {Count} chunks after neighbor rebuild",
+                affectedEntities.Count
+            );
         }
     }
 

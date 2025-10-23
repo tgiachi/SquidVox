@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.ObjectPool;
 using SquidVox.Voxel.Primitives;
 
-namespace SquidVox.Voxel.GameObjects;
+namespace SquidVox.Voxel.GameObjects.Policies;
 
 /// <summary>
 /// Object pool policy for item billboard vertex lists.

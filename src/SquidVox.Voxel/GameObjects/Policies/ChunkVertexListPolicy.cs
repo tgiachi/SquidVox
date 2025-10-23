@@ -1,21 +1,20 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.ObjectPool;
 using SquidVox.Voxel.Primitives;
 
-namespace SquidVox.Voxel.GameObjects;
+namespace SquidVox.Voxel.GameObjects.Policies;
 
 /// <summary>
-/// Object pool policy for fluid vertex lists.
+/// Object pool policy for chunk vertex lists.
 /// </summary>
-internal class FluidVertexListPolicy : IPooledObjectPolicy<List<VertexPositionColorTextureDirectionTop>>
+internal class ChunkVertexListPolicy : IPooledObjectPolicy<List<ChunkVertex>>
 {
     /// <summary>
     /// Creates a new list instance.
     /// </summary>
     /// <returns>A new list with pre-allocated capacity.</returns>
-    public List<VertexPositionColorTextureDirectionTop> Create()
+    public List<ChunkVertex> Create()
     {
-        return new List<VertexPositionColorTextureDirectionTop>(16384);
+        return new List<ChunkVertex>(16384); // Pre-allocate capacity for typical chunk
     }
 
     /// <summary>
@@ -23,7 +22,7 @@ internal class FluidVertexListPolicy : IPooledObjectPolicy<List<VertexPositionCo
     /// </summary>
     /// <param name="obj">The object to return.</param>
     /// <returns>True if the object can be returned to the pool.</returns>
-    public bool Return(List<VertexPositionColorTextureDirectionTop> obj)
+    public bool Return(List<ChunkVertex> obj)
     {
         obj.Clear();
         return true;

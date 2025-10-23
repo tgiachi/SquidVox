@@ -84,6 +84,15 @@ public class SceneRenderLayer : IRenderableLayer
     }
 
     /// <summary>
+    /// Gets all components in the layer.
+    /// </summary>
+    /// <returns>An enumerable of all components in the layer.</returns>
+    public IEnumerable<object> GetAllComponents()
+    {
+        yield return _sceneManager;
+    }
+
+    /// <summary>
     /// Gets the first component of the specified type from this layer.
     /// </summary>
     /// <typeparam name="T">The type of the component to get.</typeparam>

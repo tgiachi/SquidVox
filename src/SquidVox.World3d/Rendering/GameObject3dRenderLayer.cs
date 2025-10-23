@@ -77,6 +77,15 @@ public class GameObject3dRenderLayer : IRenderableLayer
     }
 
     /// <summary>
+    /// Gets all game objects in the layer.
+    /// </summary>
+    /// <returns>An enumerable of all game objects in the layer.</returns>
+    public IEnumerable<ISVox3dDrawableGameObject> GetAllComponents()
+    {
+        return _gameObjects;
+    }
+
+    /// <summary>
     /// Gets all game objects of the specified type.
     /// </summary>
     /// <typeparam name="T">The type of game objects to find.</typeparam>

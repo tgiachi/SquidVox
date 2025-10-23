@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SquidVox.Core.Collections;
+using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 
 namespace SquidVox.Voxel.GameObjects;
@@ -11,16 +13,16 @@ public sealed class BlockOutlineGameObject : Base3dGameObject, IDisposable
 {
     private readonly GraphicsDevice _graphicsDevice;
     private readonly BasicEffect _effect;
+    private readonly CameraGameObject _camera;
     private VertexBuffer? _vertexBuffer;
     private bool _isDisposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BlockOutlineGameObject"/> class.
     /// </summary>
-    /// <param name="graphicsDevice">The graphics device.</param>
-    public BlockOutlineGameObject(GraphicsDevice graphicsDevice)
+    public BlockOutlineGameObject()
     {
-        _graphicsDevice = graphicsDevice ?? throw new ArgumentNullException(nameof(graphicsDevice));
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
 
         _effect = new BasicEffect(_graphicsDevice)
         {
@@ -28,6 +30,9 @@ public sealed class BlockOutlineGameObject : Base3dGameObject, IDisposable
             LightingEnabled = false,
             TextureEnabled = false
         };
+
+        var renderLayers = SquidVoxEngineContext.GetService<RenderLayerCollection>();
+        _camera = renderLayers.GetComponent<CameraGameObject>();
 
         Name = "BlockOutline";
         CreateOutlineGeometry();
@@ -44,27 +49,13 @@ public sealed class BlockOutlineGameObject : Base3dGameObject, IDisposable
     public float LineWidth { get; set; } = 2f;
 
     /// <summary>
-    /// Gets or sets the view matrix for rendering.
-    /// </summary>
-    public Matrix View { get; set; }
-
-    /// <summary>
-    /// Gets or sets the projection matrix for rendering.
-    /// </summary>
-    public Matrix Projection { get; set; }
-
-    /// <summary>
     /// Draws the block outline at a specific position.
     /// </summary>
     /// <param name="blockPosition">The position of the block to outline.</param>
-    /// <param name="view">The view matrix.</param>
-    /// <param name="projection">The projection matrix.</param>
-    public void Draw(Vector3 blockPosition, Matrix view, Matrix projection)
+    public void Draw(Vector3 blockPosition)
     {
         var savedPosition = Position;
         Position = blockPosition;
-        View = view;
-        Projection = projection;
 
         Draw3d(null!);
 
@@ -85,8 +76,8 @@ public sealed class BlockOutlineGameObject : Base3dGameObject, IDisposable
         var world = Matrix.CreateTranslation(Position);
 
         _effect.World = world;
-        _effect.View = View;
-        _effect.Projection = Projection;
+        _effect.View = _camera.View;
+        _effect.Projection = _camera.Projection;
 
         var previousDepthStencilState = _graphicsDevice.DepthStencilState;
         var previousRasterizerState = _graphicsDevice.RasterizerState;
