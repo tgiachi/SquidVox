@@ -93,11 +93,10 @@ public interface IScriptEngineService
     /// </summary>
     void ClearScriptCache();
 
-    /// <summary>
-    ///     Gets the underlying script engine instance.
-    ///     This is exposed as object to avoid tight coupling to specific engine implementations.
-    /// </summary>
-    object Engine { get; }
+
+    void RegisterGlobalTypeUserData(Type type);
+
+    void RegisterGlobalTypeUserData<T>();
 
     /// <summary>
     ///     Registers a global function that can be called from scripts.

@@ -46,16 +46,20 @@ struct VertexShaderInput
 {
     float3 Position : POSITION0;
     float4 Color : COLOR0;
-    float2 TexCoords : TEXCOORD0;
+    float2 TileCoord : TEXCOORD0;
+    float2 TileBase : TEXCOORD1;
+    float2 TileSize : TEXCOORD2;
 };
 
 // Vertex shader output / Pixel shader input
 struct VertexShaderOutput
 {
     float4 Position : POSITION0;
-    float2 TexCoord : TEXCOORD0;
-    float3 Normal : TEXCOORD1;
-    float FogFactor : TEXCOORD2;
+    float3 Normal : TEXCOORD0;
+    float FogFactor : TEXCOORD1;
+    float2 TileCoord : TEXCOORD2;
+    float2 TileBase : TEXCOORD3;
+    float2 TileSize : TEXCOORD4;
 };
 
 // Vertex Shader
@@ -67,8 +71,10 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     float4 viewPosition = mul(worldPosition, view);
     output.Position = mul(viewPosition, projection);
 
-    output.TexCoord = input.TexCoords * texMultiplier;
-    
+    output.TileCoord = input.TileCoord;
+    output.TileBase = input.TileBase;
+    output.TileSize = input.TileSize;
+
     // Extract direction from color.a and use it to get normal
     int direction = int(input.Color.a);
     output.Normal = normals[clamp(direction, 0, 6)];
@@ -90,7 +96,9 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 // Pixel Shader
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-    float4 texResult = tex2D(texSampler, input.TexCoord);
+    float2 tiledCoord = frac(input.TileCoord);
+    float2 atlasCoord = input.TileBase + tiledCoord * input.TileSize;
+    float4 texResult = tex2D(texSampler, atlasCoord * texMultiplier);
     
     // Discard transparent pixels
     if (texResult.a == 0.0)

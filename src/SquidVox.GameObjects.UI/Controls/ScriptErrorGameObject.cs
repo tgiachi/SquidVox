@@ -116,7 +116,7 @@ public class ScriptErrorGameObject : Base2dGameObject
             assetManagerService: assetManagerService
         );
 
-        _closeButton.Initialize(assetManagerService, SquidVoxGraphicContext.GraphicsDevice!);
+        _closeButton.Initialize(assetManagerService, SquidVoxEngineContext.GraphicsDevice!);
 
         // Style the button
         _closeButton.SetFlatStyle(
@@ -198,7 +198,7 @@ public class ScriptErrorGameObject : Base2dGameObject
     private void DrawOverlay(SpriteBatch spriteBatch, Viewport viewport)
     {
         var overlayBounds = new Rectangle(0, 0, viewport.Width, viewport.Height);
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, overlayBounds, _overlayColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, overlayBounds, _overlayColor);
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class ScriptErrorGameObject : Base2dGameObject
     /// </summary>
     private void DrawDialogBackground(SpriteBatch spriteBatch, Rectangle bounds)
     {
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, bounds, _dialogBackgroundColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, bounds, _dialogBackgroundColor);
 
         // Draw border
         var borderColor = new Color(100, 100, 100);
@@ -220,18 +220,18 @@ public class ScriptErrorGameObject : Base2dGameObject
     private void DrawBorder(SpriteBatch spriteBatch, Rectangle bounds, Color color, int width)
     {
         // Top
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, width), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, width), color);
         // Bottom
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - width, bounds.Width, width),
             color
         );
         // Left
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, width, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, width, bounds.Height), color);
         // Right
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.Right - width, bounds.Y, width, bounds.Height),
             color
         );
@@ -243,7 +243,7 @@ public class ScriptErrorGameObject : Base2dGameObject
     private void DrawTitleBar(SpriteBatch spriteBatch, Rectangle dialogBounds)
     {
         var titleBarBounds = new Rectangle(dialogBounds.X, dialogBounds.Y, dialogBounds.Width, TitleBarHeight);
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, titleBarBounds, _titleBarColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, titleBarBounds, _titleBarColor);
 
         if (_titleFont != null)
         {

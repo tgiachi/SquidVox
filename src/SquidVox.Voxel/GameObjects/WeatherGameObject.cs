@@ -43,9 +43,9 @@ public class WeatherGameObject : Base3dGameObject, IDisposable
     public WeatherGameObject(CameraGameObject camera)
     {
         _camera = camera ?? throw new ArgumentNullException(nameof(camera));
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
 
-        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         _rainEffect = assetManager.GetEffect("Effects/Rain") ?? throw new InvalidOperationException("Rain effect not loaded.");
 
         InitBuffers();

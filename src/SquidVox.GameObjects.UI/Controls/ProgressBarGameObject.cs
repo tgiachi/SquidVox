@@ -127,14 +127,14 @@ public class ProgressBarGameObject : Base2dGameObject
             bounds.Height - BorderWidth * 2
         );
 
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, innerBounds, BackgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, innerBounds, BackgroundColor * Opacity);
 
         var percentage = GetPercentage();
         if (percentage > 0)
         {
             var fillWidth = (int)(innerBounds.Width * percentage);
             var fillBounds = new Rectangle(innerBounds.X, innerBounds.Y, fillWidth, innerBounds.Height);
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, fillBounds, ForegroundColor * Opacity);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, fillBounds, ForegroundColor * Opacity);
         }
 
         if (BorderWidth > 0)
@@ -147,15 +147,15 @@ public class ProgressBarGameObject : Base2dGameObject
     {
         var color = borderColor * Opacity;
 
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - BorderWidth, bounds.Width, BorderWidth),
             color
         );
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.Right - BorderWidth, bounds.Y, BorderWidth, bounds.Height),
             color
         );

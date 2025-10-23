@@ -35,7 +35,7 @@ public class AssetManagerService : IAssetManagerService
 
     private void CreateFallbackTexture()
     {
-        _fallbackTexture = new Texture2D(SquidVoxGraphicContext.GraphicsDevice, 16, 16);
+        _fallbackTexture = new Texture2D(SquidVoxEngineContext.GraphicsDevice, 16, 16);
         var colors = new Microsoft.Xna.Framework.Color[16 * 16];
         for (int y = 0; y < 16; y++)
         {
@@ -142,12 +142,8 @@ public class AssetManagerService : IAssetManagerService
     /// <returns>The effect if found, otherwise null.</returns>
     public Effect GetEffect(string name)
     {
-        if (_effects.TryGetValue(name, out var effect))
-        {
-            return effect;
-        }
+        return _effects.TryGetValue(name, out var effect) ? effect : throw new KeyNotFoundException($"Effect {name} not found");
 
-        _logger.Warning("Effect {Name} not found", name);
         return null;
     }
 
@@ -210,7 +206,7 @@ public class AssetManagerService : IAssetManagerService
     /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureFromFile(string fileName, string name, bool replaceMagentaWithTransparent = false)
     {
-        var texture = Texture2D.FromFile(SquidVoxGraphicContext.GraphicsDevice, fileName);
+        var texture = Texture2D.FromFile(SquidVoxEngineContext.GraphicsDevice, fileName);
 
         if (replaceMagentaWithTransparent)
         {
@@ -229,7 +225,7 @@ public class AssetManagerService : IAssetManagerService
     /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name, bool replaceMagentaWithTransparent = false)
     {
-        var texture = Texture2D.FromStream(SquidVoxGraphicContext.GraphicsDevice, new MemoryStream(data.ToArray()));
+        var texture = Texture2D.FromStream(SquidVoxEngineContext.GraphicsDevice, new MemoryStream(data.ToArray()));
 
         if (replaceMagentaWithTransparent)
         {

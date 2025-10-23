@@ -192,7 +192,7 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
     /// </summary>
     public Particle3dGameObject()
     {
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
         _effect = new BasicEffect(_graphicsDevice)
         {
             TextureEnabled = true,

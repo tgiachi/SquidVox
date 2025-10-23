@@ -288,7 +288,7 @@ public class ComboBoxGameObject : Base2dGameObject
             bounds.Width - BorderWidth * 2,
             bounds.Height - BorderWidth * 2
         );
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, innerBounds, BackgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, innerBounds, BackgroundColor * Opacity);
 
         // Draw text
         DrawButtonText(spriteBatch, innerBounds);
@@ -318,7 +318,7 @@ public class ComboBoxGameObject : Base2dGameObject
             dropdownBounds.Width - BorderWidth * 2,
             dropdownBounds.Height - BorderWidth * 2
         );
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, innerBounds, DropdownBackgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, innerBounds, DropdownBackgroundColor * Opacity);
 
         // Draw items
         for (var i = 0; i < Math.Min(_items.Count, MaxVisibleItems); i++)
@@ -343,7 +343,7 @@ public class ComboBoxGameObject : Base2dGameObject
             }
 
             // Draw item background
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, itemBounds, itemBgColor * Opacity);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, itemBounds, itemBgColor * Opacity);
 
             // Draw item text
             if (_font != null && !string.IsNullOrEmpty(item.Text))
@@ -409,7 +409,7 @@ public class ComboBoxGameObject : Base2dGameObject
             var lineWidth = (i + 1) * 2;
             var lineX = arrowX + (arrowSize - lineWidth) / 2;
             var lineRect = new Rectangle(lineX, arrowY + i, lineWidth, 1);
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, lineRect, ArrowColor * Opacity);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, lineRect, ArrowColor * Opacity);
         }
     }
 
@@ -421,18 +421,18 @@ public class ComboBoxGameObject : Base2dGameObject
         var color = borderColor * Opacity;
 
         // Top border
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), color);
         // Bottom border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - BorderWidth, bounds.Width, BorderWidth),
             color
         );
         // Left border
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), color);
         // Right border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.Right - BorderWidth, bounds.Y, BorderWidth, bounds.Height),
             color
         );

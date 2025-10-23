@@ -17,7 +17,7 @@ public class WindowModule
     /// <param name="title">The new title.</param>
     public void SetTitle(string title)
     {
-        SquidVoxGraphicContext.Window.Title = title;
+        SquidVoxEngineContext.Window.Title = title;
     }
 
     [ScriptFunction("set_size", "Sets the size of the game window.")]
@@ -28,9 +28,9 @@ public class WindowModule
     /// <param name="height">The height of the window.</param>
     public void SetSize(int width, int height)
     {
-        SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferWidth = width;
-        SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferHeight = height;
-        SquidVoxGraphicContext.GraphicsDeviceManager.ApplyChanges();
+        SquidVoxEngineContext.GraphicsDeviceManager.PreferredBackBufferWidth = width;
+        SquidVoxEngineContext.GraphicsDeviceManager.PreferredBackBufferHeight = height;
+        SquidVoxEngineContext.GraphicsDeviceManager.ApplyChanges();
     }
 
     [ScriptFunction("get_size", "Gets the current size of the game window.")]
@@ -41,8 +41,8 @@ public class WindowModule
     public Vector2 GetSize()
     {
         return new Vector2(
-            SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferWidth,
-            SquidVoxGraphicContext.GraphicsDeviceManager.PreferredBackBufferHeight
+            SquidVoxEngineContext.GraphicsDeviceManager.PreferredBackBufferWidth,
+            SquidVoxEngineContext.GraphicsDeviceManager.PreferredBackBufferHeight
         );
     }
 
@@ -53,6 +53,6 @@ public class WindowModule
     /// <returns>The title of the window.</returns>
     public string GetTitle()
     {
-        return SquidVoxGraphicContext.Window.Title;
+        return SquidVoxEngineContext.Window.Title;
     }
 }

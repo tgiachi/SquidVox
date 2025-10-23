@@ -391,7 +391,7 @@ public class ButtonGameObject : Base2dGameObject
             // For now, draw as rectangle - rounded corners would be a future enhancement
         }
 
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, bounds, backgroundColor * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, bounds, backgroundColor * Opacity);
     }
 
     /// <summary>
@@ -404,18 +404,18 @@ public class ButtonGameObject : Base2dGameObject
         var borderColor = GetCurrentBorderColor() * Opacity;
 
         // Top border
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), borderColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, BorderWidth), borderColor);
         // Bottom border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - BorderWidth, bounds.Width, BorderWidth),
             borderColor
         );
         // Left border
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), borderColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, BorderWidth, bounds.Height), borderColor);
         // Right border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.Right - BorderWidth, bounds.Y, BorderWidth, bounds.Height),
             borderColor
         );

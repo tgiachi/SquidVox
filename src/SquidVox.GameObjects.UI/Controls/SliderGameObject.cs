@@ -374,7 +374,7 @@ public class SliderGameObject : Base2dGameObject
         var trackColor = IsEnabled ? TrackBackgroundColor : DisabledTrackColor;
 
         // Draw background track
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, trackBounds, trackColor * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, trackBounds, trackColor * Opacity);
 
         // Draw filled portion
         if (IsEnabled && _value > _minValue)
@@ -402,7 +402,7 @@ public class SliderGameObject : Base2dGameObject
                 );
             }
 
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, fillBounds, TrackFillColor * Opacity);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, fillBounds, TrackFillColor * Opacity);
         }
     }
 
@@ -438,7 +438,7 @@ public class SliderGameObject : Base2dGameObject
     {
 
         // Draw thumb background
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, thumbBounds, GetThumbColor() * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, thumbBounds, GetThumbColor() * Opacity);
 
         // Draw thumb border
         var borderColor = GetThumbBorderColor() * Opacity;
@@ -446,25 +446,25 @@ public class SliderGameObject : Base2dGameObject
 
         // Top border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(thumbBounds.X, thumbBounds.Y, thumbBounds.Width, borderWidth),
             borderColor
         );
         // Bottom border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(thumbBounds.X, thumbBounds.Bottom - borderWidth, thumbBounds.Width, borderWidth),
             borderColor
         );
         // Left border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(thumbBounds.X, thumbBounds.Y, borderWidth, thumbBounds.Height),
             borderColor
         );
         // Right border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(thumbBounds.Right - borderWidth, thumbBounds.Y, borderWidth, thumbBounds.Height),
             borderColor
         );

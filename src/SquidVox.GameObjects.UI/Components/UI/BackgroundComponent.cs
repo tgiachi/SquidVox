@@ -54,7 +54,7 @@ public class BackgroundComponent
         }
         else
         {
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, bounds, drawColor);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, bounds, drawColor);
         }
     }
 }

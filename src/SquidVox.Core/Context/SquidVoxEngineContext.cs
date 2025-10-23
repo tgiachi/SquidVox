@@ -7,7 +7,7 @@ namespace SquidVox.Core.Context;
 /// <summary>
 /// Provides static access to graphics context resources such as window, GL, and input.
 /// </summary>
-public static class SquidVoxGraphicContext
+public static class SquidVoxEngineContext
 {
     /// <summary>
     /// Gets or sets the IoC container.

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using DryIoc;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Xna.Framework;
@@ -8,6 +10,7 @@ using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
+using SquidVox.Voxel.Data.Entities;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 using IBlockManagerService = SquidVox.Voxel.Interfaces.Services.IBlockManagerService;
@@ -62,8 +65,11 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
 
     // Object pools for mesh data to reduce GC pressure
-    private static readonly ObjectPool<List<VertexPositionColorTexture>> _vertexPool =
-        ObjectPool.Create(new VertexListPolicy());
+    private static readonly ObjectPool<List<ChunkVertex>> _chunkVertexPool =
+        ObjectPool.Create(new ChunkVertexListPolicy());
+
+    private static readonly ObjectPool<List<VertexPositionColorTexture>> _billboardVertexPool =
+        ObjectPool.Create(new BillboardVertexListPolicy());
 
     private static readonly ObjectPool<List<int>> _indexPool =
         ObjectPool.Create(new IndexListPolicy());
@@ -92,10 +98,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     /// <param name="blockManagerService">Service that resolves block textures and metadata.</param>
     public ChunkGameObject()
     {
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
-        _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
+        _blockManagerService = SquidVoxEngineContext.Container.Resolve<IBlockManagerService>();
 
-        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         _blockEffect = assetManager.GetEffect("Effects/ChunkBlock");
         _billboardEffect = assetManager.GetEffect("Effects/ChunkBillboard");
         _fluidEffect = assetManager.GetEffect("Effects/ChunkFluid");
@@ -385,7 +391,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         var previousSamplerState = _graphicsDevice.SamplerStates[0];
         RasterizerState? wireframeState = null;
 
-        var useWireframe = SquidVoxGraphicContext.GraphicsDevice.RasterizerState.FillMode == FillMode.WireFrame;
+        var useWireframe = SquidVoxEngineContext.GraphicsDevice.RasterizerState.FillMode == FillMode.WireFrame;
         if (useWireframe)
         {
             wireframeState = new RasterizerState
@@ -410,7 +416,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _blockEffect.Parameters["model"]?.SetValue(Position);
             _blockEffect.Parameters["view"]?.SetValue(view);
             _blockEffect.Parameters["projection"]?.SetValue(projection);
-            _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : SquidVoxGraphicContext.WhitePixel);
+            _blockEffect.Parameters["tex"]?.SetValue(TextureEnabled ? _texture : SquidVoxEngineContext.WhitePixel);
             _blockEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
             _blockEffect.Parameters["fogEnabled"]?.SetValue(FogEnabled);
             _blockEffect.Parameters["fogColor"]?.SetValue(FogColor);
@@ -527,9 +533,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             return new MeshData();
         }
 
-        var vertices = _vertexPool.Get();
+        var vertices = _chunkVertexPool.Get();
         var indices = _indexPool.Get();
-        var billboardVertices = _vertexPool.Get();
+        var billboardVertices = _billboardVertexPool.Get();
         var billboardIndices = _indexPool.Get();
         var fluidVertices = _fluidVertexPool.Get();
         var fluidIndices = _indexPool.Get();
@@ -608,7 +614,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
                             var uv = ExtractUv(region);
                             var faceColor = CalculateFaceColor(x, y, z, side);
-                            var faceVertices = GetFaceVertices(side, x, y, z, uv, faceColor, blockHeight);
+                            var faceVertices = GetFluidFaceVertices(side, x, y, z, uv, faceColor, blockHeight);
 
                             var baseIndex = fluidVertices.Count;
 
@@ -643,48 +649,51 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     }
                     else
                     {
-                        foreach (var side in AllSides)
+                        if (!UseGreedyMeshing)
                         {
-                            if (!ShouldRenderFace(x, y, z, side))
+                            foreach (var side in AllSides)
                             {
-                                continue;
-                            }
-
-                            if (UseGreedyMeshing && ShouldSkipFace(x, y, z, side, block.BlockType))
-                            {
-                                continue;
-                            }
-
-                            var region = _blockManagerService.GetBlockSide(block.BlockType, side);
-
-                            if (region == null)
-                            {
-                                continue;
-                            }
-
-                            atlasTexture ??= region.Texture;
-
-                            var uv = ExtractUv(region);
-                            var faceColor = CalculateFaceColor(x, y, z, side);
-                            var faceVertices = GetFaceVertices(side, x, y, z, uv, faceColor, blockHeight);
-
-                            var baseIndex = vertices.Count;
-                            vertices.AddRange(faceVertices);
-                            indices.AddRange(
-                                new[]
+                                if (!ShouldRenderFace(x, y, z, side))
                                 {
-                                    baseIndex,
-                                    baseIndex + 1,
-                                    baseIndex + 2,
-                                    baseIndex + 2,
-                                    baseIndex + 3,
-                                    baseIndex
+                                    continue;
                                 }
-                            );
+
+                                var region = _blockManagerService.GetBlockSide(block.BlockType, side);
+
+                                if (region == null)
+                                {
+                                    continue;
+                                }
+
+                                atlasTexture ??= region.Texture;
+
+                                var uv = ExtractUv(region);
+                                var faceColor = CalculateFaceColor(x, y, z, side);
+                                var faceVertices = GetFaceVertices(side, x, y, z, uv, faceColor, blockHeight);
+
+                                var baseIndex = vertices.Count;
+                                vertices.AddRange(faceVertices);
+                                indices.AddRange(
+                                    new[]
+                                    {
+                                        baseIndex,
+                                        baseIndex + 1,
+                                        baseIndex + 2,
+                                        baseIndex + 2,
+                                        baseIndex + 3,
+                                        baseIndex
+                                    }
+                                );
+                            }
                         }
                     }
                 }
             }
+        }
+
+        if (UseGreedyMeshing)
+        {
+            GenerateGreedySolidFaces(vertices, indices, ref atlasTexture);
         }
 
         var meshData = new MeshData
@@ -705,9 +714,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             fluidVertices.Count
         );
 
-        _vertexPool.Return(vertices);
+        _chunkVertexPool.Return(vertices);
         _indexPool.Return(indices);
-        _vertexPool.Return(billboardVertices);
+        _billboardVertexPool.Return(billboardVertices);
         _indexPool.Return(billboardIndices);
         _fluidVertexPool.Return(fluidVertices);
         _indexPool.Return(fluidIndices);
@@ -728,7 +737,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         {
             _vertexBuffer = new VertexBuffer(
                 _graphicsDevice,
-                typeof(VertexPositionColorTexture),
+                typeof(ChunkVertex),
                 meshData.Vertices.Length,
                 BufferUsage.WriteOnly
             );
@@ -1016,7 +1025,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         return new Color(colorR, colorG, colorB, (byte)255);
     }
 
-    private static VertexPositionColorTexture[] GetFaceVertices(
+    private static ChunkVertex[] GetFaceVertices(
         BlockSide side, int blockX, int blockY, int blockZ, (Vector2 Min, Vector2 Max) uv, Color color, float height = 1.0f
     )
     {
@@ -1031,49 +1040,112 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         var direction = (byte)GetDirectionIndex(side);
         var colorWithDir = new Color(color.R, color.G, color.B, direction);
 
+        var tileBase = min;
+        var tileSize = max - min;
+
         return side switch
         {
             BlockSide.Top => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y1, z), colorWithDir, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y1, z1), colorWithDir, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z1), colorWithDir, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z), colorWithDir, new Vector2(max.X, min.Y))
+                new ChunkVertex(new Vector3(x, y1, z), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y1, z1), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y1, z1), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y1, z), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
             },
             BlockSide.Bottom => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y, z1), colorWithDir, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z), colorWithDir, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z), colorWithDir, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z1), colorWithDir, new Vector2(max.X, min.Y))
+                new ChunkVertex(new Vector3(x, y, z1), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y, z), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y, z), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y, z1), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
             },
             BlockSide.North => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y1, z), colorWithDir, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z), colorWithDir, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z), colorWithDir, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z), colorWithDir, new Vector2(max.X, min.Y))
+                new ChunkVertex(new Vector3(x, y1, z), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y, z), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y, z), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y1, z), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
             },
             BlockSide.South => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x1, y1, z1), colorWithDir, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z1), colorWithDir, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z1), colorWithDir, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y1, z1), colorWithDir, new Vector2(max.X, min.Y))
+                new ChunkVertex(new Vector3(x1, y1, z1), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y, z1), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y, z1), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y1, z1), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
             },
             BlockSide.East => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x1, y1, z), colorWithDir, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z), colorWithDir, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y, z1), colorWithDir, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x1, y1, z1), colorWithDir, new Vector2(max.X, min.Y))
+                new ChunkVertex(new Vector3(x1, y1, z), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y, z), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y, z1), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x1, y1, z1), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
             },
             BlockSide.West => new[]
             {
-                new VertexPositionColorTexture(new Vector3(x, y1, z1), colorWithDir, new Vector2(min.X, min.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z1), colorWithDir, new Vector2(min.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y, z), colorWithDir, new Vector2(max.X, max.Y)),
-                new VertexPositionColorTexture(new Vector3(x, y1, z), colorWithDir, new Vector2(max.X, min.Y))
+                new ChunkVertex(new Vector3(x, y1, z1), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y, z1), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y, z), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
+                new ChunkVertex(new Vector3(x, y1, z), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(side), side, "Unsupported side type")
+        };
+    }
+
+    private static VertexPositionColorTexture[] GetFluidFaceVertices(
+        BlockSide side, int blockX, int blockY, int blockZ, (Vector2 Min, Vector2 Max) uv, Color color, float height = 1.0f
+    )
+    {
+        var (min, max) = uv;
+        float x = blockX;
+        float y = blockY;
+        float z = blockZ;
+        float x1 = blockX + 1f;
+        float y1 = blockY + height;
+        float z1 = blockZ + 1f;
+
+        return side switch
+        {
+            BlockSide.Top => new[]
+            {
+                new VertexPositionColorTexture(new Vector3(x, y1, z), color, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y1, z1), color, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z1), color, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z), color, new Vector2(max.X, min.Y))
+            },
+            BlockSide.Bottom => new[]
+            {
+                new VertexPositionColorTexture(new Vector3(x, y, z1), color, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z), color, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z), color, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z1), color, new Vector2(max.X, min.Y))
+            },
+            BlockSide.North => new[]
+            {
+                new VertexPositionColorTexture(new Vector3(x, y1, z), color, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z), color, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z), color, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z), color, new Vector2(max.X, min.Y))
+            },
+            BlockSide.South => new[]
+            {
+                new VertexPositionColorTexture(new Vector3(x1, y1, z1), color, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z1), color, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z1), color, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y1, z1), color, new Vector2(max.X, min.Y))
+            },
+            BlockSide.East => new[]
+            {
+                new VertexPositionColorTexture(new Vector3(x1, y1, z), color, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z), color, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y, z1), color, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x1, y1, z1), color, new Vector2(max.X, min.Y))
+            },
+            BlockSide.West => new[]
+            {
+                new VertexPositionColorTexture(new Vector3(x, y1, z1), color, new Vector2(min.X, min.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z1), color, new Vector2(min.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y, z), color, new Vector2(max.X, max.Y)),
+                new VertexPositionColorTexture(new Vector3(x, y1, z), color, new Vector2(max.X, min.Y))
             },
             _ => throw new ArgumentOutOfRangeException(nameof(side), side, "Unsupported side type")
         };
@@ -1147,12 +1219,489 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _fluidPrimitiveCount = 0;
     }
 
+    private void GenerateGreedySolidFaces(
+        List<ChunkVertex> vertices,
+        List<int> indices,
+        ref Texture2D? atlasTexture)
+    {
+        if (_chunk == null)
+        {
+            return;
+        }
+
+        GenerateHorizontalGreedyFaces(BlockSide.Top, vertices, indices, ref atlasTexture);
+        GenerateHorizontalGreedyFaces(BlockSide.Bottom, vertices, indices, ref atlasTexture);
+        GenerateVerticalGreedyFaces(BlockSide.North, vertices, indices, ref atlasTexture);
+        GenerateVerticalGreedyFaces(BlockSide.South, vertices, indices, ref atlasTexture);
+        GenerateVerticalGreedyFaces(BlockSide.East, vertices, indices, ref atlasTexture);
+        GenerateVerticalGreedyFaces(BlockSide.West, vertices, indices, ref atlasTexture);
+    }
+
+    private void GenerateHorizontalGreedyFaces(
+        BlockSide side,
+        List<ChunkVertex> vertices,
+        List<int> indices,
+        ref Texture2D? atlasTexture)
+    {
+        var mask = new GreedyCell?[ChunkEntity.Size, ChunkEntity.Size];
+        var minHeight = 0;
+        var maxHeight = ChunkEntity.Height;
+
+        for (int y = minHeight; y < maxHeight; y++)
+        {
+            for (int z = 0; z < ChunkEntity.Size; z++)
+            {
+                for (int x = 0; x < ChunkEntity.Size; x++)
+                {
+                    mask[x, z] = null;
+
+                    if (!ShouldRenderFace(x, y, z, side))
+                    {
+                        continue;
+                    }
+
+                    var block = _chunk.GetBlock(x, y, z);
+                    if (block == null)
+                    {
+                        continue;
+                    }
+
+                    var definition = _blockManagerService.GetBlockDefinition(block.BlockType);
+                    if (definition == null || definition.IsBillboard || definition.IsLiquid)
+                    {
+                        continue;
+                    }
+
+                    if (Math.Abs(definition.Height - 1f) > 0.0001f)
+                    {
+                        AddSolidFace(side, x, y, z, block.BlockType, definition, vertices, indices, ref atlasTexture);
+                        continue;
+                    }
+
+                    var region = _blockManagerService.GetBlockSide(block.BlockType, side);
+                    if (region == null)
+                    {
+                        continue;
+                    }
+
+                    atlasTexture ??= region.Texture;
+
+                    var uv = ExtractUv(region);
+                    var color = CalculateFaceColor(x, y, z, side);
+
+                    mask[x, z] = new GreedyCell(block.BlockType, color, uv.Min, uv.Max, definition.Height);
+                }
+            }
+
+            ProcessHorizontalMask(side, y, mask, vertices, indices);
+        }
+    }
+
+    private void ProcessHorizontalMask(
+        BlockSide side,
+        int y,
+        GreedyCell?[,] mask,
+        List<ChunkVertex> vertices,
+        List<int> indices)
+    {
+        for (int z = 0; z < ChunkEntity.Size; z++)
+        {
+            int x = 0;
+            while (x < ChunkEntity.Size)
+            {
+                var cell = mask[x, z];
+                if (cell == null)
+                {
+                    x++;
+                    continue;
+                }
+
+                int width = 1;
+                while (x + width < ChunkEntity.Size && mask[x + width, z]?.Equals(cell) == true)
+                {
+                    width++;
+                }
+
+                int height = 1;
+                bool done = false;
+                while (z + height < ChunkEntity.Size && !done)
+                {
+                    for (int dx = 0; dx < width; dx++)
+                    {
+                        if (mask[x + dx, z + height]?.Equals(cell) != true)
+                        {
+                            done = true;
+                            break;
+                        }
+                    }
+
+                    if (!done)
+                    {
+                        height++;
+                    }
+                }
+
+                AddHorizontalQuad(side, y, x, z, width, height, cell.Value, vertices, indices);
+
+                for (int dz = 0; dz < height; dz++)
+                {
+                    for (int dx = 0; dx < width; dx++)
+                    {
+                        mask[x + dx, z + dz] = null;
+                    }
+                }
+
+                x += width;
+            }
+        }
+    }
+
+    private void AddHorizontalQuad(
+        BlockSide side,
+        int y,
+        int startX,
+        int startZ,
+        int width,
+        int depth,
+        GreedyCell cell,
+        List<ChunkVertex> vertices,
+        List<int> indices)
+    {
+        var baseIndex = vertices.Count;
+        var uvMin = cell.UvMin;
+        var uvMax = cell.UvMax;
+        var uvSpan = uvMax - uvMin;
+        var colorWithDir = new Color(cell.Color.R, cell.Color.G, cell.Color.B, (byte)GetDirectionIndex(side));
+        var minX = startX;
+        var maxX = startX + width;
+        var minZ = startZ;
+        var maxZ = startZ + depth;
+
+        if (side == BlockSide.Top)
+        {
+            float yTop = y + cell.Height;
+            vertices.Add(new ChunkVertex(new Vector3(minX, yTop, minZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(minX, yTop, maxZ), colorWithDir, new Vector2(0f, depth), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yTop, maxZ), colorWithDir, new Vector2(width, depth), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yTop, minZ), colorWithDir, new Vector2(width, 0f), uvMin, uvSpan));
+        }
+        else
+        {
+            float yBottom = y;
+            vertices.Add(new ChunkVertex(new Vector3(minX, yBottom, maxZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(minX, yBottom, minZ), colorWithDir, new Vector2(0f, depth), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yBottom, minZ), colorWithDir, new Vector2(width, depth), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yBottom, maxZ), colorWithDir, new Vector2(width, 0f), uvMin, uvSpan));
+        }
+
+        indices.Add(baseIndex);
+        indices.Add(baseIndex + 1);
+        indices.Add(baseIndex + 2);
+        indices.Add(baseIndex + 2);
+        indices.Add(baseIndex + 3);
+        indices.Add(baseIndex);
+    }
+
+    private void GenerateVerticalGreedyFaces(
+        BlockSide side,
+        List<ChunkVertex> vertices,
+        List<int> indices,
+        ref Texture2D? atlasTexture)
+    {
+        var width = side is BlockSide.North or BlockSide.South ? ChunkEntity.Size : ChunkEntity.Size;
+        var height = ChunkEntity.Height;
+        var mask = new GreedyCell?[width, height];
+        var axisLength = side is BlockSide.North or BlockSide.South ? ChunkEntity.Size : ChunkEntity.Size;
+
+        for (int axis = 0; axis < axisLength; axis++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int u = 0; u < width; u++)
+                {
+                    mask[u, y] = null;
+
+                    int x = 0, z = 0;
+
+                    switch (side)
+                    {
+                        case BlockSide.North:
+                            x = u;
+                            z = axis;
+                            break;
+                        case BlockSide.South:
+                            x = u;
+                            z = axis;
+                            break;
+                        case BlockSide.East:
+                            x = axis;
+                            z = u;
+                            break;
+                        case BlockSide.West:
+                            x = axis;
+                            z = u;
+                            break;
+                    }
+
+                    if (!ShouldRenderFace(x, y, z, side))
+                    {
+                        continue;
+                    }
+
+                    var block = _chunk.GetBlock(x, y, z);
+                    if (block == null)
+                    {
+                        continue;
+                    }
+
+                    var definition = _blockManagerService.GetBlockDefinition(block.BlockType);
+                    if (definition == null || definition.IsBillboard || definition.IsLiquid)
+                    {
+                        continue;
+                    }
+
+                    if (Math.Abs(definition.Height - 1f) > 0.0001f)
+                    {
+                        AddSolidFace(side, x, y, z, block.BlockType, definition, vertices, indices, ref atlasTexture);
+                        continue;
+                    }
+
+                    var region = _blockManagerService.GetBlockSide(block.BlockType, side);
+                    if (region == null)
+                    {
+                        continue;
+                    }
+
+                    atlasTexture ??= region.Texture;
+
+                    var uv = ExtractUv(region);
+                    var color = CalculateFaceColor(x, y, z, side);
+
+                    mask[u, y] = new GreedyCell(block.BlockType, color, uv.Min, uv.Max, definition.Height);
+                }
+            }
+
+            ProcessVerticalMask(side, axis, mask, vertices, indices);
+        }
+    }
+
+    private void ProcessVerticalMask(
+        BlockSide side,
+        int axis,
+        GreedyCell?[,] mask,
+        List<ChunkVertex> vertices,
+        List<int> indices)
+    {
+        int width = mask.GetLength(0);
+        int height = mask.GetLength(1);
+
+        for (int y = 0; y < height; y++)
+        {
+            int u = 0;
+            while (u < width)
+            {
+                var cell = mask[u, y];
+                if (cell == null)
+                {
+                    u++;
+                    continue;
+                }
+
+                int span = 1;
+                while (u + span < width && mask[u + span, y]?.Equals(cell) == true)
+                {
+                    span++;
+                }
+
+                int vertical = 1;
+                bool done = false;
+                while (y + vertical < height && !done)
+                {
+                    for (int du = 0; du < span; du++)
+                    {
+                        if (mask[u + du, y + vertical]?.Equals(cell) != true)
+                        {
+                            done = true;
+                            break;
+                        }
+                    }
+
+                    if (!done)
+                    {
+                        vertical++;
+                    }
+                }
+
+                AddVerticalQuad(side, axis, u, y, span, vertical, cell.Value, vertices, indices);
+
+                for (int dv = 0; dv < vertical; dv++)
+                {
+                    for (int du = 0; du < span; du++)
+                    {
+                        mask[u + du, y + dv] = null;
+                    }
+                }
+
+                u += span;
+            }
+        }
+    }
+
+    private void AddVerticalQuad(
+        BlockSide side,
+        int axis,
+        int start,
+        int startY,
+        int span,
+        int height,
+        GreedyCell cell,
+        List<ChunkVertex> vertices,
+        List<int> indices)
+    {
+        var baseIndex = vertices.Count;
+        var uvMin = cell.UvMin;
+        var uvMax = cell.UvMax;
+        var uvSpan = uvMax - uvMin;
+        var colorWithDir = new Color(cell.Color.R, cell.Color.G, cell.Color.B, (byte)GetDirectionIndex(side));
+
+        switch (side)
+        {
+            case BlockSide.North:
+            {
+                float minX = start;
+                float maxX = start + span;
+                float minY = startY;
+                float maxY = startY + height;
+                float z = axis;
+
+                vertices.Add(new ChunkVertex(new Vector3(minX, maxY, z), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(minX, minY, z), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(maxX, minY, z), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(maxX, maxY, z), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                break;
+            }
+            case BlockSide.South:
+            {
+                float minX = start;
+                float maxX = start + span;
+                float minY = startY;
+                float maxY = startY + height;
+                float z = axis + 1f;
+
+                vertices.Add(new ChunkVertex(new Vector3(maxX, maxY, z), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(maxX, minY, z), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(minX, minY, z), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(minX, maxY, z), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                break;
+            }
+            case BlockSide.East:
+            {
+                float x = axis + 1f;
+                float minZ = start;
+                float maxZ = start + span;
+                float minY = startY;
+                float maxY = startY + height;
+
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, minZ), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, minZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, maxZ), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, maxZ), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                break;
+            }
+            case BlockSide.West:
+            {
+                float x = axis;
+                float minZ = start;
+                float maxZ = start + span;
+                float minY = startY;
+                float maxY = startY + height;
+
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, maxZ), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, maxZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, minZ), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, minZ), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                break;
+            }
+        }
+
+        indices.Add(baseIndex);
+        indices.Add(baseIndex + 1);
+        indices.Add(baseIndex + 2);
+        indices.Add(baseIndex + 2);
+        indices.Add(baseIndex + 3);
+        indices.Add(baseIndex);
+    }
+
+    private void AddSolidFace(
+        BlockSide side,
+        int x,
+        int y,
+        int z,
+        BlockType blockType,
+        BlockDefinitionData? definition,
+        List<ChunkVertex> vertices,
+        List<int> indices,
+        ref Texture2D? atlasTexture)
+    {
+        if (definition == null)
+        {
+            return;
+        }
+
+        var region = _blockManagerService.GetBlockSide(blockType, side);
+        if (region == null)
+        {
+            return;
+        }
+
+        atlasTexture ??= region.Texture;
+
+        var uv = ExtractUv(region);
+        var faceColor = CalculateFaceColor(x, y, z, side);
+        var faceVertices = GetFaceVertices(side, x, y, z, uv, faceColor, definition.Height);
+
+        var baseIndex = vertices.Count;
+        vertices.AddRange(faceVertices);
+        indices.AddRange(
+            new[]
+            {
+                baseIndex,
+                baseIndex + 1,
+                baseIndex + 2,
+                baseIndex + 2,
+                baseIndex + 3,
+                baseIndex
+            }
+        );
+    }
+
+    private readonly record struct GreedyCell(
+        BlockType BlockType,
+        Color Color,
+        Vector2 UvMin,
+        Vector2 UvMax,
+        float Height);
+
     // Object pool policies for mesh data
-    private class VertexListPolicy : IPooledObjectPolicy<List<VertexPositionColorTexture>>
+    private class ChunkVertexListPolicy : IPooledObjectPolicy<List<ChunkVertex>>
+    {
+        public List<ChunkVertex> Create()
+        {
+            return new List<ChunkVertex>(16384); // Pre-allocate capacity for typical chunk
+        }
+
+        public bool Return(List<ChunkVertex> obj)
+        {
+            obj.Clear();
+            return true;
+        }
+    }
+
+    private class BillboardVertexListPolicy : IPooledObjectPolicy<List<VertexPositionColorTexture>>
     {
         public List<VertexPositionColorTexture> Create()
         {
-            return new List<VertexPositionColorTexture>(16384); // Pre-allocate capacity for typical chunk
+            return new List<VertexPositionColorTexture>(4096);
         }
 
         public bool Return(List<VertexPositionColorTexture> obj)

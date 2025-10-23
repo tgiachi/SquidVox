@@ -42,8 +42,8 @@ public class SquidVoxWorld : Game
         _container = container;
         _container.RegisterInstance(_renderLayers);
         _graphics = new GraphicsDeviceManager(this);
-        SquidVoxGraphicContext.GraphicsDeviceManager = _graphics;
-        SquidVoxGraphicContext.Window = Window;
+        SquidVoxEngineContext.GraphicsDeviceManager = _graphics;
+        SquidVoxEngineContext.Window = Window;
 
 
         Content.RootDirectory = "Content";
@@ -60,8 +60,8 @@ public class SquidVoxWorld : Game
     {
         // TODO: Add your initialization logic here
 
-        SquidVoxGraphicContext.WhitePixel = new Texture2D(GraphicsDevice, 1, 1);
-        SquidVoxGraphicContext.WhitePixel.SetData([Color.White]);
+        SquidVoxEngineContext.WhitePixel = new Texture2D(GraphicsDevice, 1, 1);
+        SquidVoxEngineContext.WhitePixel.SetData([Color.White]);
         var assetsManager = _container.Resolve<IAssetManagerService>();
         _ = _container.Resolve<ITimerService>();
         _ = _container.Resolve<IChunkGeneratorService>();
@@ -123,7 +123,7 @@ public class SquidVoxWorld : Game
                 new CameraGameObject()
                 {
                     FlyMode = true,
-                    EnableInput = false,
+                    EnableInput = true,
                 }
             );
 
@@ -241,7 +241,7 @@ public class SquidVoxWorld : Game
         //     Exit();
         // }
 
-        SquidVoxGraphicContext.GameTime = gameTime;
+        SquidVoxEngineContext.GameTime = gameTime;
 
         _inputManager.Update(gameTime);
 
@@ -256,7 +256,7 @@ public class SquidVoxWorld : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(SquidVoxGraphicContext.ClearColor);
+        GraphicsDevice.Clear(SquidVoxEngineContext.ClearColor);
 
         _renderLayers.RenderAll(_spriteBatch);
 

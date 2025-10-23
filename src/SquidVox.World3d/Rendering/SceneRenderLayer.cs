@@ -80,7 +80,7 @@ public class SceneRenderLayer : IRenderableLayer
     /// <param name="container">The IoC container to resolve dependencies.</param>
     public SceneRenderLayer()
     {
-        _sceneManager = SquidVoxGraphicContext.Container.Resolve<ISceneManager>();
+        _sceneManager = SquidVoxEngineContext.Container.Resolve<ISceneManager>();
     }
 
     /// <summary>

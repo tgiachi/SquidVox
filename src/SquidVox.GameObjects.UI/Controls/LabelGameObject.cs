@@ -137,7 +137,7 @@ public class LabelGameObject : Base2dGameObject
         }
 
         var textSize = Size;
-        var viewportWidth = SquidVoxGraphicContext.GraphicsDevice?.Viewport.Width ?? 800;
+        var viewportWidth = SquidVoxEngineContext.GraphicsDevice?.Viewport.Width ?? 800;
         var centerX = (viewportWidth - textSize.X) / 2f;
         Position = new Vector2(centerX, Position.Y);
     }
@@ -153,7 +153,7 @@ public class LabelGameObject : Base2dGameObject
         }
 
         var textSize = Size;
-        var viewportHeight = SquidVoxGraphicContext.GraphicsDevice?.Viewport.Height ?? 600;
+        var viewportHeight = SquidVoxEngineContext.GraphicsDevice?.Viewport.Height ?? 600;
         var centerY = (viewportHeight - textSize.Y) / 2f;
         Position = new Vector2(Position.X, centerY);
     }
@@ -172,7 +172,7 @@ public class LabelGameObject : Base2dGameObject
     /// </summary>
     private void LoadFont()
     {
-        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         _font = assetManager.GetFont(FontName, FontSize);
     }
 

@@ -33,9 +33,9 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     public DynamicSkyGameObject(CameraGameObject camera)
     {
         _camera = camera ?? throw new ArgumentNullException(nameof(camera));
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
 
-        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         _skyEffect = assetManager.GetEffect("Effects/DynamicSky");
 
         if (_skyEffect == null)
@@ -116,7 +116,7 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             throw new ArgumentException("Texture name cannot be null or whitespace.", nameof(textureName));
         }
 
-        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         var texture = assetManager.GetTexture(textureName);
 
         if (texture == null)

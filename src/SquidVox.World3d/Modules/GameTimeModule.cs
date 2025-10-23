@@ -12,19 +12,19 @@ public class GameTimeModule
     [ScriptFunction("get_total_seconds", "Gets the total elapsed game time in seconds.")]
     public float GetTotalSeconds()
     {
-        return (float)SquidVoxGraphicContext.GameTime.TotalGameTime.TotalSeconds;
+        return (float)SquidVoxEngineContext.GameTime.TotalGameTime.TotalSeconds;
     }
 
     [ScriptFunction("get_total_milliseconds", "Gets the total elapsed game time in milliseconds.")]
     public float GetTotalMilliseconds()
     {
-        return (float)SquidVoxGraphicContext.GameTime.TotalGameTime.TotalMilliseconds;
+        return (float)SquidVoxEngineContext.GameTime.TotalGameTime.TotalMilliseconds;
     }
 
     [ScriptFunction("delta")]
     public float GetDeltaMilliseconds()
     {
-        return (float)SquidVoxGraphicContext.GameTime.ElapsedGameTime.TotalMilliseconds;
+        return (float)SquidVoxEngineContext.GameTime.ElapsedGameTime.TotalMilliseconds;
     }
 
 

@@ -501,7 +501,7 @@ public class CheckBoxGameObject : Base2dGameObject
         var angle = (float)Math.Atan2(end.Y - start.Y, end.X - start.X);
 
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle((int)start.X, (int)start.Y - thickness / 2, (int)distance, thickness),
             null,
             color * Opacity,
@@ -519,7 +519,7 @@ public class CheckBoxGameObject : Base2dGameObject
     {
 
         // Draw checkbox background
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, checkBoxRect, GetBackgroundColor() * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, checkBoxRect, GetBackgroundColor() * Opacity);
 
         // Draw checkbox border
         if (BorderWidth > 0)
@@ -529,25 +529,25 @@ public class CheckBoxGameObject : Base2dGameObject
 
             // Top border
             spriteBatch.Draw(
-                SquidVoxGraphicContext.WhitePixel,
+                SquidVoxEngineContext.WhitePixel,
                 new Rectangle(checkBoxRect.X, checkBoxRect.Y, checkBoxRect.Width, borderWidth),
                 borderColor
             );
             // Bottom border
             spriteBatch.Draw(
-                SquidVoxGraphicContext.WhitePixel,
+                SquidVoxEngineContext.WhitePixel,
                 new Rectangle(checkBoxRect.X, checkBoxRect.Bottom - borderWidth, checkBoxRect.Width, borderWidth),
                 borderColor
             );
             // Left border
             spriteBatch.Draw(
-                SquidVoxGraphicContext.WhitePixel,
+                SquidVoxEngineContext.WhitePixel,
                 new Rectangle(checkBoxRect.X, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
                 borderColor
             );
             // Right border
             spriteBatch.Draw(
-                SquidVoxGraphicContext.WhitePixel,
+                SquidVoxEngineContext.WhitePixel,
                 new Rectangle(checkBoxRect.Right - borderWidth, checkBoxRect.Y, borderWidth, checkBoxRect.Height),
                 borderColor
             );

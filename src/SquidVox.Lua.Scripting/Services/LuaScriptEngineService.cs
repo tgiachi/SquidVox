@@ -15,7 +15,6 @@ using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Strings;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Json;
-using SquidVox.Core.Utils;
 using SquidVox.Lua.Scripting.Data;
 using SquidVox.Lua.Scripting.Data.Container;
 using SquidVox.Lua.Scripting.Loaders;
@@ -46,6 +45,8 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     // Script caching - using hash to avoid re-parsing identical scripts
     private readonly ConcurrentDictionary<string, string> _scriptCache = new();
     private readonly List<ScriptModuleData> _scriptModules;
+    private readonly List<ScriptUserData> _loadedUserData;
+
     private readonly IContainer _serviceProvider;
     private int _cacheHits;
     private int _cacheMisses;
@@ -60,6 +61,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     public LuaScriptEngineService(
         DirectoriesConfig directoriesConfig,
         List<ScriptModuleData> scriptModules,
+        List<ScriptUserData> loadedUserData,
         IContainer serviceProvider
     )
     {
@@ -70,11 +72,25 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _scriptModules = scriptModules;
         _directoriesConfig = directoriesConfig;
         _serviceProvider = serviceProvider;
+        _loadedUserData = loadedUserData;
         _initScripts = ["bootstrap.lua", "init.lua", "main.lua"];
 
         CreateNameResolver();
 
         LuaScript = CreateOptimizedEngine();
+
+        LoadToUserData();
+    }
+
+    private void LoadToUserData()
+    {
+        foreach (var scriptUserData in _loadedUserData)
+        {
+            UserData.RegisterType(scriptUserData.UserType);
+            LuaScript.Globals[scriptUserData.UserType.Name] = UserData.CreateStatic(scriptUserData.UserType);
+
+            _logger.Debug("User data type registered: {TypeName}", scriptUserData.UserType.Name);
+        }
     }
 
     /// <summary>
@@ -448,6 +464,23 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _cacheHits = 0;
         _cacheMisses = 0;
         _logger.Information("Script cache cleared");
+    }
+
+    public void RegisterGlobalTypeUserData(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        _logger.Debug("Global type user data registered: {TypeName}", type.Name);
+
+        LuaScript.Globals[type.Name] =  UserData.CreateStatic(type);
+    }
+
+    public void RegisterGlobalTypeUserData<T>()
+    {
+        var type = typeof(T);
+        _logger.Debug("Global type user data registered: {TypeName}", type.Name);
+
+        LuaScript.Globals[type.Name] =  UserData.CreateStatic(type);
     }
 
     /// <summary>

@@ -39,7 +39,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     public WorldGameObject(CameraGameObject camera)
     {
         Camera = camera ?? throw new ArgumentNullException(nameof(camera));
-        _blockManagerService = SquidVoxGraphicContext.Container.Resolve<IBlockManagerService>();
+        _blockManagerService = SquidVoxEngineContext.Container.Resolve<IBlockManagerService>();
         _particleGameObject = new Particle3dGameObject();
         _lightSystem = new ChunkLightSystem();
         _waterSystem = new WaterSimulationSystem();
@@ -846,8 +846,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         RasterizerState? previousRasterizerState = null;
         if (EnableWireframe)
         {
-            previousRasterizerState = SquidVoxGraphicContext.GraphicsDevice.RasterizerState;
-            SquidVoxGraphicContext.GraphicsDevice.RasterizerState = new RasterizerState
+            previousRasterizerState = SquidVoxEngineContext.GraphicsDevice.RasterizerState;
+            SquidVoxEngineContext.GraphicsDevice.RasterizerState = new RasterizerState
             {
                 FillMode = FillMode.WireFrame,
                 CullMode = CullMode.None
@@ -869,7 +869,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
 
         if (EnableWireframe && previousRasterizerState != null)
         {
-            SquidVoxGraphicContext.GraphicsDevice.RasterizerState = previousRasterizerState;
+            SquidVoxEngineContext.GraphicsDevice.RasterizerState = previousRasterizerState;
         }
 
         if (culledChunks > 0)

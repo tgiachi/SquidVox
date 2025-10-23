@@ -220,7 +220,7 @@ public class ListBoxGameObject : Base2dGameObject
 
         // Draw background
         var bgColor = IsEnabled ? BackgroundColor : DisabledBackgroundColor;
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, bounds, bgColor * Opacity);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, bounds, bgColor * Opacity);
 
         // Draw border
         if (BorderWidth > 0)
@@ -276,7 +276,7 @@ public class ListBoxGameObject : Base2dGameObject
             }
 
             // Draw item background
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, itemBounds, itemBgColor * Opacity);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, itemBounds, itemBgColor * Opacity);
 
             // Draw item text
             if (!string.IsNullOrEmpty(item.Text))
@@ -315,18 +315,18 @@ public class ListBoxGameObject : Base2dGameObject
         var borderWidth = (int)BorderWidth;
 
         // Top border
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, borderWidth), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, borderWidth), color);
         // Bottom border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.X, bounds.Bottom - borderWidth, bounds.Width, borderWidth),
             color
         );
         // Left border
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, borderWidth, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, borderWidth, bounds.Height), color);
         // Right border
         spriteBatch.Draw(
-            SquidVoxGraphicContext.WhitePixel,
+            SquidVoxEngineContext.WhitePixel,
             new Rectangle(bounds.Right - borderWidth, bounds.Y, borderWidth, bounds.Height),
             color
         );

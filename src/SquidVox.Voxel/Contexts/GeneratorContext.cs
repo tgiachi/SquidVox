@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SquidVox.Core.Data.Primitives;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using SquidVox.Voxel.Primitives;
@@ -13,7 +14,6 @@ public class GeneratorContext : IGeneratorContext
     /// <inheritdoc/>
     public ChunkEntity Chunk { get; }
 
-
     public Vector3 WorldPosition { get; }
 
     /// <inheritdoc/>
@@ -24,6 +24,9 @@ public class GeneratorContext : IGeneratorContext
 
     /// <inheritdoc/>
     public IDictionary<string, object> CustomData { get; }
+
+
+    public List<PositionAndSize> CloudAreas { get; } = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GeneratorContext"/> class.
@@ -39,5 +42,30 @@ public class GeneratorContext : IGeneratorContext
         NoiseGenerator = noiseGenerator ?? throw new ArgumentNullException(nameof(noiseGenerator));
         Seed = seed;
         CustomData = new Dictionary<string, object>();
+    }
+
+    public void AddCustomData(string key, object value)
+    {
+        CustomData[key] = value;
+    }
+
+    public void AddCloudArea(PositionAndSize area)
+    {
+        CloudAreas.Add(area);
+    }
+
+    public void ClearCloudAreas()
+    {
+        CloudAreas.Clear();
+    }
+
+    public void AddCloudArea(Vector3 cloudPosition, Vector3 size)
+    {
+        CloudAreas.Add(new PositionAndSize(cloudPosition, size));
+    }
+
+    public void AddCloudArea(float x, float y, float z, float sizeX, float sizeY, float sizeZ)
+    {
+        CloudAreas.Add(new PositionAndSize(new Vector3(x, y, z), new Vector3(sizeX, sizeY, sizeZ)));
     }
 }

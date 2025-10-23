@@ -54,9 +54,9 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
     public CloudsGameObject(CameraGameObject camera)
     {
         _camera = camera ?? throw new ArgumentNullException(nameof(camera));
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
 
-        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         _cloudEffect = assetManager.GetEffect("Effects/Clouds");
 
         if (_cloudEffect == null)
@@ -197,31 +197,31 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
             new(new Vector3( 0.5f, -0.5f,  0.5f), new Vector3(0, 0, 1), Vector2.Zero),
             new(new Vector3(-0.5f,  0.5f,  0.5f), new Vector3(0, 0, 1), Vector2.Zero),
             new(new Vector3( 0.5f,  0.5f,  0.5f), new Vector3(0, 0, 1), Vector2.Zero),
-            
+
             // Back face (Z-)
             new(new Vector3( 0.5f, -0.5f, -0.5f), new Vector3(0, 0, -1), Vector2.Zero),
             new(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0, 0, -1), Vector2.Zero),
             new(new Vector3( 0.5f,  0.5f, -0.5f), new Vector3(0, 0, -1), Vector2.Zero),
             new(new Vector3(-0.5f,  0.5f, -0.5f), new Vector3(0, 0, -1), Vector2.Zero),
-            
+
             // Top face (Y+)
             new(new Vector3(-0.5f,  0.5f,  0.5f), new Vector3(0, 1, 0), Vector2.Zero),
             new(new Vector3( 0.5f,  0.5f,  0.5f), new Vector3(0, 1, 0), Vector2.Zero),
             new(new Vector3(-0.5f,  0.5f, -0.5f), new Vector3(0, 1, 0), Vector2.Zero),
             new(new Vector3( 0.5f,  0.5f, -0.5f), new Vector3(0, 1, 0), Vector2.Zero),
-            
+
             // Bottom face (Y-)
             new(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0, -1, 0), Vector2.Zero),
             new(new Vector3( 0.5f, -0.5f, -0.5f), new Vector3(0, -1, 0), Vector2.Zero),
             new(new Vector3(-0.5f, -0.5f,  0.5f), new Vector3(0, -1, 0), Vector2.Zero),
             new(new Vector3( 0.5f, -0.5f,  0.5f), new Vector3(0, -1, 0), Vector2.Zero),
-            
+
             // Right face (X+)
             new(new Vector3( 0.5f, -0.5f,  0.5f), new Vector3(1, 0, 0), Vector2.Zero),
             new(new Vector3( 0.5f, -0.5f, -0.5f), new Vector3(1, 0, 0), Vector2.Zero),
             new(new Vector3( 0.5f,  0.5f,  0.5f), new Vector3(1, 0, 0), Vector2.Zero),
             new(new Vector3( 0.5f,  0.5f, -0.5f), new Vector3(1, 0, 0), Vector2.Zero),
-            
+
             // Left face (X-)
             new(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(-1, 0, 0), Vector2.Zero),
             new(new Vector3(-0.5f, -0.5f,  0.5f), new Vector3(-1, 0, 0), Vector2.Zero),

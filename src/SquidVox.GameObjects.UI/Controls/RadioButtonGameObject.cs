@@ -338,7 +338,7 @@ public class RadioButtonGameObject : Base2dGameObject
             var y = center.Y + (float)Math.Sin(angle) * (radius - 1);
 
             var pixelRect = new Rectangle((int)x, (int)y, 2, 2);
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, pixelRect, color);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, pixelRect, color);
         }
 
         var centerSize = Math.Max(1, (int)(radius * 0.7f));
@@ -348,7 +348,7 @@ public class RadioButtonGameObject : Base2dGameObject
             centerSize,
             centerSize
         );
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, centerRect, color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, centerRect, color);
     }
 
     private void DrawCircleOutline(SpriteBatch spriteBatch, Vector2 center, float radius, float thickness, Color color)
@@ -362,7 +362,7 @@ public class RadioButtonGameObject : Base2dGameObject
             var y = center.Y + (float)Math.Sin(angle) * radius;
 
             var pixelRect = new Rectangle((int)x, (int)y, (int)thickness, (int)thickness);
-            spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, pixelRect, color);
+            spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, pixelRect, color);
         }
     }
 

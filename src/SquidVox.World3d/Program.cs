@@ -8,6 +8,7 @@ using Serilog;
 using Serilog.Formatting.Compact;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Directories;
+using SquidVox.Core.Data.Primitives;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Directories;
 using SquidVox.Core.Interfaces.Services;
@@ -54,7 +55,7 @@ await ConsoleApp.RunAsync(
         Log.Logger = loggingConfiguration.CreateLogger();
 
         var container = new Container();
-        SquidVoxGraphicContext.Container = container;
+        SquidVoxEngineContext.Container = container;
         container.RegisterInstance(directoriesConfig);
 
         container
@@ -70,13 +71,16 @@ await ConsoleApp.RunAsync(
             ;
 
 
-        // register custom userType for LUA
 
-        UserData.RegisterType<Vector2>();
-        UserData.RegisterType<Vector3>();
-        UserData.RegisterType(typeof(ImGui));
-        UserData.RegisterType<BlockDefinitionData>();
-        UserData.RegisterType<GeneratorContext>();
+        container
+            .AddLuaUserData<Vector2>()
+            .AddLuaUserData<Vector3>()
+            .AddLuaUserData(typeof(ImGui))
+            .AddLuaUserData<BlockDefinitionData>()
+            .AddLuaUserData<GeneratorContext>()
+            .AddLuaUserData<PositionAndSize>()
+            ;
+
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);

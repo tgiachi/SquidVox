@@ -10,7 +10,7 @@ public sealed class MeshData
     /// <summary>
     /// Gets or sets the vertices of the mesh.
     /// </summary>
-    public VertexPositionColorTexture[] Vertices { get; set; } = [];
+    public ChunkVertex[] Vertices { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the indices of the mesh.

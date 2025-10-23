@@ -47,7 +47,7 @@ public sealed class CameraGameObject : Base3dGameObject
     /// </summary>
     public CameraGameObject()
     {
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
         Position = new Vector3(8f, ChunkEntity.Height + 20f, 8f);
 
         _front = Vector3.UnitZ;

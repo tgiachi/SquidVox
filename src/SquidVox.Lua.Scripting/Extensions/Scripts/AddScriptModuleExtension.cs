@@ -30,6 +30,23 @@ public static class AddScriptModuleExtension
         return container;
     }
 
+    public static IContainer AddLuaUserData(this IContainer container, Type userDataType)
+    {
+        if (userDataType == null)
+        {
+            throw new ArgumentNullException(nameof(userDataType), "User data type cannot be null.");
+        }
+
+        container.AddToRegisterTypedList(new ScriptUserData { UserType = userDataType });
+
+        return container;
+    }
+
+    public static IContainer AddLuaUserData<TUserData>(this IContainer container)
+    {
+        return container.AddLuaUserData(typeof(TUserData));
+    }
+
     /// <summary>
     ///     Registers a Lua script module type with the container using a generic type parameter.
     /// </summary>

@@ -113,7 +113,7 @@ public class ScrollableTextGameObject : Base2dGameObject
     {
         try
         {
-            _font = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>().GetFont(fontName, fontSize);
+            _font = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>().GetFont(fontName, fontSize);
             if (_font != null)
             {
                 _lineHeight = _font.MeasureString("Ay").Y;
@@ -170,7 +170,7 @@ public class ScrollableTextGameObject : Base2dGameObject
         var bounds = new Rectangle((int)absolutePos.X, (int)absolutePos.Y, (int)Size.X, (int)Size.Y);
 
         // Draw background
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, bounds, BackgroundColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, bounds, BackgroundColor);
 
         // Draw border
         DrawBorder(spriteBatch, bounds, BorderColor, 1);
@@ -234,7 +234,7 @@ public class ScrollableTextGameObject : Base2dGameObject
             bounds.Height - _scrollbarPadding * 2
         );
 
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, trackBounds, _scrollbarTrackColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, trackBounds, _scrollbarTrackColor);
 
         // Scrollbar thumb
         var thumbHeight = Math.Max(20, trackBounds.Height * (visibleHeight / contentHeight));
@@ -247,7 +247,7 @@ public class ScrollableTextGameObject : Base2dGameObject
             (int)thumbHeight
         );
 
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, thumbBounds, _scrollbarThumbColor);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, thumbBounds, _scrollbarThumbColor);
     }
 
     /// <summary>
@@ -256,13 +256,13 @@ public class ScrollableTextGameObject : Base2dGameObject
     private void DrawBorder(SpriteBatch spriteBatch, Rectangle bounds, Color color, int width)
     {
         // Top
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, width), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, bounds.Width, width), color);
         // Bottom
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Bottom - width, bounds.Width, width), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Bottom - width, bounds.Width, width), color);
         // Left
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, width, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.X, bounds.Y, width, bounds.Height), color);
         // Right
-        spriteBatch.Draw(SquidVoxGraphicContext.WhitePixel, new Rectangle(bounds.Right - width, bounds.Y, width, bounds.Height), color);
+        spriteBatch.Draw(SquidVoxEngineContext.WhitePixel, new Rectangle(bounds.Right - width, bounds.Y, width, bounds.Height), color);
     }
 
     /// <summary>

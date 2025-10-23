@@ -43,9 +43,9 @@ public class SnowGameObject : Base3dGameObject, IDisposable
     public SnowGameObject(CameraGameObject camera)
     {
         _camera = camera ?? throw new ArgumentNullException(nameof(camera));
-        _graphicsDevice = SquidVoxGraphicContext.GraphicsDevice;
+        _graphicsDevice = SquidVoxEngineContext.GraphicsDevice;
 
-        var assetManager = SquidVoxGraphicContext.Container.Resolve<IAssetManagerService>();
+        var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
         _snowEffect = assetManager.GetEffect("Effects/Snow") ?? throw new InvalidOperationException("Snow effect not loaded.");
 
         InitBuffers();
