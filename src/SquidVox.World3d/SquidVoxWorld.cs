@@ -58,7 +58,6 @@ public class SquidVoxWorld : Game
 
 
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
     }
 
     /// <summary>
@@ -187,14 +186,13 @@ public class SquidVoxWorld : Game
         );
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(_debugInfoPanel);
 
-        _renderLayers.GetLayer<GameObject3dRenderLayer>()
-            .AddGameObject(
-                new CameraGameObject()
-                {
-                    FlyMode = true,
-                    EnableInput = true,
-                }
-            );
+        var camera = new CameraGameObject()
+        {
+            FlyMode = true,
+            EnableInput = true,
+        };
+        camera.EnableInputChanged += (sender, enabled) => IsMouseVisible = !enabled;
+        _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(camera);
 
         _renderLayers.GetLayer<ImGuiRenderLayer>()
             .AddDebugger(
@@ -206,6 +204,9 @@ public class SquidVoxWorld : Game
                         var worldGameObject = _renderLayers.GetLayer<GameObject3dRenderLayer>()
                             .GetComponent<WorldGameObject>();
 
+                        var sky = _renderLayers.GetLayer<GameObject3dRenderLayer>()
+                            .GetComponent<DynamicSkyGameObject>();
+
                         ImGui.Text("Camera position: " + camera.Position);
                         ImGui.Separator();
                         ImGui.Text("Camera rotation: " + camera.Rotation);
@@ -215,6 +216,9 @@ public class SquidVoxWorld : Game
                         var fogColor = worldGameObject.FogColor.ToNumerics();
                         var fogStart = worldGameObject.FogStart;
                         var fogEnd = worldGameObject.FogEnd;
+
+
+                        ImGui.Separator();
 
 
                         var chunkDistance = worldGameObject.ChunkLoadDistance;
@@ -303,6 +307,9 @@ public class SquidVoxWorld : Game
 
         var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
+        skyPanorama.SetSkyTexture(assetManager.GetTexture("starfield"));
+        skyPanorama.SkyTextureBlend = 1.0f;
+        skyPanorama.UseSkyTexture = false;
         //skyPanorama.DebugMode = true;
 
 
@@ -391,6 +398,7 @@ public class SquidVoxWorld : Game
                 _debugInfoPanel.ChunksLoaded = world.Chunks.Count;
                 // TODO: Add proper entity counting when available
                 _debugInfoPanel.EntitiesRendered = world.Chunks.Count;
+                _debugInfoPanel.DrawCalls = world.Chunks.Values.Sum(c => c.DrawCallCount);
             }
 
             _debugInfoPanel.MemoryUsageBytes = GC.GetTotalMemory(false);

@@ -189,6 +189,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         }
     }
 
+    public bool EnableFadeIn { get; set; } = true;
+
     /// <summary>
     /// Gets or sets the distance at which fog begins.
     /// </summary>
@@ -995,7 +997,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 AutoRotate = false,
                 BlockScale = 1f,
                 RenderTransparentBlocks = true,
-                EnableFadeIn = false,
+                EnableFadeIn = EnableFadeIn,
                 GetNeighborChunk = GetChunkEntity,
                 FogEnabled = FogEnabled,
                 FogColor = FogColor,

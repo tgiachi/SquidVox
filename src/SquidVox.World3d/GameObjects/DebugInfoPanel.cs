@@ -21,10 +21,10 @@ public sealed class DebugInfoPanel : Base2dGameObject
     private float _timeSinceLastUpdate;
 
     // Panel styling properties
-    private Color _backgroundColor;
-    private Color _borderColor;
-    private int _borderWidth;
-    private int _padding;
+    private readonly Color _backgroundColor;
+    private readonly Color _borderColor;
+    private readonly int _borderWidth;
+    private readonly int _padding;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DebugInfoPanel"/>.

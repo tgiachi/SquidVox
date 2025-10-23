@@ -30,7 +30,6 @@ public sealed class CameraGameObject : Base3dGameObject
     private float _yaw = -90f;
     private float _pitch;
     private float _zoom = 60f;
-    private Point _lastMousePosition;
     private bool _firstMouseMove = true;
 
     private float _verticalVelocity;
@@ -499,12 +498,30 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the mouse look sensitivity.
     /// </summary>
-    public float MouseSensitivity { get; set; } = 0.003f;
+    public float MouseSensitivity { get; set; } = 0.1f;
+
+    /// <summary>
+    /// Event raised when the EnableInput property changes.
+    /// </summary>
+    public event EventHandler<bool>? EnableInputChanged;
+
+    private bool _enableInput = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether input handling is enabled.
     /// </summary>
-    public bool EnableInput { get; set; } = true;
+    public bool EnableInput
+    {
+        get => _enableInput;
+        set
+        {
+            if (_enableInput != value)
+            {
+                _enableInput = value;
+                EnableInputChanged?.Invoke(this, _enableInput);
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether the mouse is captured for camera control.
@@ -627,7 +644,6 @@ public sealed class CameraGameObject : Base3dGameObject
 
         if (_firstMouseMove)
         {
-            _lastMousePosition = new Point(centerX, centerY);
             _firstMouseMove = false;
             Mouse.SetPosition(centerX, centerY);
             return;
