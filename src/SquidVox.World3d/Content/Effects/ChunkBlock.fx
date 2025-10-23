@@ -30,6 +30,20 @@ sampler texSampler = sampler_state
     AddressV = Wrap;
 };
 
+Texture3D BlockLightTexture;
+sampler BlockLightSampler = sampler_state
+{
+    Texture = <BlockLightTexture>;
+    MinFilter = Point;
+    MagFilter = Point;
+    MipFilter = Point;
+    AddressU = Clamp;
+    AddressV = Clamp;
+    AddressW = Clamp;
+};
+
+float3 ChunkDimensions;
+
 // Array of possible normals based on direction
 static const float3 normals[7] = {
     float3( 0,  0,  1), // 0 - South
@@ -49,6 +63,7 @@ struct VertexShaderInput
     float2 TileCoord : TEXCOORD0;
     float2 TileBase : TEXCOORD1;
     float2 TileSize : TEXCOORD2;
+    float3 BlockCoord : TEXCOORD3;
 };
 
 // Vertex shader output / Pixel shader input
@@ -60,6 +75,7 @@ struct VertexShaderOutput
     float2 TileCoord : TEXCOORD2;
     float2 TileBase : TEXCOORD3;
     float2 TileSize : TEXCOORD4;
+    float3 BlockCoord : TEXCOORD5;
 };
 
 // Vertex Shader
@@ -74,6 +90,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.TileCoord = input.TileCoord;
     output.TileBase = input.TileBase;
     output.TileSize = input.TileSize;
+    output.BlockCoord = input.BlockCoord;
 
     // Extract direction from color.a and use it to get normal
     int direction = int(input.Color.a);
@@ -108,7 +125,12 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     float diff = max(dot(input.Normal, lightDir), 0.0);
     float3 diffuse = diff * float3(1.0, 1.0, 1.0);
     
-    float3 color = texResult.rgb * (ambient + diffuse);
+    float3 blockCoord = clamp(input.BlockCoord + 0.5f, 0.0f, ChunkDimensions - 0.5f);
+    float3 samplePos = blockCoord / ChunkDimensions;
+    float lightValue = tex3D(BlockLightSampler, samplePos).r;
+    float lightFactor = max(lightValue, 0.1f);
+
+    float3 color = texResult.rgb * (ambient + diffuse) * lightFactor;
     
     // Apply fog
     if (fogEnabled)

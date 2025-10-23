@@ -330,7 +330,10 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
                 NextFloat(-0.5f, 0.5f) * 10f
             );
 
-            TrySpawnParticle(offsetPos, velocity, lifeTime, 0.15f, c, rotationSpeed, Particle.DefaultGravity);
+            if (!TrySpawnParticle(offsetPos, velocity, lifeTime, 0.15f, c, rotationSpeed, Particle.DefaultGravity))
+            {
+                break;
+            }
         }
     }
 

@@ -50,6 +50,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private VertexBuffer? _fluidVertexBuffer;
     private IndexBuffer? _fluidIndexBuffer;
     private int _fluidPrimitiveCount;
+    private Texture3D? _lightTexture;
+    private Color[]? _lightData;
+    private static readonly Vector3 ChunkDimensionsVector = new(ChunkEntity.Size, ChunkEntity.Height, ChunkEntity.Size);
 
     private ChunkEntity? _chunk;
     private float _rotationY;
@@ -389,6 +392,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         var previousDepthStencilState = _graphicsDevice.DepthStencilState;
         var previousRasterizerState = _graphicsDevice.RasterizerState;
         var previousSamplerState = _graphicsDevice.SamplerStates[0];
+        var previousSamplerState1 = _graphicsDevice.SamplerStates[1];
         RasterizerState? wireframeState = null;
 
         var useWireframe = SquidVoxEngineContext.GraphicsDevice.RasterizerState.FillMode == FillMode.WireFrame;
@@ -399,6 +403,12 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 FillMode = FillMode.WireFrame,
                 CullMode = CullMode.None
             };
+        }
+
+        if (_chunk != null && (_lightTexture == null || _chunk.IsLightingDirty))
+        {
+            UpdateLightTexture();
+            _chunk.IsLightingDirty = false;
         }
 
         _graphicsDevice.SetVertexBuffer(_vertexBuffer);
@@ -412,6 +422,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
             _graphicsDevice.RasterizerState = useWireframe ? wireframeState : RasterizerState.CullNone;
             _graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
+            _graphicsDevice.SamplerStates[1] = SamplerState.PointClamp;
 
             _blockEffect.Parameters["model"]?.SetValue(Position);
             _blockEffect.Parameters["view"]?.SetValue(view);
@@ -422,6 +433,11 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _blockEffect.Parameters["fogColor"]?.SetValue(FogColor);
             _blockEffect.Parameters["fogStart"]?.SetValue(FogStart);
             _blockEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
+            _blockEffect.Parameters["ChunkDimensions"]?.SetValue(ChunkDimensionsVector);
+            if (_lightTexture != null)
+            {
+                _blockEffect.Parameters["BlockLightTexture"]?.SetValue(_lightTexture);
+            }
 
             if (_blockEffect.Parameters["ambient"] != null)
             {
@@ -516,6 +532,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         _graphicsDevice.DepthStencilState = previousDepthStencilState;
         _graphicsDevice.RasterizerState = previousRasterizerState;
         _graphicsDevice.SamplerStates[0] = previousSamplerState;
+        _graphicsDevice.SamplerStates[1] = previousSamplerState1;
         wireframeState?.Dispose();
     }
 
@@ -524,6 +541,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     {
         ClearGeometry();
         _debugEffect?.Dispose();
+        _lightTexture?.Dispose();
+        _lightTexture = null;
+        _lightData = null;
     }
 
     private MeshData BuildMeshData()
@@ -1043,49 +1063,54 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         var tileBase = min;
         var tileSize = max - min;
 
+        static ChunkVertex CreateVertex(Vector3 position, Vector2 tileCoord, Vector2 tileBase, Vector2 tileSize, Color color, Vector3 blockCoord)
+        {
+            return new ChunkVertex(position, color, tileCoord, tileBase, tileSize, blockCoord);
+        }
+
         return side switch
         {
             BlockSide.Top => new[]
             {
-                new ChunkVertex(new Vector3(x, y1, z), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y1, z1), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y1, z1), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y1, z), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
+                CreateVertex(new Vector3(x, y1, z), new Vector2(0f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ)),
+                CreateVertex(new Vector3(x, y1, z1), new Vector2(0f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ + 1)),
+                CreateVertex(new Vector3(x1, y1, z1), new Vector2(1f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ + 1)),
+                CreateVertex(new Vector3(x1, y1, z), new Vector2(1f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ))
             },
             BlockSide.Bottom => new[]
             {
-                new ChunkVertex(new Vector3(x, y, z1), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y, z), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y, z), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y, z1), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
+                CreateVertex(new Vector3(x, y, z1), new Vector2(0f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ + 1)),
+                CreateVertex(new Vector3(x, y, z), new Vector2(0f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ)),
+                CreateVertex(new Vector3(x1, y, z), new Vector2(1f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ)),
+                CreateVertex(new Vector3(x1, y, z1), new Vector2(1f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ + 1))
             },
             BlockSide.North => new[]
             {
-                new ChunkVertex(new Vector3(x, y1, z), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y, z), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y, z), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y1, z), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
+                CreateVertex(new Vector3(x, y1, z), new Vector2(0f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY + height, blockZ)),
+                CreateVertex(new Vector3(x, y, z), new Vector2(0f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ)),
+                CreateVertex(new Vector3(x1, y, z), new Vector2(1f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ)),
+                CreateVertex(new Vector3(x1, y1, z), new Vector2(1f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY + height, blockZ))
             },
             BlockSide.South => new[]
             {
-                new ChunkVertex(new Vector3(x1, y1, z1), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y, z1), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y, z1), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y1, z1), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
+                CreateVertex(new Vector3(x1, y1, z1), new Vector2(0f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY + height, blockZ + 1)),
+                CreateVertex(new Vector3(x1, y, z1), new Vector2(0f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ + 1)),
+                CreateVertex(new Vector3(x, y, z1), new Vector2(1f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ + 1)),
+                CreateVertex(new Vector3(x, y1, z1), new Vector2(1f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY + height, blockZ + 1))
             },
             BlockSide.East => new[]
             {
-                new ChunkVertex(new Vector3(x1, y1, z), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y, z), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y, z1), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x1, y1, z1), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
+                CreateVertex(new Vector3(x1, y1, z), new Vector2(0f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY + height, blockZ)),
+                CreateVertex(new Vector3(x1, y, z), new Vector2(0f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ)),
+                CreateVertex(new Vector3(x1, y, z1), new Vector2(1f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY, blockZ + 1)),
+                CreateVertex(new Vector3(x1, y1, z1), new Vector2(1f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX + 1, blockY + height, blockZ + 1))
             },
             BlockSide.West => new[]
             {
-                new ChunkVertex(new Vector3(x, y1, z1), colorWithDir, new Vector2(0f, 0f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y, z1), colorWithDir, new Vector2(0f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y, z), colorWithDir, new Vector2(1f, 1f), tileBase, tileSize),
-                new ChunkVertex(new Vector3(x, y1, z), colorWithDir, new Vector2(1f, 0f), tileBase, tileSize)
+                CreateVertex(new Vector3(x, y1, z1), new Vector2(0f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY + height, blockZ + 1)),
+                CreateVertex(new Vector3(x, y, z1), new Vector2(0f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ + 1)),
+                CreateVertex(new Vector3(x, y, z), new Vector2(1f, 1f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY, blockZ)),
+                CreateVertex(new Vector3(x, y1, z), new Vector2(1f, 0f), tileBase, tileSize, colorWithDir, new Vector3(blockX, blockY + height, blockZ))
             },
             _ => throw new ArgumentOutOfRangeException(nameof(side), side, "Unsupported side type")
         };
@@ -1380,18 +1405,18 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         if (side == BlockSide.Top)
         {
             float yTop = y + cell.Height;
-            vertices.Add(new ChunkVertex(new Vector3(minX, yTop, minZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
-            vertices.Add(new ChunkVertex(new Vector3(minX, yTop, maxZ), colorWithDir, new Vector2(0f, depth), uvMin, uvSpan));
-            vertices.Add(new ChunkVertex(new Vector3(maxX, yTop, maxZ), colorWithDir, new Vector2(width, depth), uvMin, uvSpan));
-            vertices.Add(new ChunkVertex(new Vector3(maxX, yTop, minZ), colorWithDir, new Vector2(width, 0f), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(minX, yTop, minZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan, new Vector3(minX, y, minZ)));
+            vertices.Add(new ChunkVertex(new Vector3(minX, yTop, maxZ), colorWithDir, new Vector2(0f, depth), uvMin, uvSpan, new Vector3(minX, y, maxZ)));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yTop, maxZ), colorWithDir, new Vector2(width, depth), uvMin, uvSpan, new Vector3(maxX, y, maxZ)));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yTop, minZ), colorWithDir, new Vector2(width, 0f), uvMin, uvSpan, new Vector3(maxX, y, minZ)));
         }
         else
         {
             float yBottom = y;
-            vertices.Add(new ChunkVertex(new Vector3(minX, yBottom, maxZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
-            vertices.Add(new ChunkVertex(new Vector3(minX, yBottom, minZ), colorWithDir, new Vector2(0f, depth), uvMin, uvSpan));
-            vertices.Add(new ChunkVertex(new Vector3(maxX, yBottom, minZ), colorWithDir, new Vector2(width, depth), uvMin, uvSpan));
-            vertices.Add(new ChunkVertex(new Vector3(maxX, yBottom, maxZ), colorWithDir, new Vector2(width, 0f), uvMin, uvSpan));
+            vertices.Add(new ChunkVertex(new Vector3(minX, yBottom, maxZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan, new Vector3(minX, y, maxZ)));
+            vertices.Add(new ChunkVertex(new Vector3(minX, yBottom, minZ), colorWithDir, new Vector2(0f, depth), uvMin, uvSpan, new Vector3(minX, y, minZ)));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yBottom, minZ), colorWithDir, new Vector2(width, depth), uvMin, uvSpan, new Vector3(maxX, y, minZ)));
+            vertices.Add(new ChunkVertex(new Vector3(maxX, yBottom, maxZ), colorWithDir, new Vector2(width, 0f), uvMin, uvSpan, new Vector3(maxX, y, maxZ)));
         }
 
         indices.Add(baseIndex);
@@ -1574,10 +1599,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 float maxY = startY + height;
                 float z = axis;
 
-                vertices.Add(new ChunkVertex(new Vector3(minX, maxY, z), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(minX, minY, z), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(maxX, minY, z), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(maxX, maxY, z), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(minX, maxY, z), colorWithDir, new Vector2(0f, height), uvMin, uvSpan, new Vector3(minX, maxY, axis)));
+                vertices.Add(new ChunkVertex(new Vector3(minX, minY, z), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan, new Vector3(minX, minY, axis)));
+                vertices.Add(new ChunkVertex(new Vector3(maxX, minY, z), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan, new Vector3(maxX, minY, axis)));
+                vertices.Add(new ChunkVertex(new Vector3(maxX, maxY, z), colorWithDir, new Vector2(span, height), uvMin, uvSpan, new Vector3(maxX, maxY, axis)));
                 break;
             }
             case BlockSide.South:
@@ -1588,10 +1613,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 float maxY = startY + height;
                 float z = axis + 1f;
 
-                vertices.Add(new ChunkVertex(new Vector3(maxX, maxY, z), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(maxX, minY, z), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(minX, minY, z), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(minX, maxY, z), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(maxX, maxY, z), colorWithDir, new Vector2(0f, height), uvMin, uvSpan, new Vector3(maxX, maxY, axis + 1)));
+                vertices.Add(new ChunkVertex(new Vector3(maxX, minY, z), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan, new Vector3(maxX, minY, axis + 1)));
+                vertices.Add(new ChunkVertex(new Vector3(minX, minY, z), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan, new Vector3(minX, minY, axis + 1)));
+                vertices.Add(new ChunkVertex(new Vector3(minX, maxY, z), colorWithDir, new Vector2(span, height), uvMin, uvSpan, new Vector3(minX, maxY, axis + 1)));
                 break;
             }
             case BlockSide.East:
@@ -1602,10 +1627,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 float minY = startY;
                 float maxY = startY + height;
 
-                vertices.Add(new ChunkVertex(new Vector3(x, maxY, minZ), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(x, minY, minZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(x, minY, maxZ), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(x, maxY, maxZ), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, minZ), colorWithDir, new Vector2(0f, height), uvMin, uvSpan, new Vector3(axis + 1, maxY, minZ)));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, minZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan, new Vector3(axis + 1, minY, minZ)));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, maxZ), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan, new Vector3(axis + 1, minY, maxZ)));
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, maxZ), colorWithDir, new Vector2(span, height), uvMin, uvSpan, new Vector3(axis + 1, maxY, maxZ)));
                 break;
             }
             case BlockSide.West:
@@ -1616,10 +1641,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 float minY = startY;
                 float maxY = startY + height;
 
-                vertices.Add(new ChunkVertex(new Vector3(x, maxY, maxZ), colorWithDir, new Vector2(0f, height), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(x, minY, maxZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(x, minY, minZ), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan));
-                vertices.Add(new ChunkVertex(new Vector3(x, maxY, minZ), colorWithDir, new Vector2(span, height), uvMin, uvSpan));
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, maxZ), colorWithDir, new Vector2(0f, height), uvMin, uvSpan, new Vector3(axis, maxY, maxZ)));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, maxZ), colorWithDir, new Vector2(0f, 0f), uvMin, uvSpan, new Vector3(axis, minY, maxZ)));
+                vertices.Add(new ChunkVertex(new Vector3(x, minY, minZ), colorWithDir, new Vector2(span, 0f), uvMin, uvSpan, new Vector3(axis, minY, minZ)));
+                vertices.Add(new ChunkVertex(new Vector3(x, maxY, minZ), colorWithDir, new Vector2(span, height), uvMin, uvSpan, new Vector3(axis, maxY, minZ)));
                 break;
             }
         }
@@ -1681,6 +1706,55 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         Vector2 UvMin,
         Vector2 UvMax,
         float Height);
+
+    private void UpdateLightTexture()
+    {
+        if (_chunk == null)
+        {
+            return;
+        }
+
+        var expectedCount = ChunkEntity.Size * ChunkEntity.Height * ChunkEntity.Size;
+
+        if (_lightTexture == null ||
+            _lightTexture.Width != ChunkEntity.Size ||
+            _lightTexture.Height != ChunkEntity.Height ||
+            _lightTexture.Depth != ChunkEntity.Size)
+        {
+            _lightTexture?.Dispose();
+            _lightTexture = new Texture3D(
+                _graphicsDevice,
+                ChunkEntity.Size,
+                ChunkEntity.Height,
+                ChunkEntity.Size,
+                false,
+                SurfaceFormat.Color
+            );
+
+            _lightData = new Color[expectedCount];
+        }
+
+        if (_lightData == null || _lightData.Length != expectedCount)
+        {
+            _lightData = new Color[expectedCount];
+        }
+
+        var data = _lightData;
+        if (data == null)
+        {
+            return;
+        }
+
+        var lightLevels = _chunk.LightLevels;
+        for (int i = 0; i < lightLevels.Length && i < data.Length; i++)
+        {
+            float normalized = Math.Clamp(lightLevels[i] / 15f, 0f, 1f);
+            byte value = (byte)(normalized * 255f);
+            data[i] = new Color(value, value, value, (byte)255);
+        }
+
+        _lightTexture!.SetData(data);
+    }
 
     // Object pool policies for mesh data
     private class ChunkVertexListPolicy : IPooledObjectPolicy<List<ChunkVertex>>
