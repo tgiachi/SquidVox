@@ -68,6 +68,7 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<BlockManagerModule>()
             .AddLuaScriptModule<GameTimeModule>()
             .AddLuaScriptModule<GenerationModule>()
+            .AddLuaScriptModule<CameraModule>()
             ;
 
 

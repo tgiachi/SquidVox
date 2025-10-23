@@ -488,6 +488,10 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 _billboardEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
                 _billboardEffect.Parameters["ambient"]?.SetValue(AmbientLight);
                 _billboardEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
+                _billboardEffect.Parameters["fogEnabled"]?.SetValue(FogEnabled);
+                _billboardEffect.Parameters["fogColor"]?.SetValue(FogColor);
+                _billboardEffect.Parameters["fogStart"]?.SetValue(FogStart);
+                _billboardEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
 
                 foreach (var pass in _billboardEffect.CurrentTechnique.Passes)
                 {
@@ -513,10 +517,14 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 _fluidEffect.Parameters["view"]?.SetValue(view);
                 _fluidEffect.Parameters["projection"]?.SetValue(projection);
                 _fluidEffect.Parameters["tex"]?.SetValue(_texture);
-            _fluidEffect.Parameters["texMultiplier"]?.SetValue(FluidTextureFrameMultiplier);
+                _fluidEffect.Parameters["texMultiplier"]?.SetValue(FluidTextureFrameMultiplier);
                 _fluidEffect.Parameters["time"]?.SetValue((float)gameTime.TotalGameTime.TotalSeconds);
                 _fluidEffect.Parameters["ambient"]?.SetValue(AmbientLight);
                 _fluidEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
+                _fluidEffect.Parameters["fogEnabled"]?.SetValue(FogEnabled);
+                _fluidEffect.Parameters["fogColor"]?.SetValue(FogColor);
+                _fluidEffect.Parameters["fogStart"]?.SetValue(FogStart);
+                _fluidEffect.Parameters["fogEnd"]?.SetValue(FogEnd);
 
                 foreach (var pass in _fluidEffect.CurrentTechnique.Passes)
                 {

@@ -143,6 +143,29 @@ public class SquidVoxWorld : Game
 
                         var ambientLight = worldGameObject.AmbientLight.ToNumerics();
                         var lightDir = worldGameObject.LightDirection.ToNumerics();
+                        var fogColor = worldGameObject.FogColor.ToNumerics();
+                        var fogStart = worldGameObject.FogStart;;
+                        var fogEnd = worldGameObject.FogEnd;
+
+
+
+                        var chunkDistance = worldGameObject.ChunkLoadDistance;
+
+                        var viewDistance = worldGameObject.ViewRange;
+                        if (ImGui.SliderFloat("View Distance", ref viewDistance, 1, 512))
+                        {
+                            worldGameObject.ViewRange = viewDistance;
+                        }
+
+
+
+
+                        var enableWireframe = worldGameObject.EnableWireframe;
+                        if (ImGui.Checkbox("Enable Wireframe", ref enableWireframe))
+                        {
+                            worldGameObject.EnableWireframe = enableWireframe;
+                        }
+
 
                         // Editor ImGui
                         if (ImGui.ColorEdit3("Ambient Light", ref ambientLight))
@@ -161,6 +184,30 @@ public class SquidVoxWorld : Game
                                 lightDir.Y,
                                 lightDir.Z
                             );
+                        }
+
+                        if (ImGui.ColorEdit3("Fog Color", ref fogColor))
+                        {
+                            worldGameObject.FogColor = new Vector3(
+                                fogColor.X,
+                                fogColor.Y,
+                                fogColor.Z
+                            );
+                        }
+
+                        if (ImGui.SliderFloat("Fog Start", ref fogStart, 0f, 1000f))
+                        {
+                            worldGameObject.FogStart = fogStart;
+                        }
+
+                        if (ImGui.SliderFloat("Fog End", ref fogEnd, 0f, 2000f))
+                        {
+                            worldGameObject.FogEnd = fogEnd;
+                        }
+
+                        if (ImGui.SliderInt("Chunk Load Distance", ref chunkDistance, 1, 32))
+                        {
+                            worldGameObject.ChunkLoadDistance = chunkDistance;
                         }
                     }
                 )

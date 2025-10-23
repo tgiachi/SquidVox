@@ -9,6 +9,12 @@ float4x4 view;
 float4x4 projection;
 float time;
 
+// Fog
+bool fogEnabled;
+float3 fogColor;
+float fogStart;
+float fogEnd;
+
 // Lighting uniforms
 float3 ambient;
 float3 lightDirection;
@@ -57,6 +63,7 @@ struct VertexShaderOutput
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
     float3 Normal : TEXCOORD1;
+    float FogFactor : TEXCOORD2;
 };
 
 // Vertex Shader
@@ -87,6 +94,16 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
     output.Normal = normals[int(input.Direction)];
 
+    if (fogEnabled)
+    {
+        float distance = length(viewPosition.xyz);
+        output.FogFactor = saturate((fogEnd - distance) / (fogEnd - fogStart));
+    }
+    else
+    {
+        output.FogFactor = 1.0;
+    }
+
     return output;
 }
 
@@ -100,6 +117,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     float3 diffuse = diff * float3(1, 1, 1);
 
     float3 color = texResult.rgb * (ambient + diffuse);
+
+    if (fogEnabled)
+    {
+        color = lerp(fogColor, color, input.FogFactor);
+    }
 
     return float4(color, 0.7);
 }

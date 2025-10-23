@@ -801,6 +801,11 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
                 Directory.CreateDirectory(definitionDirectory);
             }
 
+            foreach(var userData in _loadedUserData)
+            {
+                LuaDocumentationGenerator.AddClassToGenerate(userData.UserType);
+            }
+
             // Generate meta.lua
             var documentation = LuaDocumentationGenerator.GenerateDocumentation(
                 "SquidCraft",

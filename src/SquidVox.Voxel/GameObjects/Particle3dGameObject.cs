@@ -72,7 +72,7 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
         {
             var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
             var texture = assetManager.GetTexture(textureName);
-         
+
             _particleTexture = texture;
         }
         catch (Exception ex)
@@ -102,8 +102,7 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
 
     private void LoadDefaultTexture()
     {
-        _particleTexture = new Texture2D(_graphicsDevice, 1, 1);
-        _particleTexture.SetData(new[] { Color.White });
+        _particleTexture = SquidVoxEngineContext.WhitePixel;
     }
 
     protected float NextFloat(float min, float max)
