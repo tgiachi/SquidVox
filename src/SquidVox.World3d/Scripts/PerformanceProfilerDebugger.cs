@@ -20,6 +20,8 @@ public class PerformanceProfilerDebugger : ISVoxDebuggerGameObject
         _profilerService = profilerService;
     }
 
+    public bool IsVisible { get; set; }
+
     /// <summary>
     ///     Gets the window title
     /// </summary>

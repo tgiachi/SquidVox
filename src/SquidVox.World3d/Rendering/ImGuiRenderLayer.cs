@@ -106,13 +106,30 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     {
         _imGuiRenderer.BeginLayout(_gameTime);
 
+        // Main menu bar
+        if (ImGui.BeginMainMenuBar())
+        {
+            foreach (var debugger in _debuggers)
+            {
+                bool isVisible = debugger.IsVisible;
+                if (ImGui.MenuItem($"{debugger.WindowTitle} {(isVisible ? "[ON]" : "[OFF]")}", "", ref isVisible))
+                {
+                    debugger.IsVisible = isVisible;
+                }
+            }
+            ImGui.EndMainMenuBar();
+        }
+
         lock (_addRemoveLock)
         {
             foreach (var debugger in _debuggers)
             {
-                ImGui.Begin(debugger.WindowTitle);
-                debugger.Draw();
-                ImGui.End();
+                if (debugger.IsVisible)
+                {
+                    ImGui.Begin(debugger.WindowTitle);
+                    debugger.Draw();
+                    ImGui.End();
+                }
             }
 
         }
@@ -174,6 +191,7 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
                 }
             }
         }
+
         return null;
     }
 

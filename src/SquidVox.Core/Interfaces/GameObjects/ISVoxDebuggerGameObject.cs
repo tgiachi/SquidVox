@@ -5,6 +5,9 @@ namespace SquidVox.Core.Interfaces.GameObjects;
 /// </summary>
 public interface ISVoxDebuggerGameObject
 {
+
+    bool IsVisible { get; set; }
+
     string WindowTitle { get; }
 
     void Draw();

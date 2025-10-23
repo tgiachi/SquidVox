@@ -4,6 +4,7 @@ namespace SquidVox.World3d.Scripts;
 
 public class LuaImGuiDebuggerObject : ISVoxDebuggerGameObject
 {
+    public bool IsVisible { get; set; }
     public string WindowTitle { get; }
 
     private readonly Action _callBack;

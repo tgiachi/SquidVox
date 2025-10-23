@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using FontStashSharp;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Graphics;
@@ -10,7 +6,6 @@ using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.Services;
-using System.Linq;
 
 namespace SquidVox.World3d.Services;
 
@@ -25,9 +20,12 @@ public class AssetManagerService : IAssetManagerService
     private readonly Dictionary<string, FontSystem> _fontSystems = new();
     private readonly Dictionary<string, DynamicSpriteFont> _loadedFonts = new();
     private readonly Dictionary<string, Effect> _effects = new();
+
     private readonly Dictionary<string, Texture2DAtlas> _textureAtlases = new();
-    private Texture2D _fallbackTexture = null!;
-    private readonly int[] _initialFontSize = { 16, 24, 32, 48, 64, 96, 128 };
+
+    private Texture2D _fallbackTexture;
+
+    private readonly int[] _initialFontSize = [16, 24, 32, 48, 64, 96, 128];
 
     public void SetContentManager(ContentManager contentManager)
     {
@@ -38,20 +36,27 @@ public class AssetManagerService : IAssetManagerService
     private void CreateFallbackTexture()
     {
         _fallbackTexture = new Texture2D(SquidVoxEngineContext.GraphicsDevice, 16, 16);
-        var colors = new Color[16 * 16];
-        for (var y = 0; y < 16; y++)
+        var colors = new Microsoft.Xna.Framework.Color[16 * 16];
+        for (int y = 0; y < 16; y++)
         {
-            for (var x = 0; x < 16; x++)
+            for (int x = 0; x < 16; x++)
             {
                 var isBlack = (x / 4 + y / 4) % 2 == 0;
-                colors[y * 16 + x] = isBlack ? Color.Black : Color.White;
+                colors[y * 16 + x] = isBlack
+                    ? Microsoft.Xna.Framework.Color.Black
+                    : Microsoft.Xna.Framework.Color.White;
             }
         }
-
         _fallbackTexture.SetData(colors);
         _logger.Information("Created fallback checkerboard texture");
     }
 
+    /// <summary>
+    /// Loads an asset from file.
+    /// </summary>
+    /// <param name="assetType">The type of asset to load.</param>
+    /// <param name="fileName">The file name of the asset.</param>
+    /// <param name="name">The name to assign to the asset.</param>
     public void LoadAssetFromFile(AssetType assetType, string fileName, string name)
     {
         switch (assetType)
@@ -68,6 +73,11 @@ public class AssetManagerService : IAssetManagerService
         }
     }
 
+    /// <summary>
+    /// Gets a texture by name.
+    /// </summary>
+    /// <param name="name">The name of the texture.</param>
+    /// <returns>The texture if found, otherwise null.</returns>
     public Texture2D GetTexture(string name)
     {
         if (_textures.TryGetValue(name, out var texture))
@@ -76,106 +86,127 @@ public class AssetManagerService : IAssetManagerService
         }
 
         _logger.Warning("Texture {Name} not found", name);
-        return _fallbackTexture;
+        return null;
     }
 
+
+    /// <summary>
+    /// Gets a tile from a texture atlas by index.
+    /// </summary>
+    /// <param name="atlasName">The name of the texture atlas.</param>
+    /// <param name="tileIndex">The index of the tile.</param>
+    /// <returns>The texture tile if found, otherwise null.</returns>
     public Texture2DRegion GetTextureAtlasTile(string atlasName, int tileIndex)
     {
         if (_textureAtlases.TryGetValue(atlasName, out var atlas))
         {
-            var count = (int)atlas.LongCount();
-            if ((uint)tileIndex >= (uint)count)
-            {
-                _logger.Warning("Tile index {Index} out of range for atlas {Atlas}", tileIndex, atlasName);
-                return null;
-            }
-
             return atlas[tileIndex];
+
+            _logger.Warning("Tile index {Index} out of range for atlas {Atlas}", tileIndex, atlasName);
+            return null;
         }
 
         _logger.Warning("Texture atlas {Name} not found", atlasName);
         return null;
     }
 
-    public Texture2D? CreateTextureFromRegion(Texture2DRegion? region)
-    {
-        if (region == null)
-        {
-            _logger.Warning("Cannot create texture: region is null");
-            return null;
-        }
-
-        var bounds = region.Bounds;
-        if (bounds.Width <= 0 || bounds.Height <= 0)
-        {
-            _logger.Warning(
-                "Cannot create texture: region has invalid dimensions {Width}x{Height}",
-                bounds.Width,
-                bounds.Height
-            );
-            return null;
-        }
-
-        var texture = new Texture2D(region.Texture.GraphicsDevice, bounds.Width, bounds.Height);
-        var data = new Color[bounds.Width * bounds.Height];
-        region.Texture.GetData(0, bounds, data, 0, data.Length);
-        texture.SetData(data);
-        return texture;
-    }
-
-    public Texture2DAtlas? GetTextureAtlas(string atlasName)
-    {
-        return _textureAtlases.TryGetValue(atlasName, out var atlas) ? atlas : null;
-    }
-
+    /// <summary>
+    /// Gets a font by name and size.
+    /// </summary>
+    /// <param name="name">The name of the font.</param>
+    /// <param name="size">The size of the font.</param>
+    /// <returns>The font if found, otherwise null.</returns>
     public DynamicSpriteFont GetFont(string name, int size = 32)
     {
-        var cacheKey = $"{name}_{size}";
-        if (_loadedFonts.TryGetValue(cacheKey, out var font))
+        if (_loadedFonts.TryGetValue($"{name}_{size}", out var loadedFont))
         {
-            return font;
+            return loadedFont;
         }
 
         if (_fontSystems.TryGetValue(name, out var fontSystem))
         {
-            var newFont = fontSystem.GetFont(size);
-            _loadedFonts[cacheKey] = newFont;
-            return newFont;
+            var preCachedFont = fontSystem.GetFont(size);
+
+            _loadedFonts[$"{name}_{size}"] = preCachedFont;
+            return preCachedFont;
         }
 
         _logger.Warning("Font {Name} not found", name);
         return null;
     }
 
-    public void LoadFontFromFile(string fileName, string name)
+    /// <summary>
+    /// Gets an effect by name.
+    /// </summary>
+    /// <param name="name">The name of the effect.</param>
+    /// <returns>The effect if found, otherwise null.</returns>
+    public Effect GetEffect(string name)
     {
-        using var stream = File.OpenRead(fileName);
-        LoadFontInternal(stream, name);
+        return _effects.TryGetValue(name, out var effect) ? effect : throw new KeyNotFoundException($"Effect {name} not found");
+
+        return null;
     }
 
-    public void LoadFontFromBytes(ReadOnlySpan<byte> data, string name)
+    /// <summary>
+    /// Loads an effect from content.
+    /// </summary>
+    /// <param name="name">The name of the effect.</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public void LoadEffect(string name)
     {
-        using var stream = new MemoryStream(data.ToArray());
-        LoadFontInternal(stream, name);
-    }
+        ArgumentNullException.ThrowIfNull(name);
 
-    private void LoadFontInternal(Stream stream, string name)
-    {
-        var fontSystem = new FontSystem();
-        fontSystem.AddFont(stream);
-        foreach (var size in _initialFontSize)
+        if (_contentManager == null)
         {
-            fontSystem.GetFont(size);
+            throw new InvalidOperationException("ContentManager not set");
         }
 
-        _fontSystems[name] = fontSystem;
-        _logger.Information("Loaded font {Name}", name);
+        var effect = _contentManager.Load<Effect>(name);
+        _effects[name] = effect;
+        _logger.Information("Loaded effect {Name}", name);
     }
 
+    /// <summary>
+    /// Loads a font from file.
+    /// </summary>
+    /// <param name="fileName">The file name of the font.</param>
+    /// <param name="name">The name to assign to the font.</param>
+    public void LoadFontFromFile(string fileName, string name)
+    {
+        var fontData = File.ReadAllBytes(fileName);
+        LoadFontFromBytes(fontData, name);
+        _logger.Information("Loaded font {Name} from {File}", name, fileName);
+    }
+
+    /// <summary>
+    /// Loads a font from a byte array.
+    /// </summary>
+    /// <param name="data">The byte array containing the font data.</param>
+    /// <param name="name">The name to assign to the font.</param>
+    public void LoadFontFromBytes(ReadOnlySpan<byte> data, string name)
+    {
+        var fontSystem = new FontSystem();
+        fontSystem.AddFont(data.ToArray()); // FontSystem.AddFont requires byte[]
+        _fontSystems[name] = fontSystem;
+
+        foreach (var size in _initialFontSize)
+        {
+            _logger.Debug("Preloading {Name} font: {Size} ", name, size);
+            _loadedFonts[$"{name}_{size}"] = fontSystem.GetFont(size);
+        }
+
+        _logger.Information("Loaded font {Name} from byte array", name);
+    }
+
+    /// <summary>
+    /// Loads a texture from file.
+    /// </summary>
+    /// <param name="fileName">The file name of the texture.</param>
+    /// <param name="name">The name to assign to the texture.</param>
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureFromFile(string fileName, string name, bool replaceMagentaWithTransparent = false)
     {
-        using var stream = File.OpenRead(fileName);
-        var texture = Texture2D.FromStream(SquidVoxEngineContext.GraphicsDevice, stream);
+        var texture = Texture2D.FromFile(SquidVoxEngineContext.GraphicsDevice, fileName);
 
         if (replaceMagentaWithTransparent)
         {
@@ -186,10 +217,15 @@ public class AssetManagerService : IAssetManagerService
         _logger.Information("Loaded texture {Name} from {File}", name, fileName);
     }
 
+    /// <summary>
+    /// Loads a texture from a byte array.
+    /// </summary>
+    /// <param name="data">The byte array containing the image data.</param>
+    /// <param name="name">The name to assign to the texture.</param>
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name, bool replaceMagentaWithTransparent = false)
     {
-        using var stream = new MemoryStream(data.ToArray());
-        var texture = Texture2D.FromStream(SquidVoxEngineContext.GraphicsDevice, stream);
+        var texture = Texture2D.FromStream(SquidVoxEngineContext.GraphicsDevice, new MemoryStream(data.ToArray()));
 
         if (replaceMagentaWithTransparent)
         {
@@ -197,47 +233,53 @@ public class AssetManagerService : IAssetManagerService
         }
 
         _textures[name] = texture;
-        _logger.Information(
-            "Loaded texture {Name} from byte array ({Width}x{Height})",
-            name,
-            texture.Width,
-            texture.Height
-        );
+        _logger.Information("Loaded texture {Name} from byte array ({Width}x{Height})", name, texture.Width, texture.Height);
     }
 
+
+    /// <summary>
+    /// Loads a texture atlas from file and splits it into individual tiles.
+    /// </summary>
+    /// <param name="fileName">The file name of the texture atlas.</param>
+    /// <param name="name">The name to assign to the atlas.</param>
+    /// <param name="tileWidth">The width of each tile in pixels.</param>
+    /// <param name="tileHeight">The height of each tile in pixels.</param>
+    /// <param name="spacing">The spacing between tiles in pixels.</param>
+    /// <param name="margin">The margin around the atlas in pixels.</param>
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureAtlasFromFile(
-        string fileName,
-        string name,
-        int tileWidth,
-        int tileHeight,
-        int spacing = 0,
-        int margin = 0,
-        bool replaceMagentaWithTransparent = true
+        string fileName, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0, bool replaceMagentaWithTransparent = true
     )
     {
-        LoadTextureFromFile(fileName, $"{name}_atlas", replaceMagentaWithTransparent);
-        var texture = GetTexture($"{name}_atlas");
-        _textureAtlases[name] = Texture2DAtlas.Create(name, texture, tileWidth, tileHeight, int.MaxValue, margin);
+        LoadTextureFromFile(fileName, name + "_atlas", replaceMagentaWithTransparent);
+
+        var texture = GetTexture(name + "_atlas");
+        var textureAtlas = Texture2DAtlas.Create(name, texture, tileWidth, tileHeight, int.MaxValue, margin);
+        _textureAtlases[name] = textureAtlas;
         _logger.Information(
             "Loaded texture atlas {Name} from {File} with {Count} tiles",
             name,
             fileName,
-            _textureAtlases[name].LongCount()
+            textureAtlas.LongCount()
         );
     }
 
+    /// <summary>
+    /// Loads a texture atlas from a byte array and splits it into individual tiles.
+    /// </summary>
+    /// <param name="data">The byte array containing the atlas image data.</param>
+    /// <param name="name">The name to assign to the atlas.</param>
+    /// <param name="tileWidth">The width of each tile in pixels.</param>
+    /// <param name="tileHeight">The height of each tile in pixels.</param>
+    /// <param name="spacing">The spacing between tiles in pixels.</param>
+    /// <param name="margin">The margin around the atlas in pixels.</param>
+    /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     public void LoadTextureAtlasFromBytes(
-        ReadOnlySpan<byte> data,
-        string name,
-        int tileWidth,
-        int tileHeight,
-        int spacing = 0,
-        int margin = 0,
-        bool replaceMagentaWithTransparent = true
+        ReadOnlySpan<byte> data, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0, bool replaceMagentaWithTransparent = true
     )
     {
-        LoadTextureFromBytes(data, $"{name}_atlas", replaceMagentaWithTransparent);
-        var texture = GetTexture($"{name}_atlas");
+        LoadTextureFromBytes(data, name + "_atlas", replaceMagentaWithTransparent);
+        var texture = GetTexture(name + "_atlas");
         _textureAtlases[name] = Texture2DAtlas.Create(name, texture, tileWidth, tileHeight, int.MaxValue, margin);
         _logger.Information(
             "Loaded texture atlas {Name} from byte array with {Count} tiles",
@@ -246,58 +288,86 @@ public class AssetManagerService : IAssetManagerService
         );
     }
 
+
+    /// <summary>
+    /// Replaces magenta pixels (255, 0, 255) with transparent pixels.
+    /// </summary>
+    /// <param name="texture">The texture to process.</param>
     private void ReplaceMagentaWithTransparent(Texture2D texture)
     {
         var pixelCount = texture.Width * texture.Height;
-        var data = new Color[pixelCount];
-        texture.GetData(data);
+        var colorData = new Microsoft.Xna.Framework.Color[pixelCount];
 
-        var replaced = 0;
-        for (var i = 0; i < data.Length; i++)
+        texture.GetData(colorData);
+
+        var replacedCount = 0;
+        for (var i = 0; i < colorData.Length; i++)
         {
-            if (data[i].R == 255 && data[i].G == 0 && data[i].B == 255)
+            if (colorData[i].R == 255 && colorData[i].G == 0 && colorData[i].B == 255)
             {
-                data[i] = Color.Transparent;
-                replaced++;
+                colorData[i] = Microsoft.Xna.Framework.Color.Transparent;
+                replacedCount++;
             }
         }
 
-        texture.SetData(data);
-        if (replaced > 0)
+        texture.SetData(colorData);
+
+        if (replacedCount > 0)
         {
-            _logger.Debug("Replaced {Count} magenta pixels with transparent in texture", replaced);
+            _logger.Debug("Replaced {Count} magenta pixels with transparent in texture", replacedCount);
         }
     }
 
+    /// <summary>
+    /// Gets the names of all loaded texture atlases.
+    /// </summary>
+    /// <returns>A list of texture atlas names.</returns>
     public List<string> GetAtlasTextureNames()
     {
-        return [.. _textureAtlases.Keys];
+        return [.._textureAtlases.Keys];
     }
 
+    /// <summary>
+    /// Gets the names of all loaded texture atlases (legacy method).
+    /// </summary>
+    /// <returns>A list of texture atlas names.</returns>
     public List<string> GetAtlasNames()
     {
         return GetAtlasTextureNames();
     }
 
-    public Effect GetEffect(string name)
+    /// <summary>
+    /// Gets a texture atlas by name.
+    /// </summary>
+    /// <param name="name">The name of the texture atlas.</param>
+    /// <returns>The texture atlas if found, otherwise null.</returns>
+    public Texture2DAtlas? GetTextureAtlas(string name)
     {
-        if (_effects.TryGetValue(name, out var effect))
+        return _textureAtlases.TryGetValue(name, out var atlas) ? atlas : null;
+    }
+
+    /// <summary>
+    /// Creates a <see cref="Texture2D"/> from a <see cref="Texture2DRegion"/>.
+    /// </summary>
+    /// <param name="region">The texture region to convert.</param>
+    /// <returns>The converted texture if successful; otherwise null.</returns>
+    public Texture2D? CreateTextureFromRegion(Texture2DRegion? region)
+    {
+        if (region == null)
         {
-            return effect;
+            return null;
         }
 
-        var loadedEffect = _contentManager.Load<Effect>(name);
-        _effects[name] = loadedEffect;
-        return loadedEffect;
+        var texture = new Texture2D(SquidVoxEngineContext.GraphicsDevice, region.Width, region.Height);
+        var data = new Microsoft.Xna.Framework.Color[region.Width * region.Height];
+        region.Texture.GetData(0, region.Bounds, data, 0, data.Length);
+        texture.SetData(data);
+        return texture;
     }
 
-    public void LoadEffect(string name)
-    {
-        var effect = _contentManager.Load<Effect>(name);
-        _effects[name] = effect;
-        _logger.Information("Loaded effect {Name}", name);
-    }
-
+    /// <summary>
+    /// Disposes of the service resources.
+    /// </summary>
     public void Dispose()
     {
         foreach (var texture in _textures.Values)
@@ -305,23 +375,17 @@ public class AssetManagerService : IAssetManagerService
             texture.Dispose();
         }
 
-        foreach (var font in _fontSystems.Values)
-        {
-            font.Dispose();
-        }
+        _textures.Clear();
 
         foreach (var effect in _effects.Values)
         {
             effect.Dispose();
         }
 
-
-        _textures.Clear();
-        _fontSystems.Clear();
-        _loadedFonts.Clear();
         _effects.Clear();
+
         _textureAtlases.Clear();
-        _fallbackTexture?.Dispose();
+
         GC.SuppressFinalize(this);
     }
 }

@@ -72,7 +72,7 @@ public sealed class TextureAtlasDebugger : IDisposable
 
         ImGui.Separator();
 
-        var atlasNames = _assetManagerService.GetAtlasNames();
+        var atlasNames = _assetManagerService.GetAtlasTextureNames();
         if (atlasNames == null || atlasNames.Count == 0)
         {
             ImGui.TextColored(new System.Numerics.Vector4(1f, 0.8f, 0.2f, 1f), "No texture atlases loaded.");
@@ -80,7 +80,22 @@ public sealed class TextureAtlasDebugger : IDisposable
             return;
         }
 
-        _atlasNames = atlasNames;
+        // Check if atlas names changed
+        bool namesChanged = !_atlasNames.SequenceEqual(atlasNames);
+        if (namesChanged)
+        {
+            // Try to preserve the selected atlas
+            int newIndex = atlasNames.IndexOf(_atlasName);
+            if (newIndex >= 0)
+            {
+                _selectedAtlasIndex = newIndex;
+            }
+            else
+            {
+                _selectedAtlasIndex = 0;
+            }
+            _atlasNames = atlasNames;
+        }
 
         if (_selectedAtlasIndex < 0 || _selectedAtlasIndex >= _atlasNames.Count)
         {

@@ -95,10 +95,6 @@ public interface IAssetManagerService : IDisposable
     /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name, bool replaceMagentaWithTransparent = false);
 
-
-
-    List<string> GetAtlasNames();
-
     /// <summary>
     /// Loads a texture atlas from file and splits it into individual tiles.
     /// </summary>
@@ -141,4 +137,11 @@ public interface IAssetManagerService : IDisposable
     /// </summary>
     /// <returns>A list of texture atlas names.</returns>
     List<string> GetAtlasTextureNames();
+
+    /// <summary>
+    /// Gets the names of all loaded texture atlases (legacy method).
+    /// </summary>
+    /// <returns>A list of texture atlas names.</returns>
+    List<string> GetAtlasNames();
+
 }
