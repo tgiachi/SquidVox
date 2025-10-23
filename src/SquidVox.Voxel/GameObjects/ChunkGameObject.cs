@@ -633,7 +633,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 {
                     var block = _chunk.Blocks[ChunkEntity.GetIndex(x, y, z)];
 
-                    if (block == null || block.BlockType == BlockType.Air)
+                    if (block.BlockType == BlockType.Air)
                     {
                         continue;
                     }
@@ -951,10 +951,6 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private bool ShouldRenderFace(int x, int y, int z, BlockSide side)
     {
         var currentBlock = _chunk!.Blocks[ChunkEntity.GetIndex(x, y, z)];
-        if (currentBlock == null)
-        {
-            return false;
-        }
 
         var (offsetX, offsetY, offsetZ) = BlockSideExtensions.NeighborOffsets[side];
         var neighborX = x + offsetX;
@@ -968,7 +964,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         var neighbor = _chunk!.Blocks[ChunkEntity.GetIndex(neighborX, neighborY, neighborZ)];
 
-        if (neighbor == null || neighbor.BlockType == BlockType.Air)
+        if (neighbor.BlockType == BlockType.Air)
         {
             return true;
         }
@@ -1036,7 +1032,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
 
         var neighborBlock = neighborChunk.GetBlock(localX, localY, localZ);
 
-        if (neighborBlock == null || neighborBlock.BlockType == BlockType.Air)
+        if (neighborBlock.BlockType == BlockType.Air)
         {
             return true;
         }
@@ -1113,12 +1109,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         if (_chunk != null && _chunk.IsInBounds(x, y, z))
         {
             var block = _chunk.GetBlock(x, y, z);
-            if (block != null)
-            {
-                var rawLight = block.LightLevel;
-                lightLevel = Math.Max(0.2f, rawLight / 15f);
-                lightColor = block.LightColor;
-            }
+            var rawLight = block.LightLevel;
+            lightLevel = Math.Max(0.2f, rawLight / 15f);
+            lightColor = block.LightColor;
         }
 
         var finalBrightness = ambientOcclusion * lightLevel;
@@ -1435,7 +1428,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     }
 
                     var block = _chunk.GetBlock(x, y, z);
-                    if (block == null)
+                    if (block.BlockType == BlockType.Air)
                     {
                         continue;
                     }
@@ -1623,7 +1616,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     }
 
                     var block = _chunk.GetBlock(x, y, z);
-                    if (block == null)
+                    if (block.BlockType == BlockType.Air)
                     {
                         continue;
                     }
@@ -1996,7 +1989,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     }
 
                     var crossChunkBlock = neighborChunk.Blocks[ChunkEntity.GetIndex(localX, neighborY, localZ)];
-                    return crossChunkBlock?.BlockType == currentBlockType;
+                    return crossChunkBlock.BlockType == currentBlockType;
                 }
             }
 
@@ -2004,7 +1997,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
         }
 
         var neighborBlock = _chunk.Blocks[ChunkEntity.GetIndex(neighborX, neighborY, neighborZ)];
-        return neighborBlock?.BlockType == currentBlockType;
+        return neighborBlock.BlockType == currentBlockType;
     }
 
     private static void UploadMeshToGpuAsync(MeshData meshData)

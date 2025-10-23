@@ -54,9 +54,9 @@ public class WaterSimulationSystem
             var block = getBlock(chunk, localX, localY, localZ);
             if (block == null) continue;
 
-            if (block.BlockType == BlockType.Water && block.WaterLevel > 0)
+            if (block.Value.BlockType == BlockType.Water && block.Value.WaterLevel > 0)
             {
-                UpdateWaterBlock(chunk, localX, localY, localZ, block, getChunkAtPosition, getBlock, setBlock);
+                UpdateWaterBlock(chunk, localX, localY, localZ, block.Value, getChunkAtPosition, getBlock, setBlock);
             }
 
             updatesProcessed++;
@@ -105,9 +105,9 @@ public class WaterSimulationSystem
         var belowBlock = GetBlockAt(chunk, x, belowY, z, getChunkAtPosition, getBlock);
         if (belowBlock == null) return false;
 
-        if (belowBlock.BlockType == BlockType.Air)
+        if (belowBlock.Value.BlockType == BlockType.Air)
         {
-            var newWaterBlock = new BlockEntity( BlockType.Water)
+            var newWaterBlock = new BlockEntity(BlockType.Water)
             {
                 WaterLevel = 7
             };
@@ -122,14 +122,19 @@ public class WaterSimulationSystem
                 {
                     setBlock(chunk, x, y, z, new BlockEntity(BlockType.Air));
                 }
+                else
+                {
+                    setBlock(chunk, x, y, z, sourceBlock);
+                }
             }
 
             return true;
         }
-        else if (belowBlock.BlockType == BlockType.Water && belowBlock.WaterLevel < 7)
+        else if (belowBlock.Value.BlockType == BlockType.Water && belowBlock.Value.WaterLevel < 7)
         {
-            belowBlock.WaterLevel = 7;
-            SetBlockAt(chunk, x, belowY, z, belowBlock, getChunkAtPosition, setBlock);
+            var newBlock = belowBlock.Value;
+            newBlock.WaterLevel = 7;
+            SetBlockAt(chunk, x, belowY, z, newBlock, getChunkAtPosition, setBlock);
             QueueNeighbors(chunk, x, belowY, z);
 
             if (sourceLevel < 7)
@@ -138,6 +143,10 @@ public class WaterSimulationSystem
                 if (sourceBlock.WaterLevel == 0)
                 {
                     setBlock(chunk, x, y, z, new BlockEntity(BlockType.Air));
+                }
+                else
+                {
+                    setBlock(chunk, x, y, z, sourceBlock);
                 }
             }
 
@@ -172,9 +181,9 @@ public class WaterSimulationSystem
             var targetBlock = GetBlockAt(chunk, targetX, y, targetZ, getChunkAtPosition, getBlock);
             if (targetBlock == null) continue;
 
-            if (targetBlock.BlockType == BlockType.Air)
+            if (targetBlock.Value.BlockType == BlockType.Air)
             {
-                var newWaterBlock = new BlockEntity( BlockType.Water)
+                var newWaterBlock = new BlockEntity(BlockType.Water)
                 {
                     WaterLevel = spreadLevel
                 };
@@ -182,10 +191,11 @@ public class WaterSimulationSystem
                 SetBlockAt(chunk, targetX, y, targetZ, newWaterBlock, getChunkAtPosition, setBlock);
                 QueueNeighbors(chunk, targetX, y, targetZ);
             }
-            else if (targetBlock.BlockType == BlockType.Water && targetBlock.WaterLevel < spreadLevel - 1)
+            else if (targetBlock.Value.BlockType == BlockType.Water && targetBlock.Value.WaterLevel < spreadLevel - 1)
             {
-                targetBlock.WaterLevel = (byte)(spreadLevel - 1);
-                SetBlockAt(chunk, targetX, y, targetZ, targetBlock, getChunkAtPosition, setBlock);
+                var newBlock = targetBlock.Value;
+                newBlock.WaterLevel = (byte)(spreadLevel - 1);
+                SetBlockAt(chunk, targetX, y, targetZ, newBlock, getChunkAtPosition, setBlock);
                 QueueNeighbors(chunk, targetX, y, targetZ);
             }
         }

@@ -75,7 +75,7 @@ public class ChunkEntity
     /// <param name="block">Block entity to store.</param>
     public void SetBlock(int x, int y, int z, BlockEntity block)
     {
-        Blocks[GetIndex(x, y, z)] = block ?? throw new ArgumentNullException(nameof(block));
+        Blocks[GetIndex(x, y, z)] = block;
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public class ChunkEntity
     public void SetBlock(int index, BlockEntity block)
     {
         ValidateIndex(index);
-        Blocks[index] = block ?? throw new ArgumentNullException(nameof(block));
+        Blocks[index] = block;
     }
 
     /// <summary>

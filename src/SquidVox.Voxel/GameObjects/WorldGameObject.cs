@@ -339,7 +339,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         }
 
         var block = chunkEntity.GetBlock(localX, localY, localZ);
-        if (block == null || block.BlockType == BlockType.Air)
+        if (block.BlockType == BlockType.Air)
         {
             return false;
         }
@@ -639,7 +639,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 {
                     var block = chunk.Chunk.GetBlock(blockX, blockY, blockZ);
 
-                    if (block != null && block.BlockType != BlockType.Air)
+                    if (block.BlockType != BlockType.Air)
                     {
                         return (chunk, blockX, blockY, blockZ);
                     }

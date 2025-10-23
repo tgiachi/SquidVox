@@ -208,7 +208,7 @@ public class ChunkLightSystem
 
                         var toBlock = toChunk.GetBlock(toX, y, toZ);
                         byte reduction = 1;
-                        if (toBlock != null && BlockOpacity.TryGetValue(toBlock.BlockType, out var opacity))
+                        if (BlockOpacity.TryGetValue(toBlock.BlockType, out var opacity))
                         {
                             reduction = opacity;
                         }
@@ -281,7 +281,7 @@ public class ChunkLightSystem
                     var index = ChunkEntity.GetIndex(x, y, z);
                     var block = chunk.Blocks[index];
 
-                    if (block == null || block.BlockType == BlockType.Air)
+                    if (block.BlockType == BlockType.Air)
                     {
                         // Air blocks get current light level, but never below ambient
                         lightLevels[index] = Math.Max(lightLevels[index], Math.Max(currentLight, MinAmbientLight));
@@ -326,7 +326,7 @@ public class ChunkLightSystem
                     var index = ChunkEntity.GetIndex(x, y, z);
                     var block = chunk.Blocks[index];
 
-                    if (block != null && LightSources.TryGetValue(block.BlockType, out var emissionLevel))
+                    if (LightSources.TryGetValue(block.BlockType, out var emissionLevel))
                     {
                         // This block emits light - propagate it
                         PropagateLightFromSource(chunk, lightLevels, x, y, z, emissionLevel);
@@ -374,7 +374,7 @@ public class ChunkLightSystem
 
                 // Calculate light reduction based on block type using cached opacity
                 byte reduction = 1; // Default for air
-                if (neighborBlock != null && BlockOpacity.TryGetValue(neighborBlock.BlockType, out var opacity))
+                if (BlockOpacity.TryGetValue(neighborBlock.BlockType, out var opacity))
                 {
                     reduction = opacity;
                 }
