@@ -1,8 +1,12 @@
+using System;
+using System.Linq;
+using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Serilog;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
+using SquidVox.Core.Interfaces.Services;
 
 namespace SquidVox.Voxel.GameObjects;
 
@@ -20,7 +24,7 @@ public class Particle
     public bool IsActive;
     public Vector3 Rotation;
     public Vector3 RotationSpeed;
-    private const float Gravity = 15f;
+    public const float DefaultGravity = 15f;
 
     /// <summary>
     /// Updates the particle's position, rotation, and lifetime.
@@ -30,7 +34,7 @@ public class Particle
     {
         if (!IsActive) return;
 
-        Velocity.Y -= Gravity * deltaTime;
+        Velocity.Y -= GravityScale * deltaTime;
         Position += Velocity * deltaTime;
         Rotation += RotationSpeed * deltaTime;
         LifeTime -= deltaTime;
@@ -59,7 +63,9 @@ public class Particle
     /// <param name="color">Particle color.</param>
     /// <param name="size">Particle size.</param>
     /// <param name="rotationSpeed">Rotation speed.</param>
-    public void Reset(Vector3 position, Vector3 velocity, float lifeTime, Color color, float size, Vector3 rotationSpeed)
+    public float GravityScale { get; private set; } = DefaultGravity;
+
+    public void Reset(Vector3 position, Vector3 velocity, float lifeTime, Color color, float size, Vector3 rotationSpeed, float gravityScale = DefaultGravity)
     {
         Position = position;
         Velocity = velocity;
@@ -70,6 +76,7 @@ public class Particle
         IsActive = true;
         Rotation = Vector3.Zero;
         RotationSpeed = rotationSpeed;
+        GravityScale = gravityScale;
     }
 }
 
@@ -169,6 +176,7 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
 {
     private readonly GraphicsDevice _graphicsDevice;
     private readonly ParticlePool _particlePool = new();
+    private readonly Random _random = new();
     private BasicEffect _effect;
     private VertexBuffer _vertexBuffer;
     private IndexBuffer _indexBuffer;
@@ -176,6 +184,32 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
     private bool _isDisposed;
 
     private const int MaxParticles = 1000;
+
+    protected float NextFloat(float min, float max)
+    {
+        return (float)(_random.NextDouble() * (max - min) + min);
+    }
+
+    protected ParticlePool ParticlePool => _particlePool;
+
+    protected bool TrySpawnParticle(
+        Vector3 position,
+        Vector3 velocity,
+        float lifeTime,
+        float size,
+        Color color,
+        Vector3 rotationSpeed,
+        float gravityScale)
+    {
+        var particle = _particlePool.GetParticle();
+        if (particle == null)
+        {
+            return false;
+        }
+
+        particle.Reset(position, velocity, lifeTime, color, size, rotationSpeed, gravityScale);
+        return true;
+    }
 
     /// <summary>
     /// Gets or sets the view matrix for rendering.
@@ -236,6 +270,35 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
     }
 
     /// <summary>
+    /// Sets the particle texture using the asset manager.
+    /// </summary>
+    /// <param name="textureName">The texture asset name.</param>
+    public void SetTexture(string textureName)
+    {
+        if (string.IsNullOrWhiteSpace(textureName))
+        {
+            return;
+        }
+
+        try
+        {
+            var assetManager = SquidVoxEngineContext.Container.Resolve<IAssetManagerService>();
+            var texture = assetManager.GetTexture(textureName);
+            if (texture == null)
+            {
+                Log.Warning("Particle texture '{TextureName}' not found. Keeping current texture.", textureName);
+                return;
+            }
+
+            _particleTexture = texture;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to set particle texture '{TextureName}'.", textureName);
+        }
+    }
+
+    /// <summary>
     /// Spawns particles at the specified position.
     /// </summary>
     /// <param name="position">World position to spawn particles.</param>
@@ -247,32 +310,27 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
     public void SpawnParticles(Vector3 position, int count, float spread = 1f, float speed = 5f, float lifeTime = 2f, Color? color = null)
     {
         var c = color ?? Color.Yellow;
-        var random = new Random();
-
         for (int i = 0; i < count; i++)
         {
-            var particle = _particlePool.GetParticle();
-            if (particle == null) break;
-
             var offsetPos = position + new Vector3(
-                (float)(random.NextDouble() - 0.5) * 0.8f,
-                (float)(random.NextDouble() - 0.5) * 0.8f,
-                (float)(random.NextDouble() - 0.5) * 0.8f
+                NextFloat(-0.5f, 0.5f) * 0.8f,
+                NextFloat(-0.5f, 0.5f) * 0.8f,
+                NextFloat(-0.5f, 0.5f) * 0.8f
             );
 
             var velocity = new Vector3(
-                (float)(random.NextDouble() - 0.5) * spread,
-                (float)(random.NextDouble() * 0.5 + 0.3) * spread,
-                (float)(random.NextDouble() - 0.5) * spread
+                NextFloat(-0.5f, 0.5f) * spread,
+                (NextFloat(0f, 0.5f) + 0.3f) * spread,
+                NextFloat(-0.5f, 0.5f) * spread
             ) * speed;
 
             var rotationSpeed = new Vector3(
-                (float)(random.NextDouble() - 0.5) * 10f,
-                (float)(random.NextDouble() - 0.5) * 10f,
-                (float)(random.NextDouble() - 0.5) * 10f
+                NextFloat(-0.5f, 0.5f) * 10f,
+                NextFloat(-0.5f, 0.5f) * 10f,
+                NextFloat(-0.5f, 0.5f) * 10f
             );
 
-            particle.Reset(offsetPos, velocity, lifeTime, c, 0.15f, rotationSpeed);
+            TrySpawnParticle(offsetPos, velocity, lifeTime, 0.15f, c, rotationSpeed, Particle.DefaultGravity);
         }
     }
 
@@ -284,12 +342,6 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _particlePool.Update(deltaTime);
-
-        var activeCount = _particlePool.GetActiveParticles().Count();
-        if (activeCount > 0 && gameTime.TotalGameTime.TotalSeconds % 1 < 0.1)
-        {
-            Serilog.Log.Information("Active particles: {Count}", activeCount);
-        }
     }
 
     /// <summary>
