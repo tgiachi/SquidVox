@@ -351,6 +351,15 @@ public class AssetManagerService : IAssetManagerService
     }
 
     /// <summary>
+    /// Gets the names of all loaded texture atlases.
+    /// </summary>
+    /// <returns>A list of texture atlas names.</returns>
+    public List<string> GetAtlasTextureNames()
+    {
+        return [.._textureAtlases.Keys];
+    }
+
+    /// <summary>
     /// Disposes of the service resources.
     /// </summary>
     public void Dispose()

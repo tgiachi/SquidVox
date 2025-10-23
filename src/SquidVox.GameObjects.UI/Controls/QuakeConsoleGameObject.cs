@@ -18,6 +18,7 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
     private const float DefaultLineSpacing = 4f;
     private readonly List<ConsoleEntry> _entries = [];
     private readonly List<string> _history = [];
+    private readonly List<string> _autoCompleteSuggestions = [];
     private IInputManager? _inputManager;
     private bool _isAnimating;
     private bool _isInitialized;
@@ -28,6 +29,7 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
     private KeyboardState _previousKeyboardState;
     private int _historyIndex = -1;
     private string _historyOriginal = string.Empty;
+    private int _autoCompleteIndex = -1;
     private float _currentY = -ConsoleHeight;
     private float _targetY = -ConsoleHeight;
     private float _lineHeight = 16f;
@@ -72,6 +74,11 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
     /// Gets or sets the caret blink interval in seconds.
     /// </summary>
     public float CaretBlinkInterval { get; set; } = 0.5f;
+
+    /// <summary>
+    /// Gets or sets the delegate for auto-complete suggestions.
+    /// </summary>
+    public Func<string, IEnumerable<string>>? GetAutoCompleteSuggestions { get; set; }
 
     /// <summary>
     /// Initializes the console resources.
@@ -321,8 +328,9 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
             }
             else if (key == Keys.Back && _inputBuffer.Length > 0)
             {
-                _inputBuffer = _inputBuffer[..^1];
-                ResetHistoryNavigation();
+                 _inputBuffer = _inputBuffer[..^1];
+                 ResetHistoryNavigation();
+                 ResetAutoComplete();
             }
             else if (key == Keys.Up)
             {
@@ -334,7 +342,7 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
             }
             else if (key == Keys.Tab)
             {
-                // Reserved for future auto-complete.
+                HandleAutoComplete();
             }
             else
             {
@@ -342,8 +350,9 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
                 var value = ConvertKeyToString(key, shift);
                 if (!string.IsNullOrEmpty(value))
                 {
-                    _inputBuffer += value;
-                    ResetHistoryNavigation();
+                     _inputBuffer += value;
+                     ResetHistoryNavigation();
+                     ResetAutoComplete();
                 }
             }
         }
@@ -387,6 +396,7 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
 
         _inputBuffer = string.Empty;
         ResetHistoryNavigation();
+        ResetAutoComplete();
     }
 
     private void AppendHistory(string command)
@@ -440,6 +450,38 @@ public sealed class QuakeConsoleGameObject : Base2dGameObject, IDisposable
     {
         _historyIndex = -1;
         _historyOriginal = string.Empty;
+    }
+
+    private void ResetAutoComplete()
+    {
+        _autoCompleteIndex = -1;
+        _autoCompleteSuggestions.Clear();
+    }
+
+    private void HandleAutoComplete()
+    {
+        if (GetAutoCompleteSuggestions == null)
+        {
+            return;
+        }
+
+        if (_autoCompleteIndex == -1)
+        {
+            _autoCompleteSuggestions.Clear();
+            _autoCompleteSuggestions.AddRange(GetAutoCompleteSuggestions(_inputBuffer));
+            if (_autoCompleteSuggestions.Count == 0)
+            {
+                return;
+            }
+            _autoCompleteIndex = 0;
+        }
+        else
+        {
+            _autoCompleteIndex = (_autoCompleteIndex + 1) % _autoCompleteSuggestions.Count;
+        }
+
+        _inputBuffer = _autoCompleteSuggestions[_autoCompleteIndex];
+        ResetHistoryNavigation();
     }
 
     private bool HandleInternalCommand(string command)

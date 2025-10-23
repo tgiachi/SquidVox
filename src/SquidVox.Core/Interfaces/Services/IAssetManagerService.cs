@@ -125,4 +125,10 @@ public interface IAssetManagerService : IDisposable
     /// </summary>
     /// <param name="name">The name of the effect.</param>
     void LoadEffect(string name);
+
+    /// <summary>
+    /// Gets the names of all loaded texture atlases.
+    /// </summary>
+    /// <returns>A list of texture atlas names.</returns>
+    List<string> GetAtlasTextureNames();
 }
