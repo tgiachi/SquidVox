@@ -53,6 +53,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private Texture3D? _lightTexture;
     private Color[]? _lightData;
     private static readonly Vector3 ChunkDimensionsVector = new(ChunkEntity.Size, ChunkEntity.Height, ChunkEntity.Size);
+    private const float FluidTextureFrameMultiplier = 1f;
 
     private ChunkEntity? _chunk;
     private float _rotationY;
@@ -512,7 +513,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 _fluidEffect.Parameters["view"]?.SetValue(view);
                 _fluidEffect.Parameters["projection"]?.SetValue(projection);
                 _fluidEffect.Parameters["tex"]?.SetValue(_texture);
-                _fluidEffect.Parameters["texMultiplier"]?.SetValue(1.0f);
+            _fluidEffect.Parameters["texMultiplier"]?.SetValue(FluidTextureFrameMultiplier);
                 _fluidEffect.Parameters["time"]?.SetValue((float)gameTime.TotalGameTime.TotalSeconds);
                 _fluidEffect.Parameters["ambient"]?.SetValue(AmbientLight);
                 _fluidEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
