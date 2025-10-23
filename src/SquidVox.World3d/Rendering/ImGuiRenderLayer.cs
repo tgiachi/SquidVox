@@ -67,6 +67,25 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
         }
     }
 
+    /// <summary>
+    /// Binds a texture for use with ImGui image widgets.
+    /// </summary>
+    /// <param name="texture">The texture to bind.</param>
+    /// <returns>An ImGui texture identifier.</returns>
+    public IntPtr BindTexture(Texture2D texture)
+    {
+        return _imGuiRenderer.BindTexture(texture);
+    }
+
+    /// <summary>
+    /// Releases a previously bound texture identifier.
+    /// </summary>
+    /// <param name="textureId">The ImGui texture identifier.</param>
+    public void UnbindTexture(IntPtr textureId)
+    {
+        _imGuiRenderer.UnbindTexture(textureId);
+    }
+
 
     /// <summary>
     /// Initializes a new instance of the ImGuiRenderLayer class.

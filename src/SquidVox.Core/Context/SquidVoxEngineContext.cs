@@ -40,6 +40,12 @@ public static class SquidVoxEngineContext
     public static Texture2D WhitePixel { get; set; } = null!;
 
 
+    public static TService GetService<TService>() where TService : notnull
+    {
+        return Container.Resolve<TService>();
+    }
+
+
     /// <summary>
     /// Gets the game time instance.
     /// </summary>

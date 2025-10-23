@@ -51,6 +51,13 @@ public interface IAssetManagerService : IDisposable
     Texture2D? CreateTextureFromRegion(Texture2DRegion? region);
 
     /// <summary>
+    /// Gets the texture atlas with the specified name.
+    /// </summary>
+    /// <param name="atlasName">The atlas name.</param>
+    /// <returns>The atlas if it exists; otherwise null.</returns>
+    Texture2DAtlas? GetTextureAtlas(string atlasName);
+
+    /// <summary>
     /// Gets a font by name and size.
     /// </summary>
     /// <param name="name">The name of the font.</param>
@@ -88,6 +95,9 @@ public interface IAssetManagerService : IDisposable
     /// <param name="replaceMagentaWithTransparent">If true, replaces magenta pixels with transparent.</param>
     void LoadTextureFromBytes(ReadOnlySpan<byte> data, string name, bool replaceMagentaWithTransparent = false);
 
+
+
+    List<string> GetAtlasNames();
 
     /// <summary>
     /// Loads a texture atlas from file and splits it into individual tiles.

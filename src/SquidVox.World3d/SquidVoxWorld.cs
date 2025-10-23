@@ -1,4 +1,3 @@
-using System;
 using DryIoc;
 using FontStashSharp;
 using ImGuiNET;
@@ -18,6 +17,7 @@ using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
 using SquidVox.World3d.GameObjects;
+using SquidVox.World3d.GameObjects.Debug;
 using SquidVox.World3d.Rendering;
 using SquidVox.World3d.Scripts;
 
@@ -35,6 +35,8 @@ public class SquidVoxWorld : Game
     private readonly RenderLayerCollection _renderLayers = new();
     private QuakeConsoleGameObject? _console;
     private INotificationService? _notificationService;
+    private TextureAtlasDebugger? _atlasDebugger;
+    private LuaImGuiDebuggerObject? _atlasDebuggerObject;
     private IInputManager _inputManager;
 
 
@@ -126,6 +128,11 @@ public class SquidVoxWorld : Game
         var notificationHud = new NotificationHudGameObject();
         notificationHud.Initialize(assetManager, _notificationService);
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(notificationHud);
+
+        var imguiLayer = _renderLayers.GetLayer<ImGuiRenderLayer>();
+        _atlasDebugger = new TextureAtlasDebugger();
+        _atlasDebuggerObject = _atlasDebugger.CreateDebugger();
+        imguiLayer.AddDebugger(_atlasDebuggerObject);
 
         _console = new QuakeConsoleGameObject();
         _console.WelcomeLines.Add("SquidVox console ready.");
@@ -345,6 +352,16 @@ public class SquidVoxWorld : Game
             _console.Dispose();
             _console = null;
         }
+
+        if (_atlasDebuggerObject != null)
+        {
+            var imguiLayer = _renderLayers.GetLayer<ImGuiRenderLayer>();
+            imguiLayer.RemoveDebugger(_atlasDebuggerObject);
+            _atlasDebuggerObject = null;
+        }
+
+        _atlasDebugger?.Dispose();
+        _atlasDebugger = null;
 
         base.UnloadContent();
     }
