@@ -176,7 +176,7 @@ public class Particle3dGameObject : Base3dGameObject, IDisposable
 {
     private readonly GraphicsDevice _graphicsDevice;
     private readonly ParticlePool _particlePool = new();
-    private readonly Random _random = new();
+    private readonly Random _random = Random.Shared;
     private BasicEffect _effect;
     private VertexBuffer _vertexBuffer;
     private IndexBuffer _indexBuffer;

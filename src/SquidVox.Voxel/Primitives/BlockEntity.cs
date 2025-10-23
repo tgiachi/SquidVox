@@ -43,7 +43,7 @@ public class BlockEntity
         Id = id;
         BlockType = blockType;
         WaterLevel = blockType == BlockType.Water ? (byte)7 : (byte)0;
-        LightLevel = 15;
+        LightLevel = 1;
         LightColor = Vector3.One;
     }
 
