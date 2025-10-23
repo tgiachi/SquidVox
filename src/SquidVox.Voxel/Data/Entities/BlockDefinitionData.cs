@@ -37,15 +37,20 @@ public class BlockDefinitionData
     /// </summary>
     public bool IsBillboard { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the block is affected by wind.
-    /// </summary>
-    public bool IsWindable { get; set; }
+    // /// <summary>
+    // /// Gets or sets a value indicating whether the block is affected by wind.
+    // /// </summary>
+    // public bool IsWindable { get; set; }
 
     /// <summary>
-    /// Gets or sets the wind speed multiplier for the block.
+    /// Gets or sets a value indicating whether the block renders as a camera-facing item.
     /// </summary>
-    public float WindSpeed { get; set; } = 1.0f;
+    public bool IsItem { get; set; }
+
+    // /// <summary>
+    // /// Gets or sets the wind speed multiplier for the block.
+    // /// </summary>
+    // public float WindSpeed { get; set; } = 1.0f;
 
     /// <summary>
     /// Gets or sets the height of the block.

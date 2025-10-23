@@ -91,6 +91,7 @@ public class SquidVoxWorld : Game
         assetsManager.LoadFontFromBytes(defaultUiFont, "Monocraft");
 
         assetsManager.LoadEffect("Effects/ChunkBillboard");
+        assetsManager.LoadEffect("Effects/ChunkItemBillboard");
         assetsManager.LoadEffect("Effects/ChunkFluid");
         assetsManager.LoadEffect("Effects/ChunkBlock");
         assetsManager.LoadEffect("Effects/DynamicSky");
@@ -484,6 +485,8 @@ public class SquidVoxWorld : Game
             {
                 bool isInLake = (x >= 4 && x <= 11 && z >= 4 && z <= 11);
 
+
+
                 for (int y = 0; y < ChunkEntity.Height; y++)
                 {
                     BlockType blockType = BlockType.Air;
@@ -522,7 +525,7 @@ public class SquidVoxWorld : Game
 
                     if (blockType != BlockType.Air)
                     {
-                        chunk.SetBlock(x, y, z, new BlockEntity(id++, blockType));
+                        chunk.SetBlock(x, y, z, new BlockEntity(blockType));
                     }
                 }
             }

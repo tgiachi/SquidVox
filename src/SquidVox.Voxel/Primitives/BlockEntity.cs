@@ -11,7 +11,7 @@ public class BlockEntity
     /// <summary>
     /// Gets or sets the unique identifier for the block instance.
     /// </summary>
-    public long Id { get; set; }
+    //public long Id { get; set; }
 
     /// <summary>
     /// Gets or sets the semantic type for the block.
@@ -38,14 +38,13 @@ public class BlockEntity
     /// </summary>
     /// <param name="id">Unique identifier assigned to the block.</param>
     /// <param name="blockType">The type of block represented by this entity.</param>
-    public BlockEntity(long id, BlockType blockType)
+    public BlockEntity(BlockType blockType)
     {
-        Id = id;
         BlockType = blockType;
         WaterLevel = blockType == BlockType.Water ? (byte)7 : (byte)0;
         LightLevel = 1;
         LightColor = Vector3.One;
     }
 
-    public override string ToString() => $"BlockEntity({Id}, {BlockType})";
+    public override string ToString() => $"BlockEntity({BlockType})";
 }

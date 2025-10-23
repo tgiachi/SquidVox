@@ -107,7 +107,7 @@ public class WaterSimulationSystem
 
         if (belowBlock.BlockType == BlockType.Air)
         {
-            var newWaterBlock = new BlockEntity(GenerateId(), BlockType.Water)
+            var newWaterBlock = new BlockEntity( BlockType.Water)
             {
                 WaterLevel = 7
             };
@@ -120,7 +120,7 @@ public class WaterSimulationSystem
                 sourceBlock.WaterLevel = (byte)Math.Max(0, sourceLevel - 1);
                 if (sourceBlock.WaterLevel == 0)
                 {
-                    setBlock(chunk, x, y, z, new BlockEntity(GenerateId(), BlockType.Air));
+                    setBlock(chunk, x, y, z, new BlockEntity(BlockType.Air));
                 }
             }
 
@@ -137,7 +137,7 @@ public class WaterSimulationSystem
                 sourceBlock.WaterLevel = (byte)Math.Max(0, sourceLevel - 1);
                 if (sourceBlock.WaterLevel == 0)
                 {
-                    setBlock(chunk, x, y, z, new BlockEntity(GenerateId(), BlockType.Air));
+                    setBlock(chunk, x, y, z, new BlockEntity(BlockType.Air));
                 }
             }
 
@@ -174,7 +174,7 @@ public class WaterSimulationSystem
 
             if (targetBlock.BlockType == BlockType.Air)
             {
-                var newWaterBlock = new BlockEntity(GenerateId(), BlockType.Water)
+                var newWaterBlock = new BlockEntity( BlockType.Water)
                 {
                     WaterLevel = spreadLevel
                 };
@@ -254,8 +254,6 @@ public class WaterSimulationSystem
         QueueWaterUpdate(chunk, x, y, z - 1);
     }
 
-    private static long _nextId = 1000000000L;
-    private static long GenerateId() => System.Threading.Interlocked.Increment(ref _nextId);
 
     public void Clear()
     {

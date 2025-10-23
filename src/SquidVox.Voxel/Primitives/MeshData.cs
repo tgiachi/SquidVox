@@ -33,6 +33,16 @@ public sealed class MeshData
     public int[] BillboardIndices { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets the item billboard vertices of the mesh.
+    /// </summary>
+    public VertexBillboardItem[] ItemBillboardVertices { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the item billboard indices of the mesh.
+    /// </summary>
+    public int[] ItemBillboardIndices { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the fluid vertices of the mesh.
     /// </summary>
     public VertexPositionColorTextureDirectionTop[] FluidVertices { get; set; } = [];

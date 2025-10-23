@@ -20,4 +20,5 @@ public enum BlockType : byte
     Lava,
     Flower,
     TallGrass,
+    Pumpkin,
 }

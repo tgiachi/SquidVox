@@ -19,6 +19,12 @@
 /processorParam:DebugMode=Auto
 /build:Effects/ChunkBillboard.fx
 
+#begin Effects/ChunkItemBillboard.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Effects/ChunkItemBillboard.fx
+
 #begin Effects/ChunkFluid.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -50,4 +56,3 @@
 /importer:EffectImporter
 /processor:EffectProcessor
 /build:Effects/Snow.fx
-
