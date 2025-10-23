@@ -68,6 +68,11 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     private Task<MeshData>? _meshBuildTask;
     private MeshData? _pendingMeshData;
 
+    /// <summary>
+    /// Gets a value indicating whether this chunk has mesh data ready for GPU upload.
+    /// </summary>
+    public bool HasPendingGpuUpload => _pendingMeshData != null;
+
     // GPU upload thread for mesh data
     private static readonly ConcurrentQueue<MeshData> _gpuUploadQueue = new();
     private static Thread? _gpuUploadThread;
@@ -289,6 +294,15 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             _meshBuildTask = null;
         }
 
+        // Don't upload immediately - let WorldGameObject manage batch uploads
+    }
+
+    /// <summary>
+    /// Uploads the pending mesh data to the GPU if available.
+    /// Should be called by WorldGameObject as part of batch processing.
+    /// </summary>
+    public void UploadPendingMesh()
+    {
         if (_pendingMeshData != null)
         {
             UploadMeshToGpu(_pendingMeshData);

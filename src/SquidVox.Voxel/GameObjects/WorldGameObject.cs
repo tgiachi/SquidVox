@@ -120,14 +120,27 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     public int MaxChunkBuildsPerFrame { get; set; } = 2;
 
     /// <summary>
+    /// Gets or sets the maximum number of pending chunks to process per frame.
+    /// Limiting this prevents frame drops when loading many chunks at once.
+    /// </summary>
+    public int MaxChunksToProcessPerFrame { get; set; } = 2;
+
+    /// <summary>
+    /// Gets or sets the maximum number of GPU uploads to perform per frame.
+    /// Limiting this prevents frame drops when many meshes are ready simultaneously.
+    /// </summary>
+    public int MaxGpuUploadsPerFrame { get; set; } = 2;
+
+    /// <summary>
     /// Gets or sets whether to render chunks in wireframe mode.
     /// </summary>
     public bool EnableWireframe { get; set; }
 
     /// <summary>
     /// Gets or sets whether chunks should use greedy meshing during mesh generation.
+    /// Greedy meshing significantly reduces vertex count by merging adjacent faces.
     /// </summary>
-    public bool UseGreedyMeshing { get; set; }
+    public bool UseGreedyMeshing { get; set; } = true;
 
     private bool _fogEnabled = true;
     private Vector3 _fogColor = new Vector3(0.6f, 0.75f, 0.9f);
@@ -386,6 +399,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
 
         ProcessMeshBuildQueue();
 
+        ProcessGpuUploads();
+
         Camera.Update(gameTime);
 
         // Update day/night cycle
@@ -479,6 +494,33 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         }
     }
 
+    private void ProcessGpuUploads()
+    {
+        var uploaded = 0;
+        var chunksWithPendingUploads = _chunks.Values
+            .Where(c => c.HasPendingGpuUpload)
+            .Take(MaxGpuUploadsPerFrame)
+            .ToList();
+
+        foreach (var chunk in chunksWithPendingUploads)
+        {
+            chunk.UploadPendingMesh();
+            uploaded++;
+        }
+
+        if (uploaded > 0)
+        {
+            _logger.Verbose("GPU uploads: {Uploaded} meshes uploaded this frame", uploaded);
+        }
+
+        // Count remaining uploads
+        var remaining = _chunks.Values.Count(c => c.HasPendingGpuUpload);
+        if (remaining > 0)
+        {
+            _logger.Verbose("GPU upload queue: {Remaining} meshes remaining", remaining);
+        }
+    }
+
     private void UpdateChunkLoading()
     {
         if (ChunkGenerator == null)
@@ -553,10 +595,16 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 return;
             }
 
+            // Calculate lighting asynchronously before queuing the chunk
+            // This prevents blocking the main thread during ProcessPendingChunks
+            await Task.Run(() =>
+            {
+                _lightSystem.CalculateInitialSunlight(chunk);
+            });
 
             await AddChunkAsync(chunk);
 
-            _logger.Debug("Chunk ({X}, {Y}, {Z}) received", chunkX, chunkY, chunkZ);
+            _logger.Debug("Chunk ({X}, {Y}, {Z}) received with lighting", chunkX, chunkY, chunkZ);
         }
         catch (Exception ex)
         {
@@ -927,7 +975,10 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
 
     private void ProcessPendingChunks()
     {
-        while (_pendingChunks.TryDequeue(out var pending))
+        int processed = 0;
+
+        while (processed < MaxChunksToProcessPerFrame &&
+               _pendingChunks.TryDequeue(out var pending))
         {
             var (position, chunk) = pending;
 
@@ -936,6 +987,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 _logger.Warning("Chunk at position {Position} already exists, skipping", position);
                 continue;
             }
+
+            processed++;
 
             var chunkComponent = new ChunkGameObject
             {
@@ -953,9 +1006,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
 
             chunkComponent.SetChunk(chunk);
 
-            // Calculate initial lighting for the new chunk
-            // For now, use single-chunk lighting for new chunks
-            _lightSystem.CalculateInitialSunlight(chunk);
+            // Lighting is now calculated asynchronously in RequestChunkAsync
+            // before the chunk reaches this point, so no need to calculate here
 
             if (_chunks.TryAdd(position, chunkComponent))
             {
@@ -968,6 +1020,11 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
                 _logger.Warning("Failed to add chunk at position {Position}", position);
                 chunkComponent.Dispose();
             }
+        }
+
+        if (_pendingChunks.Count > 0)
+        {
+            _logger.Verbose("Pending chunks queue: {Remaining} chunks remaining", _pendingChunks.Count);
         }
     }
 
