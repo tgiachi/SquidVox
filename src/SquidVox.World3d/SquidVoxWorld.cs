@@ -300,7 +300,8 @@ public class SquidVoxWorld : Game
 
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
-        worldManager.ChunkGenerator = CreateFlatChunkAsync;
+        worldManager.ChunkGenerator =
+            _container.Resolve<IChunkGeneratorService>().GetChunkByWorldPosition; //CreateFlatChunkAsync;
         worldManager.EnableWireframe = false;
         worldManager.UseGreedyMeshing = true;
 
@@ -609,8 +610,7 @@ public class SquidVoxWorld : Game
 
     private static Task<ChunkEntity> CreateFlatChunkAsync(int chunkX, int chunkY, int chunkZ)
     {
-        return Task.Run(
-            () =>
+        return Task.Run(() =>
             {
                 var chunkOrigin = new System.Numerics.Vector3(
                     chunkX * ChunkEntity.Size,

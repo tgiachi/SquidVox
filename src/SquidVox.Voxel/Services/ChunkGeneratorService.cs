@@ -37,7 +37,7 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
     /// </summary>
     /// <param name="timerService">Timer service for cache management.</param>
     /// <param name="config">Chunk generator configuration.</param>
-    public ChunkGeneratorService(ITimerService timerService )
+    public ChunkGeneratorService(ITimerService timerService)
     {
         ArgumentNullException.ThrowIfNull(timerService);
 
@@ -95,6 +95,16 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
         return chunk;
     }
 
+    public Task<ChunkEntity> GetChunkByWorldPosition(int chunkX, int chunkY, int chunkZ)
+    {
+        var position = new Vector3(
+            chunkX * ChunkEntity.Size,
+            chunkY * ChunkEntity.Size,
+            chunkZ * ChunkEntity.Size
+        );
+        return GetChunkByWorldPosition(position);
+    }
+
     public async Task<IEnumerable<ChunkEntity>> GetChunksByPositions(IEnumerable<Vector3> positions)
     {
         _logger.Debug("Requested chunks for {Count} positions", positions.Count());
@@ -106,7 +116,6 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
         _logger.Debug("Returned {Count} chunks", chunks.Length);
         return chunks;
     }
-
 
 
     public async Task GenerateInitialChunksAsync()
@@ -144,8 +153,11 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
         await Task.WhenAll(tasks);
 
         var elapsed = Stopwatch.GetElapsedTime(startTime);
-        _logger.Information("Initial chunk generation completed. Generated {Count} chunks in {Elapsed:F2}ms",
-            chunksToGenerate.Count, elapsed.TotalMilliseconds);
+        _logger.Information(
+            "Initial chunk generation completed. Generated {Count} chunks in {Elapsed:F2}ms",
+            chunksToGenerate.Count,
+            elapsed.TotalMilliseconds
+        );
     }
 
     /// <summary>
@@ -164,7 +176,16 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
         foreach (var step in _pipeline)
         {
             _logger.Debug("Executing generation step: {StepName}", step.Name);
-            await step.ExecuteAsync(context);
+
+            try
+            {
+                await step.ExecuteAsync(context);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error during generation step '{StepName}' at chunk {Position}", step.Name, chunkPosition);
+                throw;
+            }
         }
 
         Interlocked.Increment(ref _totalChunksGenerated);
@@ -253,8 +274,6 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
             throw;
         }
     }
-
-
 
 
     /// <inheritdoc/>

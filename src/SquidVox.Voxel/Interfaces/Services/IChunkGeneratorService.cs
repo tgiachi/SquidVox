@@ -6,9 +6,9 @@ namespace SquidVox.Voxel.Interfaces.Services;
 
 public interface IChunkGeneratorService
 {
-
     int Seed { get; set; }
     Task<ChunkEntity> GetChunkByWorldPosition(Vector3 position);
+    Task<ChunkEntity> GetChunkByWorldPosition(int chunkX, int chunkY, int chunkZ);
 
     Task<IEnumerable<ChunkEntity>> GetChunksByPositions(IEnumerable<Vector3> positions);
 

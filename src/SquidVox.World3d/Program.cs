@@ -22,6 +22,7 @@ using SquidVox.Voxel.Data.Entities;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Json;
 using SquidVox.Voxel.Modules;
+using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Services;
 using SquidVox.World3d;
 using SquidVox.World3d.Modules;
@@ -67,6 +68,7 @@ await ConsoleApp.RunAsync(
             .AddLuaScriptModule<InputManagerModule>()
             .AddLuaScriptModule<RenderLayerModule>()
             .AddLuaScriptModule<BlockManagerModule>()
+            .AddLuaScriptModule<BlockTypeModule>()
             .AddLuaScriptModule<GameTimeModule>()
             .AddLuaScriptModule<GenerationModule>()
             .AddLuaScriptModule<CameraModule>()
@@ -82,6 +84,9 @@ await ConsoleApp.RunAsync(
             .AddLuaUserData<GeneratorContext>()
             .AddLuaUserData<PositionAndSize>()
             .AddLuaScriptModule<FastNoiseLite>()
+            // Fix: ChunkEntity and BlockEntity should be UserData, not ScriptModules
+            .AddLuaUserData<ChunkEntity>()
+            .AddLuaUserData<BlockEntity>()
             ;
 
 

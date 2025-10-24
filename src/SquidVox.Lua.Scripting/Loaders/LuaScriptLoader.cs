@@ -47,6 +47,10 @@ public class LuaScriptLoader : ScriptLoaderBase
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(file);
 
+        // Remove .lua extension if present (MoonSharp sometimes adds it)
+        // This matches the behavior of ScriptFileExists
+        file = file.Replace(".lua", string.Empty);
+
         var resolvedPath = ResolveModulePath(file);
 
         if (resolvedPath == null)
