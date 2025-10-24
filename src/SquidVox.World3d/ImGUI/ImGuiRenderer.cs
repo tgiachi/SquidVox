@@ -8,7 +8,7 @@ using Vector2 = System.Numerics.Vector2;
 namespace SquidVox.World3d.ImGUI;
 
 /// <summary>
-/// 
+///
 /// </summary>
 public class ImGuiRenderer : IDisposable
 {
@@ -41,7 +41,7 @@ public class ImGuiRenderer : IDisposable
     private byte[] _vertexData;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public ImGuiRenderer(Microsoft.Xna.Framework.Game game)
     {
@@ -66,7 +66,53 @@ public class ImGuiRenderer : IDisposable
         SetupInput();
     }
 
-    #region ImGuiRenderer
+#region ImGuiRenderer
+
+    /// <summary>
+    /// Loads a custom font from a file path.
+    /// Must be called before RebuildFontAtlas().
+    /// </summary>
+    /// <param name="fontPath">The path to the font file (.ttf).</param>
+    /// <param name="fontSize">The font size in pixels.</param>
+    /// <returns>True if the font was loaded successfully, false otherwise.</returns>
+    public virtual unsafe bool LoadCustomFont(string fontPath, float fontSize = 16.0f)
+    {
+        if (!File.Exists(fontPath))
+        {
+            return false;
+        }
+
+        var io = ImGui.GetIO();
+
+        // Load font
+        var fontPtr = io.Fonts.AddFontFromFileTTF(fontPath, fontSize);
+
+        return (void*)fontPtr.NativePtr != null;
+    }
+
+    /// <summary>
+    /// Loads a custom font from embedded bytes.
+    /// Must be called before RebuildFontAtlas().
+    /// </summary>
+    /// <param name="fontData">The font file data as bytes.</param>
+    /// <param name="fontSize">The font size in pixels.</param>
+    /// <returns>True if the font was loaded successfully, false otherwise.</returns>
+    public virtual unsafe bool LoadCustomFontFromMemory(byte[] fontData, float fontSize = 16.0f)
+    {
+        if (fontData == null || fontData.Length == 0)
+        {
+            return false;
+        }
+
+        var io = ImGui.GetIO();
+
+        fixed (byte* fontDataPtr = fontData)
+        {
+            var fontPtr = io.Fonts.AddFontFromMemoryTTF((IntPtr)fontDataPtr, fontData.Length, fontSize);
+
+            return (void*)fontPtr.NativePtr != null;
+        }
+    }
 
     /// <summary>
     ///     Creates a texture and loads the font data from ImGui. Should be called when the <see cref="GraphicsDevice" /> is
@@ -144,9 +190,9 @@ public class ImGuiRenderer : IDisposable
         RenderDrawData(ImGui.GetDrawData());
     }
 
-    #endregion ImGuiRenderer
+#endregion ImGuiRenderer
 
-    #region Setup & Update
+#region Setup & Update
 
     /// <summary>
     ///     Setup key input event handler.
@@ -157,14 +203,14 @@ public class ImGuiRenderer : IDisposable
 
         // MonoGame-specific //////////////////////
         _game.Window.TextInput += (s, a) =>
-        {
-            if (a.Character == '\t')
-            {
-                return;
-            }
+                                  {
+                                      if (a.Character == '\t')
+                                      {
+                                          return;
+                                      }
 
-            io.AddInputCharacter(a.Character);
-        };
+                                      io.AddInputCharacter(a.Character);
+                                  };
 
         ///////////////////////////////////////////
 
@@ -249,62 +295,63 @@ public class ImGuiRenderer : IDisposable
         if (key == Keys.None)
         {
             imguiKey = ImGuiKey.None;
+
             return true;
         }
 
         imguiKey = key switch
         {
-            Keys.Back => ImGuiKey.Backspace,
-            Keys.Tab => ImGuiKey.Tab,
-            Keys.Enter => ImGuiKey.Enter,
-            Keys.CapsLock => ImGuiKey.CapsLock,
-            Keys.Escape => ImGuiKey.Escape,
-            Keys.Space => ImGuiKey.Space,
-            Keys.PageUp => ImGuiKey.PageUp,
-            Keys.PageDown => ImGuiKey.PageDown,
-            Keys.End => ImGuiKey.End,
-            Keys.Home => ImGuiKey.Home,
-            Keys.Left => ImGuiKey.LeftArrow,
-            Keys.Right => ImGuiKey.RightArrow,
-            Keys.Up => ImGuiKey.UpArrow,
-            Keys.Down => ImGuiKey.DownArrow,
-            Keys.PrintScreen => ImGuiKey.PrintScreen,
-            Keys.Insert => ImGuiKey.Insert,
-            Keys.Delete => ImGuiKey.Delete,
-            >= Keys.D0 and <= Keys.D9 => ImGuiKey._0 + (key - Keys.D0),
-            >= Keys.A and <= Keys.Z => ImGuiKey.A + (key - Keys.A),
+            Keys.Back                           => ImGuiKey.Backspace,
+            Keys.Tab                            => ImGuiKey.Tab,
+            Keys.Enter                          => ImGuiKey.Enter,
+            Keys.CapsLock                       => ImGuiKey.CapsLock,
+            Keys.Escape                         => ImGuiKey.Escape,
+            Keys.Space                          => ImGuiKey.Space,
+            Keys.PageUp                         => ImGuiKey.PageUp,
+            Keys.PageDown                       => ImGuiKey.PageDown,
+            Keys.End                            => ImGuiKey.End,
+            Keys.Home                           => ImGuiKey.Home,
+            Keys.Left                           => ImGuiKey.LeftArrow,
+            Keys.Right                          => ImGuiKey.RightArrow,
+            Keys.Up                             => ImGuiKey.UpArrow,
+            Keys.Down                           => ImGuiKey.DownArrow,
+            Keys.PrintScreen                    => ImGuiKey.PrintScreen,
+            Keys.Insert                         => ImGuiKey.Insert,
+            Keys.Delete                         => ImGuiKey.Delete,
+            >= Keys.D0 and <= Keys.D9           => ImGuiKey._0 + (key - Keys.D0),
+            >= Keys.A and <= Keys.Z             => ImGuiKey.A + (key - Keys.A),
             >= Keys.NumPad0 and <= Keys.NumPad9 => ImGuiKey.Keypad0 + (key - Keys.NumPad0),
-            Keys.Multiply => ImGuiKey.KeypadMultiply,
-            Keys.Add => ImGuiKey.KeypadAdd,
-            Keys.Subtract => ImGuiKey.KeypadSubtract,
-            Keys.Decimal => ImGuiKey.KeypadDecimal,
-            Keys.Divide => ImGuiKey.KeypadDivide,
-            >= Keys.F1 and <= Keys.F12 => ImGuiKey.F1 + (key - Keys.F1),
-            Keys.NumLock => ImGuiKey.NumLock,
-            Keys.Scroll => ImGuiKey.ScrollLock,
-            Keys.LeftShift => ImGuiKey.ModShift,
-            Keys.LeftControl => ImGuiKey.ModCtrl,
-            Keys.LeftAlt => ImGuiKey.ModAlt,
-            Keys.OemSemicolon => ImGuiKey.Semicolon,
-            Keys.OemPlus => ImGuiKey.Equal,
-            Keys.OemComma => ImGuiKey.Comma,
-            Keys.OemMinus => ImGuiKey.Minus,
-            Keys.OemPeriod => ImGuiKey.Period,
-            Keys.OemQuestion => ImGuiKey.Slash,
-            Keys.OemTilde => ImGuiKey.GraveAccent,
-            Keys.OemOpenBrackets => ImGuiKey.LeftBracket,
-            Keys.OemCloseBrackets => ImGuiKey.RightBracket,
-            Keys.OemPipe => ImGuiKey.Backslash,
-            Keys.OemQuotes => ImGuiKey.Apostrophe,
-            _ => ImGuiKey.None
+            Keys.Multiply                       => ImGuiKey.KeypadMultiply,
+            Keys.Add                            => ImGuiKey.KeypadAdd,
+            Keys.Subtract                       => ImGuiKey.KeypadSubtract,
+            Keys.Decimal                        => ImGuiKey.KeypadDecimal,
+            Keys.Divide                         => ImGuiKey.KeypadDivide,
+            >= Keys.F1 and <= Keys.F12          => ImGuiKey.F1 + (key - Keys.F1),
+            Keys.NumLock                        => ImGuiKey.NumLock,
+            Keys.Scroll                         => ImGuiKey.ScrollLock,
+            Keys.LeftShift                      => ImGuiKey.ModShift,
+            Keys.LeftControl                    => ImGuiKey.ModCtrl,
+            Keys.LeftAlt                        => ImGuiKey.ModAlt,
+            Keys.OemSemicolon                   => ImGuiKey.Semicolon,
+            Keys.OemPlus                        => ImGuiKey.Equal,
+            Keys.OemComma                       => ImGuiKey.Comma,
+            Keys.OemMinus                       => ImGuiKey.Minus,
+            Keys.OemPeriod                      => ImGuiKey.Period,
+            Keys.OemQuestion                    => ImGuiKey.Slash,
+            Keys.OemTilde                       => ImGuiKey.GraveAccent,
+            Keys.OemOpenBrackets                => ImGuiKey.LeftBracket,
+            Keys.OemCloseBrackets               => ImGuiKey.RightBracket,
+            Keys.OemPipe                        => ImGuiKey.Backslash,
+            Keys.OemQuotes                      => ImGuiKey.Apostrophe,
+            _                                   => ImGuiKey.None
         };
 
         return imguiKey != ImGuiKey.None;
     }
 
-    #endregion Setup & Update
+#endregion Setup & Update
 
-    #region Internals
+#region Internals
 
     /// <summary>
     ///     Gets the geometry as set up by ImGui and sends it to the graphics device
@@ -453,7 +500,7 @@ public class ImGuiRenderer : IDisposable
                 {
                     pass.Apply();
 
-#pragma warning disable CS0618 // // FNA does not expose an alternative method.
+                #pragma warning disable CS0618 // // FNA does not expose an alternative method.
                     _graphicsDevice.DrawIndexedPrimitives(
                         PrimitiveType.TriangleList,
                         (int)drawCmd.VtxOffset + vtxOffset,
@@ -462,7 +509,7 @@ public class ImGuiRenderer : IDisposable
                         (int)drawCmd.IdxOffset + idxOffset,
                         (int)drawCmd.ElemCount / 3
                     );
-#pragma warning restore CS0618
+                #pragma warning restore CS0618
                 }
             }
 
@@ -472,7 +519,7 @@ public class ImGuiRenderer : IDisposable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public void Dispose()
     {
@@ -485,11 +532,10 @@ public class ImGuiRenderer : IDisposable
             tex.Dispose();
         }
 
-
         _loadedTextures.Clear();
 
         GC.SuppressFinalize(this);
     }
 
-    #endregion Internals
+#endregion Internals
 }

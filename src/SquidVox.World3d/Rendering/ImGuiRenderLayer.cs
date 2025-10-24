@@ -26,6 +26,10 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
 
     private readonly List<ISVoxDebuggerGameObject> _debuggers = [];
 
+    private ImGuiTheme.ThemePreset _currentTheme = ImGuiTheme.ThemePreset.SquidVoxDark;
+
+    private DebuggerListWindow? _debuggerListWindow;
+
 
     /// <summary>
     /// Gets or sets whether this layer is enabled for rendering.
@@ -36,6 +40,20 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     /// Gets or sets whether to show the ImGui demo window.
     /// </summary>
     public bool ShowDemoWindow { get; set; }
+
+    /// <summary>
+    /// Gets or sets the current ImGui theme.
+    /// Changing this will immediately apply the new theme.
+    /// </summary>
+    public ImGuiTheme.ThemePreset CurrentTheme
+    {
+        get => _currentTheme;
+        set
+        {
+            _currentTheme = value;
+            ImGuiTheme.ApplyTheme(_currentTheme);
+        }
+    }
 
 
     private GameTime _gameTime;
@@ -86,6 +104,40 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
         _imGuiRenderer.UnbindTexture(textureId);
     }
 
+    /// <summary>
+    /// Loads a custom font from a file path.
+    /// Must be called before the first render.
+    /// </summary>
+    /// <param name="fontPath">The path to the font file (.ttf).</param>
+    /// <param name="fontSize">The font size in pixels.</param>
+    /// <returns>True if the font was loaded successfully, false otherwise.</returns>
+    public bool LoadCustomFont(string fontPath, float fontSize = 16.0f)
+    {
+        var result = _imGuiRenderer.LoadCustomFont(fontPath, fontSize);
+        if (result)
+        {
+            _imGuiRenderer.RebuildFontAtlas();
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Loads a custom font from embedded bytes.
+    /// Must be called before the first render.
+    /// </summary>
+    /// <param name="fontData">The font file data as bytes.</param>
+    /// <param name="fontSize">The font size in pixels.</param>
+    /// <returns>True if the font was loaded successfully, false otherwise.</returns>
+    public bool LoadCustomFontFromMemory(byte[] fontData, float fontSize = 16.0f)
+    {
+        var result = _imGuiRenderer.LoadCustomFontFromMemory(fontData, fontSize);
+        if (result)
+        {
+            _imGuiRenderer.RebuildFontAtlas();
+        }
+        return result;
+    }
+
 
     /// <summary>
     /// Initializes a new instance of the ImGuiRenderLayer class.
@@ -95,6 +147,13 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     {
         _imGuiRenderer = new ImGuiRenderer(game);
         _imGuiRenderer.RebuildFontAtlas();
+
+        // Apply default theme
+        ImGuiTheme.ApplyTheme(_currentTheme);
+
+        // Create and add debugger list window
+        _debuggerListWindow = new DebuggerListWindow(_debuggers);
+        _debuggers.Add(_debuggerListWindow);
     }
 
     /// <summary>
@@ -105,20 +164,6 @@ public class ImGuiRenderLayer : IRenderableLayer, IDisposable
     public void Render(SpriteBatch spriteBatch)
     {
         _imGuiRenderer.BeginLayout(_gameTime);
-
-        // Main menu bar
-        if (ImGui.BeginMainMenuBar())
-        {
-            foreach (var debugger in _debuggers)
-            {
-                bool isVisible = debugger.IsVisible;
-                if (ImGui.MenuItem($"{debugger.WindowTitle} {(isVisible ? "[ON]" : "[OFF]")}", "", ref isVisible))
-                {
-                    debugger.IsVisible = isVisible;
-                }
-            }
-            ImGui.EndMainMenuBar();
-        }
 
         lock (_addRemoveLock)
         {

@@ -143,7 +143,10 @@ public class SquidVoxWorld : Game
         imguiLayer.AddDebugger(performanceProfilerDebugger);
 
         var gameObjectTreeDebugger = new GameObjectTreeDebugger(_renderLayers);
+
+        imguiLayer.AddDebugger(new ThemeSelectorDebugger(imguiLayer));
         imguiLayer.AddDebugger(gameObjectTreeDebugger);
+
 
         _console = new QuakeConsoleGameObject();
         _console.WelcomeLines.Add("SquidVox console ready.");
