@@ -5,6 +5,7 @@ using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Contexts;
 using SquidVox.Voxel.Data.Cache;
+using SquidVox.Voxel.Generations;
 using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
@@ -17,14 +18,23 @@ namespace SquidVox.Voxel.Services;
 /// </summary>
 public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
 {
-    public int Seed { get; set; }
+    private int _seed;
+    public int Seed
+    {
+        get => _seed;
+        set
+        {
+            _seed = value;
+            InitializeNoiseGenerator();
+        }
+    }
 
     private readonly ILogger _logger = Log.ForContext<ChunkGeneratorService>();
     private readonly ChunkCache _chunkCache;
     private readonly List<IGeneratorStep> _pipeline;
-    private readonly FastNoiseLite _noiseGenerator;
+    private FastNoiseLite _noiseGenerator;
 
-    private int _initialChunkRadius = 5;
+    private readonly int _initialChunkRadius = 5;
     private Vector3 _initialPosition = Vector3.Zero;
 
     // Metrics counters
@@ -41,11 +51,8 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
     {
         ArgumentNullException.ThrowIfNull(timerService);
 
-
         // Initialize noise generator
-        _noiseGenerator = new FastNoiseLite(Seed);
-        _noiseGenerator.SetNoiseType(NoiseType.OpenSimplex2);
-        _noiseGenerator.SetFrequency(0.01f);
+        InitializeNoiseGenerator();
 
         // Initialize cache with expiration time
         _chunkCache = new ChunkCache(timerService, TimeSpan.FromMinutes(10));
@@ -65,6 +72,16 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
             _pipeline.Count,
             string.Join(", ", _pipeline.Select(s => s.Name))
         );
+    }
+
+    /// <summary>
+    /// Initializes the noise generator with the current seed.
+    /// </summary>
+    private void InitializeNoiseGenerator()
+    {
+        _noiseGenerator = new FastNoiseLite(Seed);
+        _noiseGenerator.SetNoiseType(NoiseType.OpenSimplex2);
+        _noiseGenerator.SetFrequency(0.01f);
     }
 
     public async Task<ChunkEntity> GetChunkByWorldPosition(Vector3 position)
@@ -180,6 +197,34 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
             try
             {
                 await step.ExecuteAsync(context);
+            }
+            catch (ScriptGenerationException scriptException)
+            {
+                if (!string.IsNullOrWhiteSpace(scriptException.ScriptStackTrace))
+                {
+                    _logger.Error(
+                        scriptException,
+                        "JavaScript error during generation step '{StepName}' at chunk {Position} (line {Line}, column {Column}).\n{StackTrace}",
+                        scriptException.StepName,
+                        chunkPosition,
+                        scriptException.LineNumber,
+                        scriptException.ColumnNumber,
+                        scriptException.ScriptStackTrace
+                    );
+                }
+                else
+                {
+                    _logger.Error(
+                        scriptException,
+                        "JavaScript error during generation step '{StepName}' at chunk {Position} (line {Line}, column {Column}).",
+                        scriptException.StepName,
+                        chunkPosition,
+                        scriptException.LineNumber,
+                        scriptException.ColumnNumber
+                    );
+                }
+
+                throw;
             }
             catch (Exception ex)
             {

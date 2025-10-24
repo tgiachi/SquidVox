@@ -54,6 +54,7 @@ await ConsoleApp.RunAsync(
 
         container
             .AddScriptModule<EngineModule>()
+            .AddScriptModule<MathModule>()
             .AddScriptModule<ConsoleModule>()
             .AddScriptModule<WindowModule>()
             .AddScriptModule<ImGuiModule>()
