@@ -14,6 +14,7 @@ using SquidVox.Core.Notifications;
 using SquidVox.GameObjects.UI.Notifications;
 using SquidVox.Voxel.GameObjects;
 using SquidVox.Voxel.Generations;
+using SquidVox.Voxel.Generators;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
@@ -300,17 +301,26 @@ public class SquidVoxWorld : Game
 
 
 
-        _container.Resolve<IChunkGeneratorService>()
-            .AddGeneratorStep(
-                new ScriptGenerationStep(
-                    "flat",
-                    context =>
-                    {
-                        var position = context.Chunk.Position;
-                       CreateFlatChunkAsync(context.Chunk, (int)position.X, (int)position.Y, (int)position.Z).GetAwaiter().GetResult();
-                    }
-                )
-            );
+        // _container.Resolve<IChunkGeneratorService>()
+        //     .AddGeneratorStep(
+        //         new ScriptGenerationStep(
+        //             "flat",
+        //             context =>
+        //             {
+        //                 var position = context.Chunk.Position;
+        //                CreateFlatChunkAsync(context.Chunk, (int)position.X, (int)position.Y, (int)position.Z).GetAwaiter().GetResult();
+        //             }
+        //         )
+        //     );
+
+        var chunkGenerator = _container.Resolve<IChunkGeneratorService>();
+
+        chunkGenerator.AddGeneratorStep(new BiomeGeneratorStep());
+        chunkGenerator.AddGeneratorStep(new TerrainGeneratorStep());
+        chunkGenerator.AddGeneratorStep(new FeatureGeneratorStep());
+        chunkGenerator.AddGeneratorStep(new CaveGeneratorStep());
+        chunkGenerator.AddGeneratorStep(new CloudGenerationStep());
+
         _container.Resolve<IChunkGeneratorService>().GenerateInitialChunksAsync().GetAwaiter().GetResult();
 
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());

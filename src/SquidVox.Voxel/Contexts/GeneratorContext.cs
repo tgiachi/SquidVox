@@ -94,11 +94,19 @@ public class GeneratorContext : IGeneratorContext
     {
         // Validate bounds
         if (startX < 0 || endX > ChunkEntity.Size || startX >= endX)
+        {
             throw new ArgumentOutOfRangeException(nameof(startX), "Invalid X range");
+        }
+
         if (startY < 0 || endY > ChunkEntity.Height || startY >= endY)
+        {
             throw new ArgumentOutOfRangeException(nameof(startY), "Invalid Y range");
+        }
+
         if (startZ < 0 || endZ > ChunkEntity.Size || startZ >= endZ)
+        {
             throw new ArgumentOutOfRangeException(nameof(startZ), "Invalid Z range");
+        }
 
         // Fill the region with native C# loops for maximum performance
         for (int x = startX; x < endX; x++)

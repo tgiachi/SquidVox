@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SquidVox.Core.Data.Primitives;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
@@ -84,4 +85,15 @@ public interface IGeneratorContext
     /// <param name="z">Z coordinate.</param>
     /// <param name="block">The block to set, or null to remove the block.</param>
     void SetBlock(int x, int y, int z, BlockEntity? block);
+
+
+    void AddCustomData(string key, object value);
+
+    void AddCloudArea(PositionAndSize area);
+
+    void ClearCloudAreas();
+
+    void AddCloudArea(Vector3 cloudPosition, Vector3 size);
+
+    void AddCloudArea(float x, float y, float z, float sizeX, float sizeY, float sizeZ);
 }

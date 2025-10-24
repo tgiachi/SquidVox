@@ -1,11 +1,15 @@
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Serilog;
+using SquidVox.Core.Collections;
+using SquidVox.Core.Context;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Contexts;
 using SquidVox.Voxel.Data.Cache;
+using SquidVox.Voxel.GameObjects;
 using SquidVox.Voxel.Generations;
+using SquidVox.Voxel.Generators;
 using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
@@ -18,7 +22,7 @@ namespace SquidVox.Voxel.Services;
 /// </summary>
 public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
 {
-    private int _seed;
+    private int _seed = Random.Shared.Next();
     public int Seed
     {
         get => _seed;
@@ -31,7 +35,7 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
 
     private readonly ILogger _logger = Log.ForContext<ChunkGeneratorService>();
     private readonly ChunkCache _chunkCache;
-    private readonly List<IGeneratorStep> _pipeline;
+    private readonly List<IGeneratorStep> _pipeline = [];
     private readonly ReaderWriterLockSlim _pipelineLock = new();
     private readonly SemaphoreSlim _generationSemaphore;
     private FastNoiseLite _noiseGenerator;
@@ -71,20 +75,7 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
         _chunkCache = new ChunkCache(timerService, TimeSpan.FromMinutes(10));
         _logger.Information("Chunk cache initialized with {Minutes} minute expiration", 10);
 
-        // Initialize generation pipeline
-        _pipeline =
-        [
-            // new BiomeGeneratorStep(),    // Generate biome data first
-            // new TerrainGeneratorStep(),  // Then generate terrain based on biome
-            // new CaveGeneratorStep(),     // Carve out caves
-            // new TreeGeneratorStep()      // Finally place trees on the surface
-        ];
 
-        _logger.Information(
-            "Generation pipeline initialized with {StepCount} steps: {Steps}",
-            _pipeline.Count,
-            string.Join(", ", _pipeline.Select(s => s.Name))
-        );
     }
 
     /// <summary>
@@ -93,8 +84,8 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
     private void InitializeNoiseGenerator()
     {
         _noiseGenerator = new FastNoiseLite(Seed);
-        _noiseGenerator.SetNoiseType(NoiseType.OpenSimplex2);
-        _noiseGenerator.SetFrequency(0.01f);
+        _noiseGenerator.SetNoiseType(NoiseType.Perlin);
+       // _noiseGenerator.SetFrequency((float)(Random.Shared.NextDouble() * 1000.0));
     }
 
     /// <summary>
@@ -104,8 +95,9 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
     private FastNoiseLite CreateNoiseGeneratorCopy()
     {
         var copy = new FastNoiseLite(Seed);
-        copy.SetNoiseType(NoiseType.OpenSimplex2);
-        copy.SetFrequency(0.01f);
+        copy.SetNoiseType(NoiseType.Perlin);
+        //copy.SetFrequency((float)(Random.Shared.NextDouble() * 1000.0));
+        //copy.SetFrequency(0.01f);
         return copy;
     }
 
@@ -237,7 +229,30 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
 
             try
             {
+                context.CloudAreas.Clear();
                 await step.ExecuteAsync(context);
+
+                if (context.CloudAreas.Count > 0)
+                {
+                    _logger.Debug(
+                        "Step '{StepName}' identified {CloudCount} cloud areas in chunk at {Position}",
+                        step.Name,
+                        context.CloudAreas.Count,
+                        chunkPosition
+                    );
+
+                    var cloudGameObject = SquidVoxEngineContext.GetService<RenderLayerCollection>()
+                        .GetComponent<CloudsGameObject>();
+
+                    if (cloudGameObject != null)
+                    {
+                        foreach (var area in context.CloudAreas)
+                        {
+                            cloudGameObject.AddCloud(new Cloud(area.Position, area.Size));
+                        }
+                    }
+
+                }
             }
             catch (ScriptGenerationException scriptException)
             {
