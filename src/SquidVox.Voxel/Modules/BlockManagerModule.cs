@@ -21,19 +21,19 @@ public class BlockManagerModule
         _directoriesConfig = directoriesConfig;
     }
 
-    [ScriptFunction("new_definition", "Creates a new block definition data instance.")]
+    [ScriptFunction("newDefinition", "Creates a new block definition data instance.")]
     public BlockDefinitionData CreateNew()
     {
         return new BlockDefinitionData();
     }
 
-    [ScriptFunction("register_block", "Registers a new block definition.")]
+    [ScriptFunction("registerBlock", "Registers a new block definition.")]
     public void RegisterBlock(BlockDefinitionData blockDefinition)
     {
         _blockManagerService.AddBlockDefinition(blockDefinition);
     }
 
-    [ScriptFunction("from_json", "Loads block definitions from a JSON file.")]
+    [ScriptFunction(helpText: "Loads block definitions from a JSON file.")]
     public void LoadFromJson(string fileName)
     {
         var path = Path.Combine(_directoriesConfig.Root, fileName);

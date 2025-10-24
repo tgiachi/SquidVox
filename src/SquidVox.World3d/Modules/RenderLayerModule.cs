@@ -14,7 +14,7 @@ public class RenderLayerModule
         _renderLayerCollection = renderLayerCollection;
     }
 
-    [ScriptFunction("get_2d_render_layer", "Gets the 2D render layer.")]
+    [ScriptFunction("get2dRenderLayer", "Gets the 2D render layer.")]
     public GameObject2dRenderLayer Get2dRenderLayer()
     {
         return _renderLayerCollection.GetLayer<GameObject2dRenderLayer>();

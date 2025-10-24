@@ -10,7 +10,7 @@ namespace SquidVox.World3d.Modules;
 [ScriptModule("window", "Provides functions to create and manage in-game windows.")]
 public class WindowModule
 {
-    [ScriptFunction("set_title", "Sets the title of the game window.")]
+    [ScriptFunction("setTitle", "Sets the title of the game window.")]
     /// <summary>
     /// Sets the title of the game window.
     /// </summary>
@@ -20,7 +20,7 @@ public class WindowModule
         SquidVoxEngineContext.Window.Title = title;
     }
 
-    [ScriptFunction("set_size", "Sets the size of the game window.")]
+    [ScriptFunction("setSize", "Sets the size of the game window.")]
     /// <summary>
     /// Sets the size of the game window.
     /// </summary>
@@ -33,7 +33,7 @@ public class WindowModule
         SquidVoxEngineContext.GraphicsDeviceManager.ApplyChanges();
     }
 
-    [ScriptFunction("get_size", "Gets the current size of the game window.")]
+    [ScriptFunction("getSize", "Gets the current size of the game window.")]
     /// <summary>
     /// Gets the current size of the game window.
     /// </summary>
@@ -46,7 +46,7 @@ public class WindowModule
         );
     }
 
-    [ScriptFunction("get_title", "Gets the current title of the game window.")]
+    [ScriptFunction("getTitle", "Gets the current title of the game window.")]
     /// <summary>
     /// Gets the current title of the game window.
     /// </summary>

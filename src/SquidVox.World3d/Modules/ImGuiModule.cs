@@ -15,25 +15,25 @@ public class ImGuiModule
         _renderLayerCollection = renderLayerCollection;
     }
 
-    [ScriptFunction("show_demo_window", "Shows the ImGui demo window.")]
+    [ScriptFunction("showDemoWindow", "Shows the ImGui demo window.")]
     public void ShowDemoWindow()
     {
         _renderLayerCollection.GetLayer<ImGuiRenderLayer>().ShowDemoWindow = true;
     }
 
-    [ScriptFunction("hide_demo_window", "Hides the ImGui demo window.")]
+    [ScriptFunction("hideDemoWindow", "Hides the ImGui demo window.")]
     public void HideDemoWindow()
     {
         _renderLayerCollection.GetLayer<ImGuiRenderLayer>().ShowDemoWindow = false;
     }
 
-    [ScriptFunction("create_debugger_obj", "Creates a new ImGui debugger window with the specified title and callback.")]
+    [ScriptFunction("createDebuggerObj", "Creates a new ImGui debugger window with the specified title and callback.")]
     public LuaImGuiDebuggerObject CreateDebugger(string windowTitle, Action callBack)
     {
         return new LuaImGuiDebuggerObject(windowTitle, callBack);
     }
 
-    [ScriptFunction("add_debugger", "Adds an ImGui debugger window to the render layer.")]
+    [ScriptFunction("addDebugger", "Adds an ImGui debugger window to the render layer.")]
     public void AddDebugger(LuaImGuiDebuggerObject debugger)
     {
         _renderLayerCollection.GetLayer<ImGuiRenderLayer>().AddDebugger(debugger);

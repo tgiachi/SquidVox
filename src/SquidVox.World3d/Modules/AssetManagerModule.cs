@@ -31,7 +31,7 @@ public class AssetManagerModule
     /// </summary>
     /// <param name="name">The name to assign to the font.</param>
     /// <param name="filename">The file name of the font.</param>
-    [ScriptFunction("load_font", "Loads a font from a file.")]
+    [ScriptFunction("loadFont", "Loads a font from a file.")]
     public void LoadFont(string name, string filename)
     {
         _assetManagerService.LoadFontFromFile(Path.Combine(_directoriesConfig[DirectoryType.Assets], filename), name);
@@ -42,20 +42,20 @@ public class AssetManagerModule
     /// </summary>
     /// <param name="name">The name to assign to the texture.</param>
     /// <param name="filename">The file name of the texture.</param>
-    [ScriptFunction("load_texture", "Loads a texture from a file.")]
+    [ScriptFunction("loadTexture", "Loads a texture from a file.")]
     public void LoadTexture(string filename, string name)
     {
         _assetManagerService.LoadTextureFromFile(Path.Combine(_directoriesConfig[DirectoryType.Assets], filename), name);
     }
 
 
-    [ScriptFunction("load_effect", "Loads a shader effect by name.")]
+    [ScriptFunction("loadEffect", "Loads a shader effect by name.")]
     public void LoadEffect(string name)
     {
         _assetManagerService.LoadEffect(name);
     }
 
-    [ScriptFunction("load_atlas", "Loads a texture atlas from a file.")]
+    [ScriptFunction("loadAtlas", "Loads a texture atlas from a file.")]
     public void LoadAtlas(string filename, string name, int tileWidth, int tileHeight, int spacing = 0, int margin = 0)
     {
         _assetManagerService.LoadTextureAtlasFromFile(

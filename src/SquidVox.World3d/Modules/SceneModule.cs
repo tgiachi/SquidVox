@@ -15,19 +15,19 @@ public class SceneModule
         _sceneManager = sceneManager;
     }
 
-    [ScriptFunction("load_scene", "Loads a scene by its name.")]
+    [ScriptFunction("loadScene", "Loads a scene by its name.")]
     public void LoadScene(string sceneName)
     {
         _sceneManager.ChangeScene(sceneName, new FadeTransition());
     }
 
-    [ScriptFunction("get_current_scene", "Gets the name of the current scene.")]
+    [ScriptFunction("getCurrentScene", "Gets the name of the current scene.")]
     public string GetCurrentScene()
     {
         return _sceneManager.CurrentScene.Name;
     }
 
-    [ScriptFunction("get_current_scene_object", "Gets the current scene object.")]
+    [ScriptFunction("getCurrentSceneObject", "Gets the current scene object.")]
     public ISVoxScene GetCurrentSceneObject()
     {
         return _sceneManager.CurrentScene;

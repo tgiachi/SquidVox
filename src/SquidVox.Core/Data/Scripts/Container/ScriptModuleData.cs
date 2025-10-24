@@ -1,4 +1,4 @@
-namespace SquidVox.Lua.Scripting.Data.Container;
+namespace SquidVox.Core.Data.Scripts.Container;
 
 /// <summary>
 ///     Record containing data about a script module for internal processing

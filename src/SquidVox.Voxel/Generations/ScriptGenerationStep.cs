@@ -2,13 +2,16 @@ using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 
 namespace SquidVox.Voxel.Generations;
 
-public class LuaGenerationStep : IGeneratorStep
+/// <summary>
+/// A generation step that executes a script function.
+/// </summary>
+public class ScriptGenerationStep : IGeneratorStep
 {
     public string Name { get; }
 
     private readonly Action<IGeneratorContext> _contextAction;
 
-    public LuaGenerationStep(string name, Action<IGeneratorContext> context)
+    public ScriptGenerationStep(string name, Action<IGeneratorContext> context)
     {
         Name = name;
         _contextAction = context;

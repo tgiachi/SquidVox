@@ -7,11 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SquidVox.Core\SquidVox.Core.csproj" />
+      <PackageReference Include="Jint" Version="4.4.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MoonSharp" Version="2.0.0" />
+      <Content Include="Extensions\.DS_Store" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SquidVox.Core\SquidVox.Core.csproj" />
     </ItemGroup>
 
 </Project>

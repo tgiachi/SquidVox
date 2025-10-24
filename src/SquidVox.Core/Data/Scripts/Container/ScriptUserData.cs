@@ -1,4 +1,4 @@
-namespace SquidVox.Lua.Scripting.Data.Container;
+namespace SquidVox.Core.Data.Scripts.Container;
 
 public class ScriptUserData
 {

@@ -7,9 +7,9 @@ namespace SquidVox.Core.Interfaces.Services;
 /// </summary>
 public interface IScriptEngineService
 {
-    Task StartAsync(CancellationToken cancellationToken = default);
+    Task StartAsync();
 
-    Task StopAsync(CancellationToken cancellationToken = default);
+    Task StopAsync();
 
     /// <summary>
     ///     Event raised when a script error occurs
@@ -93,10 +93,6 @@ public interface IScriptEngineService
     /// </summary>
     void ClearScriptCache();
 
-
-    void RegisterGlobalTypeUserData(Type type);
-
-    void RegisterGlobalTypeUserData<T>();
 
     /// <summary>
     ///     Registers a global function that can be called from scripts.

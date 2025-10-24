@@ -9,13 +9,13 @@ public class GameTimeModule
 {
 
 
-    [ScriptFunction("get_total_seconds", "Gets the total elapsed game time in seconds.")]
+    [ScriptFunction("getTotalSeconds", "Gets the total elapsed game time in seconds.")]
     public float GetTotalSeconds()
     {
         return (float)SquidVoxEngineContext.GameTime.TotalGameTime.TotalSeconds;
     }
 
-    [ScriptFunction("get_total_milliseconds", "Gets the total elapsed game time in milliseconds.")]
+    [ScriptFunction("getTotalMilliseconds", "Gets the total elapsed game time in milliseconds.")]
     public float GetTotalMilliseconds()
     {
         return (float)SquidVoxEngineContext.GameTime.TotalGameTime.TotalMilliseconds;

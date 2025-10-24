@@ -1,28 +1,20 @@
 using System.Globalization;
 using ConsoleAppFramework;
 using DryIoc;
-using ImGuiNET;
-using Microsoft.Xna.Framework;
-using MoonSharp.Interpreter;
 using Serilog;
 using Serilog.Formatting.Compact;
 using SquidVox.Core.Context;
 using SquidVox.Core.Data.Directories;
-using SquidVox.Core.Data.Primitives;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Directories;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Json;
-using SquidVox.Core.Noise;
-using SquidVox.Lua.Scripting.Context;
-using SquidVox.Lua.Scripting.Extensions.Scripts;
-using SquidVox.Lua.Scripting.Services;
-using SquidVox.Voxel.Contexts;
-using SquidVox.Voxel.Data.Entities;
+using SquidVox.JS.Scripting.Configs;
+using SquidVox.JS.Scripting.Extensions.Scripts;
+using SquidVox.JS.Scripting.Services;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Json;
 using SquidVox.Voxel.Modules;
-using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Services;
 using SquidVox.World3d;
 using SquidVox.World3d.Modules;
@@ -32,7 +24,7 @@ await ConsoleApp.RunAsync(
     args,
     async (string? rootDirectory = null, bool logToFile = false) =>
     {
-        JsonUtils.RegisterJsonContext(SquidVoxLuaScriptJsonContext.Default);
+        //JsonUtils.RegisterJsonContext(SquidVoxLuaScriptJsonContext.Default);
         JsonUtils.RegisterJsonContext(SquidVoxVoxelJsonContext.Default);
 
         var loggingConfiguration = new LoggerConfiguration().MinimumLevel.Debug()
@@ -61,44 +53,32 @@ await ConsoleApp.RunAsync(
         container.RegisterInstance(directoriesConfig);
 
         container
-            .AddLuaScriptModule<ConsoleModule>()
-            .AddLuaScriptModule<WindowModule>()
-            .AddLuaScriptModule<ImGuiModule>()
-            .AddLuaScriptModule<AssetManagerModule>()
-            .AddLuaScriptModule<InputManagerModule>()
-            .AddLuaScriptModule<RenderLayerModule>()
-            .AddLuaScriptModule<BlockManagerModule>()
-            .AddLuaScriptModule<BlockTypeModule>()
-            .AddLuaScriptModule<GameTimeModule>()
-            .AddLuaScriptModule<GenerationModule>()
-            .AddLuaScriptModule<CameraModule>()
+            .AddScriptModule<EngineModule>()
+            .AddScriptModule<ConsoleModule>()
+            .AddScriptModule<WindowModule>()
+            .AddScriptModule<ImGuiModule>()
+            .AddScriptModule<AssetManagerModule>()
+            .AddScriptModule<InputManagerModule>()
+            .AddScriptModule<RenderLayerModule>()
+            .AddScriptModule<BlockManagerModule>()
+            .AddScriptModule<BlockTypeModule>()
+            .AddScriptModule<GameTimeModule>()
+            .AddScriptModule<GenerationModule>()
+            .AddScriptModule<CameraModule>()
             ;
 
-
-
-        container
-            .AddLuaUserData<Vector2>()
-            .AddLuaUserData<Vector3>()
-            .AddLuaUserData(typeof(ImGui))
-            .AddLuaUserData<BlockDefinitionData>()
-            .AddLuaUserData<GeneratorContext>()
-            .AddLuaUserData<PositionAndSize>()
-            .AddLuaScriptModule<FastNoiseLite>()
-            // Fix: ChunkEntity and BlockEntity should be UserData, not ScriptModules
-            .AddLuaUserData<ChunkEntity>()
-            .AddLuaUserData<BlockEntity>()
-            ;
-
+        container.RegisterInstance(new ScriptEngineConfig());
 
         container.Register<IAssetManagerService, AssetManagerService>(Reuse.Singleton);
         container.Register<ISceneManager, SceneManagerService>(Reuse.Singleton);
-        container.Register<IScriptEngineService, LuaScriptEngineService>(Reuse.Singleton);
+        container.Register<IScriptEngineService, JsScriptEngineService>(Reuse.Singleton);
         container.Register<IInputManager, InputManagerService>(Reuse.Singleton);
         container.Register<IBlockManagerService, BlockManagerService>(Reuse.Singleton);
         container.Register<IChunkGeneratorService, ChunkGeneratorService>(Reuse.Singleton);
         container.Register<ITimerService, TimerService>(Reuse.Singleton);
         container.Register<INotificationService, NotificationService>(Reuse.Singleton);
         container.Register<IPerformanceProfilerService, PerformanceProfilerService>(Reuse.Singleton);
+        container.Register<IVersionService, VersionService>(Reuse.Singleton);
 
 
         using var game = new SquidVoxWorld(container);
