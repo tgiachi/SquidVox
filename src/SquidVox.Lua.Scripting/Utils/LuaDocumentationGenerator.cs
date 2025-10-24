@@ -505,6 +505,12 @@ public static class LuaDocumentationGenerator
             return _nameResolver(type.Name);
         }
 
+        // Handle MoonSharp Closure (represents Lua functions)
+        if (type.Name == "Closure" && type.Namespace == "MoonSharp.Interpreter")
+        {
+            return "function";
+        }
+
         // Handle record types
         if (IsRecordType(type))
         {

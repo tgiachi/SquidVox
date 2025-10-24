@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,7 +11,7 @@ using SquidVox.Core.Interfaces.Services;
 namespace SquidVox.Voxel.GameObjects;
 
 /// <summary>
-/// Renders a procedural day/night cycle skybox.
+/// Renders a procedural day/night cycle skydome (spherical sky) with sun and lighting.
 /// </summary>
 public class DynamicSkyGameObject : Base3dGameObject, IDisposable
 {
@@ -25,6 +26,10 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     private IndexBuffer? _indexBuffer;
     private int _indexCount;
     private float _timeOfDay;
+    private Vector3 _sunDirection;
+    private Color _ambientColor;
+    private Color _directionalColor;
+    private float _sunIntensity;
 
     /// <summary>
     /// Initializes a new instance of the DynamicSkyGameObject class.
@@ -47,6 +52,9 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
         _logger.Information("DynamicSky initialized");
 
         CreateSkyGeometry();
+
+        // Initialize lighting values
+        UpdateLighting();
     }
 
     /// <summary>
@@ -90,6 +98,26 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     /// Gets or sets whether the day/night cycle is enabled.
     /// </summary>
     public bool EnableCycle { get; set; } = true;
+
+    /// <summary>
+    /// Gets the current sun direction vector (normalized).
+    /// </summary>
+    public Vector3 SunDirection => _sunDirection;
+
+    /// <summary>
+    /// Gets the current ambient light color based on time of day.
+    /// </summary>
+    public Color AmbientLightColor => _ambientColor;
+
+    /// <summary>
+    /// Gets the current directional (sun) light color based on time of day.
+    /// </summary>
+    public Color DirectionalLightColor => _directionalColor;
+
+    /// <summary>
+    /// Gets the current sun intensity (0.0 to 1.0).
+    /// </summary>
+    public float SunIntensity => _sunIntensity;
 
     /// <summary>
     /// Sets the texture to blend with the procedural sky.
@@ -149,6 +177,76 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             _timeOfDay += (float)gameTime.ElapsedGameTime.TotalSeconds * CycleSpeed;
             _timeOfDay %= 1.0f;
         }
+
+        UpdateLighting();
+    }
+
+    /// <summary>
+    /// Updates sun direction and lighting colors based on time of day.
+    /// </summary>
+    private void UpdateLighting()
+    {
+        // Calculate sun angle (0 = midnight, 0.5 = noon)
+        float sunAngle = _timeOfDay * MathHelper.TwoPi;
+        float sunHeight = MathF.Sin(sunAngle);
+
+        // Sun direction: rotates from east to west
+        // At noon (0.5), sun is at zenith (0, 1, 0)
+        // At sunrise/sunset, sun is on horizon
+        _sunDirection = new Vector3(
+            MathF.Cos(sunAngle),      // X: east-west
+            sunHeight,                 // Y: height
+            MathF.Sin(sunAngle) * 0.3f // Z: slight north-south variation
+        );
+        _sunDirection = Vector3.Normalize(_sunDirection);
+
+        // Calculate sun intensity (0.0 at night, 1.0 at day)
+        if (sunHeight > 0.0f)
+        {
+            _sunIntensity = MathHelper.Clamp(sunHeight * 1.5f, 0.0f, 1.0f);
+        }
+        else
+        {
+            _sunIntensity = 0.0f;
+        }
+
+        // Calculate lighting colors based on sun height
+        if (sunHeight > 0.7f)
+        {
+            // Full day
+            _ambientColor = new Color(150, 170, 200);
+            _directionalColor = new Color(255, 250, 235);
+        }
+        else if (sunHeight > 0.0f)
+        {
+            // Day to sunset transition
+            float blend = sunHeight / 0.7f;
+            Color dayAmbient = new Color(150, 170, 200);
+            Color sunsetAmbient = new Color(180, 120, 100);
+            _ambientColor = Color.Lerp(sunsetAmbient, dayAmbient, blend);
+
+            Color dayDirectional = new Color(255, 250, 235);
+            Color sunsetDirectional = new Color(255, 180, 120);
+            _directionalColor = Color.Lerp(sunsetDirectional, dayDirectional, blend);
+        }
+        else if (sunHeight > -0.3f)
+        {
+            // Sunset to night transition
+            float blend = (sunHeight + 0.3f) / 0.3f;
+            Color nightAmbient = new Color(20, 20, 40);
+            Color sunsetAmbient = new Color(180, 120, 100);
+            _ambientColor = Color.Lerp(nightAmbient, sunsetAmbient, blend);
+
+            Color nightDirectional = new Color(40, 50, 80);
+            Color sunsetDirectional = new Color(255, 180, 120);
+            _directionalColor = Color.Lerp(nightDirectional, sunsetDirectional, blend);
+        }
+        else
+        {
+            // Full night
+            _ambientColor = new Color(20, 20, 40);
+            _directionalColor = new Color(40, 50, 80);
+        }
     }
 
     /// <summary>
@@ -181,9 +279,16 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             return;
         }
 
+        // CRITICAL: Create World matrix that centers the skybox on the camera position
+        // This makes the skybox follow the camera, giving the illusion of infinite distance
+        const float skyboxSize = 500f;
+        Matrix world = Matrix.CreateScale(skyboxSize) * Matrix.CreateTranslation(_camera.Position);
+
+        _skyEffect.Parameters["World"].SetValue(world);
         _skyEffect.Parameters["Projection"].SetValue(_camera.Projection);
         _skyEffect.Parameters["View"].SetValue(_camera.View);
         _skyEffect.Parameters["Time"].SetValue(_timeOfDay);
+        _skyEffect.Parameters["SunDirection"]?.SetValue(_sunDirection);
         _skyEffect.Parameters["UseTexture"]?.SetValue(_useSkyTexture && _skyTexture != null && _textureBlend > 0f ? 1f : 0f);
         _skyEffect.Parameters["TextureStrength"]?.SetValue(_textureBlend);
 
@@ -220,33 +325,41 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
 
     private void CreateSkyGeometry()
     {
+        // Create a unit cube centered at origin
+        // The cube will be scaled and translated using the World matrix
         var vertices = new VertexPosition[]
         {
+            // Front face (+Z)
             new(new Vector3(-1, -1,  1)),
             new(new Vector3( 1, -1,  1)),
             new(new Vector3(-1,  1,  1)),
             new(new Vector3( 1,  1,  1)),
 
-            new(new Vector3(-1, -1, -1)),
-            new(new Vector3(-1,  1, -1)),
+            // Back face (-Z)
             new(new Vector3( 1, -1, -1)),
+            new(new Vector3(-1, -1, -1)),
             new(new Vector3( 1,  1, -1)),
-
             new(new Vector3(-1,  1, -1)),
-            new(new Vector3(-1,  1,  1)),
-            new(new Vector3( 1,  1, -1)),
-            new(new Vector3( 1,  1,  1)),
 
+            // Top face (+Y)
+            new(new Vector3(-1,  1,  1)),
+            new(new Vector3( 1,  1,  1)),
+            new(new Vector3(-1,  1, -1)),
+            new(new Vector3( 1,  1, -1)),
+
+            // Bottom face (-Y)
             new(new Vector3(-1, -1, -1)),
             new(new Vector3( 1, -1, -1)),
             new(new Vector3(-1, -1,  1)),
             new(new Vector3( 1, -1,  1)),
 
-            new(new Vector3( 1, -1, -1)),
-            new(new Vector3( 1,  1, -1)),
+            // Right face (+X)
             new(new Vector3( 1, -1,  1)),
+            new(new Vector3( 1, -1, -1)),
             new(new Vector3( 1,  1,  1)),
+            new(new Vector3( 1,  1, -1)),
 
+            // Left face (-X)
             new(new Vector3(-1, -1, -1)),
             new(new Vector3(-1, -1,  1)),
             new(new Vector3(-1,  1, -1)),
@@ -255,11 +368,17 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
 
         var indices = new short[]
         {
+            // Front face
             0, 1, 2, 2, 1, 3,
+            // Back face
             4, 5, 6, 6, 5, 7,
+            // Top face
             8, 9, 10, 10, 9, 11,
+            // Bottom face
             12, 13, 14, 14, 13, 15,
+            // Right face
             16, 17, 18, 18, 17, 19,
+            // Left face
             20, 21, 22, 22, 21, 23
         };
 
@@ -272,7 +391,7 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
         _indexBuffer.SetData(indices);
         _indexCount = indices.Length;
 
-        _logger.Information("Sky cube created: {VertexCount} vertices, {IndexCount} indices",
+        _logger.Information("Skybox cube created: {VertexCount} vertices, {IndexCount} indices",
             vertices.Length, _indexCount);
     }
 

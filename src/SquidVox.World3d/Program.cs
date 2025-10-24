@@ -13,6 +13,7 @@ using SquidVox.Core.Enums;
 using SquidVox.Core.Extensions.Directories;
 using SquidVox.Core.Interfaces.Services;
 using SquidVox.Core.Json;
+using SquidVox.Core.Noise;
 using SquidVox.Lua.Scripting.Context;
 using SquidVox.Lua.Scripting.Extensions.Scripts;
 using SquidVox.Lua.Scripting.Services;
@@ -80,6 +81,7 @@ await ConsoleApp.RunAsync(
             .AddLuaUserData<BlockDefinitionData>()
             .AddLuaUserData<GeneratorContext>()
             .AddLuaUserData<PositionAndSize>()
+            .AddLuaScriptModule<FastNoiseLite>()
             ;
 
 
