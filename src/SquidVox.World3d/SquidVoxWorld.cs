@@ -13,6 +13,7 @@ using SquidVox.GameObjects.UI.Controls;
 using SquidVox.Core.Notifications;
 using SquidVox.GameObjects.UI.Notifications;
 using SquidVox.Voxel.GameObjects;
+using SquidVox.Voxel.Generations;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Primitives;
 using SquidVox.Voxel.Types;
@@ -297,14 +298,28 @@ public class SquidVoxWorld : Game
                 )
             );
 
-//        _container.Resolve<IChunkGeneratorService>().GenerateInitialChunksAsync().GetAwaiter().GetResult();
+
+
+        _container.Resolve<IChunkGeneratorService>()
+            .AddGeneratorStep(
+                new ScriptGenerationStep(
+                    "flat",
+                    context =>
+                    {
+                        var position = context.Chunk.Position;
+                       CreateFlatChunkAsync(context.Chunk, (int)position.X, (int)position.Y, (int)position.Z).GetAwaiter().GetResult();
+                    }
+                )
+            );
+        _container.Resolve<IChunkGeneratorService>().GenerateInitialChunksAsync().GetAwaiter().GetResult();
 
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
-        // worldManager.ChunkGenerator =
-        //     _container.Resolve<IChunkGeneratorService>().GetChunkByWorldPosition; //CreateFlatChunkAsync;
 
-        worldManager.ChunkGenerator = CreateFlatChunkAsync;
+        worldManager.ChunkGenerator =
+            _container.Resolve<IChunkGeneratorService>().GetChunkByWorldPosition; //CreateFlatChunkAsync;
+
+        //worldManager.ChunkGenerator = CreateFlatChunkAsync;
 
         worldManager.EnableWireframe = false;
         worldManager.UseGreedyMeshing = true;
@@ -612,17 +627,17 @@ public class SquidVoxWorld : Game
         }
     }
 
-    private static Task<ChunkEntity> CreateFlatChunkAsync(int chunkX, int chunkY, int chunkZ)
+    private static Task<ChunkEntity> CreateFlatChunkAsync(ChunkEntity chunk, int chunkX, int chunkY, int chunkZ)
     {
         return Task.Run(() =>
             {
                 var chunkOrigin = new System.Numerics.Vector3(
-                    chunkX * ChunkEntity.Size,
-                    chunkY * ChunkEntity.Height,
-                    chunkZ * ChunkEntity.Size
+                    chunkX ,
+                    chunkY ,
+                    chunkZ
                 );
 
-                var chunk = new ChunkEntity(chunkOrigin);
+//                var chunk = new ChunkEntity(chunkOrigin);
 
                 if (chunkY > 0)
                 {

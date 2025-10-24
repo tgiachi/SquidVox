@@ -139,8 +139,15 @@ public class ChunkCache
     /// </summary>
     private class CacheEntry
     {
+        private long _lastAccessTimeTicks;
+
         public required ChunkEntity Chunk { get; init; }
-        public DateTime LastAccessTime { get; set; }
+
+        public DateTime LastAccessTime
+        {
+            get => new DateTime(Interlocked.Read(ref _lastAccessTimeTicks));
+            set => Interlocked.Exchange(ref _lastAccessTimeTicks, value.Ticks);
+        }
     }
 
     /// <summary>
