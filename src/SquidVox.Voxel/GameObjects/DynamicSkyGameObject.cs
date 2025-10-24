@@ -4,6 +4,7 @@ using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Serilog;
+using SquidVox.Core.Attributes.Debugger;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Core.Interfaces.Services;
@@ -13,6 +14,7 @@ namespace SquidVox.Voxel.GameObjects;
 /// <summary>
 /// Renders a procedural day/night cycle skydome (spherical sky) with sun and lighting.
 /// </summary>
+[DebuggerHeader("🌅 Dynamic Sky Settings")]
 public class DynamicSkyGameObject : Base3dGameObject, IDisposable
 {
     private readonly ILogger _logger = Log.ForContext<DynamicSkyGameObject>();
@@ -51,6 +53,9 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             throw new InvalidOperationException("DynamicSky effect not loaded");
         }
 
+        // Initialize RealSecondsPerGameMinute based on default CycleSpeed
+        _realSecondsPerGameMinute = CycleSpeed > 0 ? (1.0f / CycleSpeed) / 1440f : 0.0694f;
+
         _logger.Information("DynamicSky initialized");
 
         CreateSkyGeometry();
@@ -60,8 +65,10 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     }
 
     /// <summary>
-    /// Gets or sets the time of day (0.0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset, 1.0 = midnight).
+    /// Gets or sets the time of day (0.0 = 06:00 sunrise, 0.25 = 12:00 noon, 0.5 = 18:00 sunset, 0.75 = 00:00 midnight, 1.0 = 06:00 sunrise).
     /// </summary>
+    [DebuggerRange(0.0, 1.0, 0.01)]
+    [DebuggerField]
     public float TimeOfDay
     {
         get => _timeOfDay;
@@ -71,11 +78,15 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets the day/night cycle speed (time units per second).
     /// </summary>
+    [DebuggerRange(0.0, 0.1, 0.001)]
+    [DebuggerField]
     public float CycleSpeed { get; set; } = 0.01f;
 
     /// <summary>
     /// Gets or sets the blend factor used when combining the procedural sky with the texture.
     /// </summary>
+    [DebuggerRange(0.0, 1.0, 0.05)]
+    [DebuggerField]
     public float SkyTextureBlend
     {
         get => _textureBlend;
@@ -85,6 +96,7 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets a value indicating whether the sky texture should be used.
     /// </summary>
+    [DebuggerField]
     public bool UseSkyTexture
     {
         get => _useSkyTexture;
@@ -99,32 +111,89 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets whether the day/night cycle is enabled.
     /// </summary>
+    [DebuggerField]
     public bool EnableCycle { get; set; } = true;
 
     /// <summary>
     /// Gets the current sun direction vector (normalized).
     /// </summary>
+    [DebuggerField]
     public Vector3 SunDirection => _sunDirection;
 
     /// <summary>
     /// Gets the current moon direction vector (normalized).
     /// </summary>
+    [DebuggerField]
     public Vector3 MoonDirection => _moonDirection;
 
     /// <summary>
     /// Gets the current ambient light color based on time of day.
     /// </summary>
+    [DebuggerField]
     public Color AmbientLightColor => _ambientColor;
 
     /// <summary>
     /// Gets the current directional (sun) light color based on time of day.
     /// </summary>
+    [DebuggerField]
     public Color DirectionalLightColor => _directionalColor;
 
     /// <summary>
     /// Gets the current sun intensity (0.0 to 1.0).
     /// </summary>
+    [DebuggerField]
     public float SunIntensity => _sunIntensity;
+
+    /// <summary>
+    /// Gets the current time formatted as HH:MM (24-hour format).
+    /// TimeOfDay = 0 corresponds to 06:00 (sunrise).
+    /// </summary>
+    [DebuggerField]
+    public string CurrentTime
+    {
+        get
+        {
+            // TimeOfDay = 0 → 06:00, so add 6 hours offset
+            int totalMinutes = (int)((_timeOfDay * 1440) + 360); // 360 minutes = 6 hours offset
+            totalMinutes %= 1440; // Wrap around to stay within 24 hours
+            int hours = totalMinutes / 60;
+            int minutes = totalMinutes % 60;
+            return $"{hours:D2}:{minutes:D2}";
+        }
+    }
+
+    /// <summary>
+    /// Gets the duration of a full day/night cycle in real-world seconds.
+    /// </summary>
+    [DebuggerField]
+    public float DayCycleDuration => CycleSpeed > 0 ? 1.0f / CycleSpeed : 0f;
+
+    private float _realSecondsPerGameMinute; // Initialized in constructor based on CycleSpeed
+
+    /// <summary>
+    /// Gets or sets the duration of one in-game minute in real-world seconds.
+    /// Modifying this will automatically adjust CycleSpeed.
+    /// </summary>
+    [DebuggerRange(0.001, 10.0, 0.01)]
+    [DebuggerField]
+    public float RealSecondsPerGameMinute
+    {
+        get => _realSecondsPerGameMinute;
+        set
+        {
+            if (value <= 0)
+            {
+                _logger.Warning("RealSecondsPerGameMinute must be > 0, ignoring value {Value}", value);
+                return;
+            }
+
+            _realSecondsPerGameMinute = value;
+            // Calculate CycleSpeed from RealSecondsPerGameMinute
+            // 1440 minutes in a day, so full cycle = RealSecondsPerGameMinute * 1440
+            // CycleSpeed = 1 / (RealSecondsPerGameMinute * 1440)
+            CycleSpeed = 1.0f / (value * 1440f);
+        }
+    }
 
     /// <summary>
     /// Sets the texture to blend with the procedural sky.

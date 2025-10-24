@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SquidVox.Core.Attributes.Debugger;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Voxel.Primitives;
@@ -92,6 +93,9 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the horizontal rotation in degrees (default: -90°).
     /// </summary>
+    ///
+    [DebuggerField]
+    [DebuggerRange(-90, 90)]
     public float Yaw
     {
         get => _yaw;
@@ -105,6 +109,8 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the vertical rotation in degrees (clamped: -89° to 89°).
     /// </summary>
+    [DebuggerField]
+    [DebuggerRange(-90, 90)]
     public float Pitch
     {
         get => _pitch;
@@ -118,6 +124,8 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the field of view in degrees (default: 60°, range: 1-120°).
     /// </summary>
+    [DebuggerField]
+    [DebuggerRange(1, 120)]
     public float Zoom
     {
         get => _zoom;
@@ -132,6 +140,7 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the field of view in radians.
     /// </summary>
+    [DebuggerField]
     public float FieldOfView
     {
         get => _fieldOfView;
@@ -148,6 +157,7 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the near clipping plane distance.
     /// </summary>
+    [DebuggerField]
     public float NearPlane
     {
         get => _nearPlane;
@@ -164,6 +174,7 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the far clipping plane distance.
     /// </summary>
+    [DebuggerField]
     public float FarPlane
     {
         get => _farPlane;
@@ -189,6 +200,7 @@ public sealed class CameraGameObject : Base3dGameObject
                 _view = Matrix.CreateLookAt(Position, Position + _front, Up);
                 _viewDirty = false;
             }
+
             return _view;
         }
     }
@@ -207,6 +219,7 @@ public sealed class CameraGameObject : Base3dGameObject
                 _projection = Matrix.CreatePerspectiveFieldOfView(_fieldOfView, aspectRatio, _nearPlane, _farPlane);
                 _projectionDirty = false;
             }
+
             return _projection;
         }
     }
@@ -230,12 +243,14 @@ public sealed class CameraGameObject : Base3dGameObject
         if (!FlyMode)
         {
             var forwardFlat = new Vector3(_front.X, 0, _front.Z);
+
             if (forwardFlat != Vector3.Zero)
             {
                 forwardFlat.Normalize();
                 var newPos = Position + forwardFlat * distance;
 
                 var testX = Position + new Vector3(forwardFlat.X * distance, 0, 0);
+
                 if (!CheckCollision(testX))
                 {
                     var pos = Position;
@@ -245,6 +260,7 @@ public sealed class CameraGameObject : Base3dGameObject
                 }
 
                 var testZ = Position + new Vector3(0, 0, forwardFlat.Z * distance);
+
                 if (!CheckCollision(testZ))
                 {
                     var pos = Position;
@@ -269,11 +285,13 @@ public sealed class CameraGameObject : Base3dGameObject
         if (!FlyMode)
         {
             var forwardFlat = new Vector3(_front.X, 0, _front.Z);
+
             if (forwardFlat != Vector3.Zero)
             {
                 forwardFlat.Normalize();
 
                 var testX = Position - new Vector3(forwardFlat.X * distance, 0, 0);
+
                 if (!CheckCollision(testX))
                 {
                     var pos = Position;
@@ -283,6 +301,7 @@ public sealed class CameraGameObject : Base3dGameObject
                 }
 
                 var testZ = Position - new Vector3(0, 0, forwardFlat.Z * distance);
+
                 if (!CheckCollision(testZ))
                 {
                     var pos = Position;
@@ -307,11 +326,13 @@ public sealed class CameraGameObject : Base3dGameObject
         if (!FlyMode)
         {
             var rightFlat = new Vector3(_right.X, 0, _right.Z);
+
             if (rightFlat != Vector3.Zero)
             {
                 rightFlat.Normalize();
 
                 var testX = Position + new Vector3(rightFlat.X * distance, 0, 0);
+
                 if (!CheckCollision(testX))
                 {
                     var pos = Position;
@@ -321,6 +342,7 @@ public sealed class CameraGameObject : Base3dGameObject
                 }
 
                 var testZ = Position + new Vector3(0, 0, rightFlat.Z * distance);
+
                 if (!CheckCollision(testZ))
                 {
                     var pos = Position;
@@ -345,11 +367,13 @@ public sealed class CameraGameObject : Base3dGameObject
         if (!FlyMode)
         {
             var rightFlat = new Vector3(_right.X, 0, _right.Z);
+
             if (rightFlat != Vector3.Zero)
             {
                 rightFlat.Normalize();
 
                 var testX = Position - new Vector3(rightFlat.X * distance, 0, 0);
+
                 if (!CheckCollision(testX))
                 {
                     var pos = Position;
@@ -359,6 +383,7 @@ public sealed class CameraGameObject : Base3dGameObject
                 }
 
                 var testZ = Position - new Vector3(0, 0, rightFlat.Z * distance);
+
                 if (!CheckCollision(testZ))
                 {
                     var pos = Position;
@@ -493,6 +518,7 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets the movement speed of the camera.
     /// </summary>
+    [DebuggerField]
     public float MoveSpeed { get; set; } = 20f;
 
     /// <summary>
@@ -510,6 +536,7 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets a value indicating whether input handling is enabled.
     /// </summary>
+    [DebuggerField]
     public bool EnableInput
     {
         get => _enableInput;
@@ -531,6 +558,7 @@ public sealed class CameraGameObject : Base3dGameObject
     /// <summary>
     /// Gets or sets a value indicating whether fly mode is enabled (disables physics for creative flight).
     /// </summary>
+    [DebuggerField]
     public bool FlyMode { get; set; }
 
     public Func<Vector3, bool>? IsBlockSolid { get; set; }
@@ -538,8 +566,6 @@ public sealed class CameraGameObject : Base3dGameObject
     public Vector3 BoundingBoxSize { get; set; } = new Vector3(0.6f, 1.8f, 0.6f);
 
     public bool IsOnGround => _isOnGround;
-
-
 
     public override void Update(GameTime gameTime)
     {
@@ -559,12 +585,14 @@ public sealed class CameraGameObject : Base3dGameObject
         if (!FlyMode)
         {
             var forwardFlat = new Vector3(_front.X, 0, _front.Z);
+
             if (forwardFlat != Vector3.Zero)
             {
                 forwardFlat.Normalize();
             }
 
             var rightFlat = new Vector3(_right.X, 0, _right.Z);
+
             if (rightFlat != Vector3.Zero)
             {
                 rightFlat.Normalize();
@@ -576,14 +604,17 @@ public sealed class CameraGameObject : Base3dGameObject
             {
                 MoveForward(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.S))
             {
                 MoveBackward(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.A))
             {
                 MoveLeft(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.D))
             {
                 MoveRight(moveDistance);
@@ -604,22 +635,27 @@ public sealed class CameraGameObject : Base3dGameObject
             {
                 MoveForward(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.S))
             {
                 MoveBackward(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.A))
             {
                 MoveLeft(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.D))
             {
                 MoveRight(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.Space))
             {
                 MoveUp(moveDistance);
             }
+
             if (keyboardState.IsKeyDown(Keys.LeftShift))
             {
                 MoveDown(moveDistance);
@@ -632,6 +668,7 @@ public sealed class CameraGameObject : Base3dGameObject
         if (!IsMouseCaptured)
         {
             _firstMouseMove = true;
+
             return;
         }
 
@@ -646,6 +683,7 @@ public sealed class CameraGameObject : Base3dGameObject
         {
             _firstMouseMove = false;
             Mouse.SetPosition(centerX, centerY);
+
             return;
         }
 
@@ -717,7 +755,8 @@ public sealed class CameraGameObject : Base3dGameObject
         }
 
         // Fallback to original method if spatial grid is not populated
-        if (IsBlockSolid == null) return false;
+        if (IsBlockSolid == null)
+            return false;
 
         var halfSize = BoundingBoxSize / 2;
         var min = position - halfSize;
@@ -749,7 +788,8 @@ public sealed class CameraGameObject : Base3dGameObject
         }
 
         // Fallback to original method if spatial grid is not populated
-        if (IsBlockSolid == null) return false;
+        if (IsBlockSolid == null)
+            return false;
 
         var feetY = position.Y - BoundingBoxSize.Y / 2 - 0.01f;
         var halfWidth = BoundingBoxSize.X / 2;
@@ -811,6 +851,7 @@ public sealed class CameraGameObject : Base3dGameObject
                             for (float z = cellMin.Z; z < cellMax.Z; z += 0.5f)
                             {
                                 var blockPos = new Vector3(x, y, z);
+
                                 if (IsBlockSolid?.Invoke(blockPos) == true)
                                 {
                                     cellBlocks.Add(blockPos);
@@ -833,7 +874,8 @@ public sealed class CameraGameObject : Base3dGameObject
     /// </summary>
     private bool CheckCollisionOptimized(Vector3 position)
     {
-        if (IsBlockSolid == null) return false;
+        if (IsBlockSolid == null)
+            return false;
 
         var halfSize = BoundingBoxSize / 2;
         var min = position - halfSize;
@@ -855,14 +897,18 @@ public sealed class CameraGameObject : Base3dGameObject
                 for (var cellZ = minCellZ; cellZ <= maxCellZ; cellZ++)
                 {
                     var cellKey = (cellX, cellY, cellZ);
+
                     if (_spatialGrid.TryGetValue(cellKey, out var cellBlocks))
                     {
                         // Check if any block in this cell intersects with our bounding box
                         foreach (var blockPos in cellBlocks)
                         {
-                            if (blockPos.X >= min.X && blockPos.X <= max.X &&
-                                blockPos.Y >= min.Y && blockPos.Y <= max.Y &&
-                                blockPos.Z >= min.Z && blockPos.Z <= max.Z)
+                            if (blockPos.X >= min.X &&
+                                blockPos.X <= max.X &&
+                                blockPos.Y >= min.Y &&
+                                blockPos.Y <= max.Y &&
+                                blockPos.Z >= min.Z &&
+                                blockPos.Z <= max.Z)
                             {
                                 return true;
                             }
@@ -880,7 +926,8 @@ public sealed class CameraGameObject : Base3dGameObject
     /// </summary>
     private bool CheckGroundCollisionOptimized(Vector3 position)
     {
-        if (IsBlockSolid == null) return false;
+        if (IsBlockSolid == null)
+            return false;
 
         var feetY = position.Y - BoundingBoxSize.Y / 2 - 0.01f;
         var halfWidth = BoundingBoxSize.X / 2;
@@ -908,13 +955,15 @@ public sealed class CameraGameObject : Base3dGameObject
             for (var cellZ = minCellZ; cellZ <= maxCellZ; cellZ++)
             {
                 var cellKey = (cellX, cellY, cellZ);
+
                 if (_spatialGrid.TryGetValue(cellKey, out var cellBlocks))
                 {
                     foreach (var blockPos in cellBlocks)
                     {
                         foreach (var testPos in testPositions)
                         {
-                            if (Vector3.DistanceSquared(blockPos, testPos) < 0.01f) // Small epsilon for floating point comparison
+                            if (Vector3.DistanceSquared(blockPos, testPos) <
+                                0.01f) // Small epsilon for floating point comparison
                             {
                                 return true;
                             }

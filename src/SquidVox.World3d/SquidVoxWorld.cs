@@ -45,7 +45,6 @@ public class SquidVoxWorld : Game
     private IInputManager _inputManager;
     private IPerformanceProfilerService _performanceProfilerService;
 
-
     /// <summary>
     /// Initializes a new instance of the SquidVoxWorld class.
     /// </summary>
@@ -57,7 +56,6 @@ public class SquidVoxWorld : Game
         _graphics = new GraphicsDeviceManager(this);
         SquidVoxEngineContext.GraphicsDeviceManager = _graphics;
         SquidVoxEngineContext.Window = Window;
-
 
         Content.RootDirectory = "Content";
     }
@@ -78,7 +76,6 @@ public class SquidVoxWorld : Game
         _ = _container.Resolve<ITimerService>();
         _ = _container.Resolve<IChunkGeneratorService>();
         assetsManager.SetContentManager(Content);
-
 
         var defaultUiFont = ResourceUtils.GetEmbeddedResourceContent(
             "Assets.Fonts.Monocraft.ttf",
@@ -120,6 +117,7 @@ public class SquidVoxWorld : Game
         _renderLayers.Add(new GameObject3dRenderLayer());
 
         _inputManager = _container.Resolve<IInputManager>();
+
         // TODO: Restore when InputContext is implemented
         // _inputManager.CurrentContext = InputContext.Gameplay3D;
 
@@ -153,7 +151,6 @@ public class SquidVoxWorld : Game
         _console.Initialize(assetManager, _inputManager);
         _console.CommandSubmitted += HandleConsoleCommand;
         _renderLayers.GetLayer<GameObject2dRenderLayer>().AddGameObject(_console);
-
 
         // Position chat box at bottom-left of screen
         var screenHeight = GraphicsDevice.Viewport.Height;
@@ -196,110 +193,109 @@ public class SquidVoxWorld : Game
         camera.EnableInputChanged += (sender, enabled) => IsMouseVisible = !enabled;
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(camera);
 
+        _renderLayers.GetLayer<ImGuiRenderLayer>().AddDebugger(new GameObjectDebugger(_renderLayers));
+
         _renderLayers.GetLayer<ImGuiRenderLayer>()
-            .AddDebugger(
-                new LuaImGuiDebuggerObject(
-                    "camera",
-                    () =>
-                    {
-                        var camera = _renderLayers.GetLayer<GameObject3dRenderLayer>().GetComponent<CameraGameObject>();
-                        var worldGameObject = _renderLayers.GetLayer<GameObject3dRenderLayer>()
-                            .GetComponent<WorldGameObject>();
+                     .AddDebugger(
+                         new LuaImGuiDebuggerObject(
+                             "camera",
+                             () =>
+                             {
+                                 var camera = _renderLayers.GetLayer<GameObject3dRenderLayer>()
+                                                           .GetComponent<CameraGameObject>();
+                                 var worldGameObject = _renderLayers.GetLayer<GameObject3dRenderLayer>()
+                                                                    .GetComponent<WorldGameObject>();
 
-                        var sky = _renderLayers.GetLayer<GameObject3dRenderLayer>()
-                            .GetComponent<DynamicSkyGameObject>();
+                                 var sky = _renderLayers.GetLayer<GameObject3dRenderLayer>()
+                                                        .GetComponent<DynamicSkyGameObject>();
 
-                        ImGui.Text("Camera position: " + camera.Position);
-                        ImGui.Separator();
-                        ImGui.Text("Camera rotation: " + camera.Rotation);
+                                 ImGui.Text("Camera position: " + camera.Position);
+                                 ImGui.Separator();
+                                 ImGui.Text("Camera rotation: " + camera.Rotation);
 
-                        var ambientLight = worldGameObject.AmbientLight.ToNumerics();
-                        var lightDir = worldGameObject.LightDirection.ToNumerics();
-                        var fogColor = worldGameObject.FogColor.ToNumerics();
-                        var fogStart = worldGameObject.FogStart;
-                        var fogEnd = worldGameObject.FogEnd;
+                                 var ambientLight = worldGameObject.AmbientLight.ToNumerics();
+                                 var lightDir = worldGameObject.LightDirection.ToNumerics();
+                                 var fogColor = worldGameObject.FogColor.ToNumerics();
+                                 var fogStart = worldGameObject.FogStart;
+                                 var fogEnd = worldGameObject.FogEnd;
 
+                                 ImGui.Separator();
 
-                        ImGui.Separator();
+                                 var chunkDistance = worldGameObject.ChunkLoadDistance;
 
+                                 var viewDistance = worldGameObject.ViewRange;
 
-                        var chunkDistance = worldGameObject.ChunkLoadDistance;
+                                 if (ImGui.SliderFloat("View Distance", ref viewDistance, 1, 512))
+                                 {
+                                     worldGameObject.ViewRange = viewDistance;
+                                 }
 
-                        var viewDistance = worldGameObject.ViewRange;
-                        if (ImGui.SliderFloat("View Distance", ref viewDistance, 1, 512))
-                        {
-                            worldGameObject.ViewRange = viewDistance;
-                        }
+                                 var useGreedyMeshing = worldGameObject.UseGreedyMeshing;
 
+                                 if (ImGui.Checkbox("Use Greedy Meshing", ref useGreedyMeshing))
+                                 {
+                                     worldGameObject.UseGreedyMeshing = useGreedyMeshing;
+                                 }
 
-                        var useGreedyMeshing = worldGameObject.UseGreedyMeshing;
-                        if (ImGui.Checkbox("Use Greedy Meshing", ref useGreedyMeshing))
-                        {
-                            worldGameObject.UseGreedyMeshing = useGreedyMeshing;
-                        }
+                                 var useFlyMode = camera.FlyMode;
 
-                        var useFlyMode = camera.FlyMode;
-                        if (ImGui.Checkbox("Use Fly Mode", ref useFlyMode))
-                        {
-                            camera.FlyMode = useFlyMode;
-                        }
+                                 if (ImGui.Checkbox("Use Fly Mode", ref useFlyMode))
+                                 {
+                                     camera.FlyMode = useFlyMode;
+                                 }
 
+                                 var enableWireframe = worldGameObject.EnableWireframe;
 
-                        var enableWireframe = worldGameObject.EnableWireframe;
+                                 if (ImGui.Checkbox("Enable Wireframe", ref enableWireframe))
+                                 {
+                                     worldGameObject.EnableWireframe = enableWireframe;
+                                 }
 
-                        if (ImGui.Checkbox("Enable Wireframe", ref enableWireframe))
-                        {
-                            worldGameObject.EnableWireframe = enableWireframe;
-                        }
+                                 // Editor ImGui
+                                 if (ImGui.ColorEdit3("Ambient Light", ref ambientLight))
+                                 {
+                                     worldGameObject.AmbientLight = new Vector3(
+                                         ambientLight.X,
+                                         ambientLight.Y,
+                                         ambientLight.Z
+                                     );
+                                 }
 
+                                 if (ImGui.SliderFloat3("Light Direction", ref lightDir, -2f, 2f))
+                                 {
+                                     worldGameObject.LightDirection = new Vector3(
+                                         lightDir.X,
+                                         lightDir.Y,
+                                         lightDir.Z
+                                     );
+                                 }
 
-                        // Editor ImGui
-                        if (ImGui.ColorEdit3("Ambient Light", ref ambientLight))
-                        {
-                            worldGameObject.AmbientLight = new Vector3(
-                                ambientLight.X,
-                                ambientLight.Y,
-                                ambientLight.Z
-                            );
-                        }
+                                 if (ImGui.ColorEdit3("Fog Color", ref fogColor))
+                                 {
+                                     worldGameObject.FogColor = new Vector3(
+                                         fogColor.X,
+                                         fogColor.Y,
+                                         fogColor.Z
+                                     );
+                                 }
 
-                        if (ImGui.SliderFloat3("Light Direction", ref lightDir, -2f, 2f))
-                        {
-                            worldGameObject.LightDirection = new Vector3(
-                                lightDir.X,
-                                lightDir.Y,
-                                lightDir.Z
-                            );
-                        }
+                                 if (ImGui.SliderFloat("Fog Start", ref fogStart, 0f, 1000f))
+                                 {
+                                     worldGameObject.FogStart = fogStart;
+                                 }
 
-                        if (ImGui.ColorEdit3("Fog Color", ref fogColor))
-                        {
-                            worldGameObject.FogColor = new Vector3(
-                                fogColor.X,
-                                fogColor.Y,
-                                fogColor.Z
-                            );
-                        }
+                                 if (ImGui.SliderFloat("Fog End", ref fogEnd, 0f, 2000f))
+                                 {
+                                     worldGameObject.FogEnd = fogEnd;
+                                 }
 
-                        if (ImGui.SliderFloat("Fog Start", ref fogStart, 0f, 1000f))
-                        {
-                            worldGameObject.FogStart = fogStart;
-                        }
-
-                        if (ImGui.SliderFloat("Fog End", ref fogEnd, 0f, 2000f))
-                        {
-                            worldGameObject.FogEnd = fogEnd;
-                        }
-
-                        if (ImGui.SliderInt("Chunk Load Distance", ref chunkDistance, 1, 32))
-                        {
-                            worldGameObject.ChunkLoadDistance = chunkDistance;
-                        }
-                    }
-                )
-            );
-
-
+                                 if (ImGui.SliderInt("Chunk Load Distance", ref chunkDistance, 1, 32))
+                                 {
+                                     worldGameObject.ChunkLoadDistance = chunkDistance;
+                                 }
+                             }
+                         )
+                     );
 
         // _container.Resolve<IChunkGeneratorService>()
         //     .AddGeneratorStep(
@@ -325,7 +321,6 @@ public class SquidVoxWorld : Game
 
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
-
         worldManager.ChunkGenerator =
             _container.Resolve<IChunkGeneratorService>().GetChunkByWorldPosition; //CreateFlatChunkAsync;
 
@@ -334,14 +329,13 @@ public class SquidVoxWorld : Game
         worldManager.EnableWireframe = false;
         worldManager.UseGreedyMeshing = true;
 
-
         var skyPanorama = new DynamicSkyGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
         skyPanorama.SetSkyTexture(assetManager.GetTexture("starfield"));
         skyPanorama.SkyTextureBlend = 1.0f;
         skyPanorama.UseSkyTexture = false;
-        //skyPanorama.DebugMode = true;
 
+        //skyPanorama.DebugMode = true;
 
         var clouds = (new CloudsGameObject(_renderLayers.GetComponent<CameraGameObject>()));
 
@@ -356,6 +350,7 @@ public class SquidVoxWorld : Game
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(skyPanorama);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
+
         // _renderLayers.GetLayer<GameObject3dRenderLayer>()
         //     .AddGameObject(
         //         new WeatherGameObject(_renderLayers.GetComponent<CameraGameObject>())
@@ -386,10 +381,10 @@ public class SquidVoxWorld : Game
 
         // Handle dialog close event
         errorDialog.Closed += (s, e) =>
-        {
-            var gameObjectLayer = _renderLayers.GetLayer<GameObject2dRenderLayer>();
-            gameObjectLayer.RemoveGameObject(errorDialog);
-        };
+                              {
+                                  var gameObjectLayer = _renderLayers.GetLayer<GameObject2dRenderLayer>();
+                                  gameObjectLayer.RemoveGameObject(errorDialog);
+                              };
 
         // Add to UI layer
         var gameObjectLayer = _renderLayers.GetLayer<GameObject2dRenderLayer>();
@@ -426,6 +421,7 @@ public class SquidVoxWorld : Game
             if (world != null)
             {
                 _debugInfoPanel.ChunksLoaded = world.Chunks.Count;
+
                 // TODO: Add proper entity counting when available
                 _debugInfoPanel.EntitiesRendered = world.Chunks.Count;
                 _debugInfoPanel.DrawCalls = world.Chunks.Values.Sum(c => c.DrawCallCount);
@@ -506,6 +502,7 @@ public class SquidVoxWorld : Game
         }
 
         var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
         if (parts.Length == 0)
         {
             return;
@@ -516,6 +513,7 @@ public class SquidVoxWorld : Game
             if (parts.Length == 1)
             {
                 console.AddLine("Usage: notify [info|success|warning|error] <message>", Color.Yellow);
+
                 return;
             }
 
@@ -531,12 +529,14 @@ public class SquidVoxWorld : Game
             if (messageStartIndex >= parts.Length)
             {
                 console.AddLine("notify: missing message text", Color.Yellow);
+
                 return;
             }
 
             var message = string.Join(" ", parts[messageStartIndex..]);
             _notificationService?.ShowMessage(message, notificationType);
             console.AddLine($"Notification queued ({notificationType})", Color.LightBlue);
+
             return;
         }
 
@@ -546,6 +546,7 @@ public class SquidVoxWorld : Game
     private void HandleChatMessageSent(object? sender, string message)
     {
         _logger.Information("Chat message sent: {Message}", message);
+
         // Here you can add logic to send the message to other players in multiplayer
         // or process it in any other way
     }
@@ -560,6 +561,7 @@ public class SquidVoxWorld : Game
         _logger.Information("Chat command executed: {Command}", command);
 
         var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
         if (parts.Length == 0)
         {
             return;
@@ -573,6 +575,7 @@ public class SquidVoxWorld : Game
             _chatBox?.AddSystemMessage("/help - Show this help message");
             _chatBox?.AddSystemMessage("/clear - Clear chat history");
             _chatBox?.AddSystemMessage("/notify <type> <message> - Send a notification");
+
             return;
         }
 
@@ -580,6 +583,7 @@ public class SquidVoxWorld : Game
         {
             _chatBox?.Clear();
             _chatBox?.AddSystemMessage("Chat cleared.");
+
             return;
         }
 
@@ -588,6 +592,7 @@ public class SquidVoxWorld : Game
             if (parts.Length == 1)
             {
                 _chatBox?.AddErrorMessage("Usage: /notify [info|success|warning|error] <message>");
+
                 return;
             }
 
@@ -603,12 +608,14 @@ public class SquidVoxWorld : Game
             if (messageStartIndex >= parts.Length)
             {
                 _chatBox?.AddErrorMessage("notify: missing message text");
+
                 return;
             }
 
             var notifyMessage = string.Join(" ", parts[messageStartIndex..]);
             _notificationService?.ShowMessage(notifyMessage, notificationType);
             _chatBox?.AddSystemMessage($"Notification queued ({notificationType})");
+
             return;
         }
 
@@ -621,39 +628,44 @@ public class SquidVoxWorld : Game
         {
             case "info":
                 type = NotificationType.Info;
+
                 return true;
             case "success":
                 type = NotificationType.Success;
+
                 return true;
             case "warning":
                 type = NotificationType.Warning;
+
                 return true;
             case "error":
                 type = NotificationType.Error;
+
                 return true;
             default:
                 type = NotificationType.Info;
+
                 return false;
         }
     }
 
     private static Task<ChunkEntity> CreateFlatChunkAsync(ChunkEntity chunk, int chunkX, int chunkY, int chunkZ)
     {
-        return Task.Run(() =>
+        return Task.Run(
+            () =>
             {
                 var chunkOrigin = new System.Numerics.Vector3(
-                    chunkX ,
-                    chunkY ,
+                    chunkX,
+                    chunkY,
                     chunkZ
                 );
 
-//                var chunk = new ChunkEntity(chunkOrigin);
+                //                var chunk = new ChunkEntity(chunkOrigin);
 
                 if (chunkY > 0)
                 {
                     return chunk;
                 }
-
 
                 var random = new Random((chunkX * 73856093) ^ (chunkZ * 19349663));
 
@@ -688,6 +700,7 @@ public class SquidVoxWorld : Game
                                 else
                                 {
                                     var rand = random.NextDouble();
+
                                     if (rand < 0.15)
                                     {
                                         blockType = BlockType.TallGrass;

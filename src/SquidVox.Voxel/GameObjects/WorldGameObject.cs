@@ -4,6 +4,7 @@ using DryIoc;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Serilog;
+using SquidVox.Core.Attributes.Debugger;
 using SquidVox.Core.Context;
 using SquidVox.Core.GameObjects;
 using SquidVox.Voxel.Interfaces.Services;
@@ -18,6 +19,7 @@ namespace SquidVox.Voxel.GameObjects;
 /// <summary>
 /// Manages multiple chunks with dynamic loading/unloading and frustum culling.
 /// </summary>
+[DebuggerHeader("🌍 World Settings")]
 public sealed class WorldGameObject : Base3dGameObject, IDisposable
 {
     private readonly ILogger _logger = Log.ForContext<WorldGameObject>();
@@ -82,64 +84,85 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets the render distance for chunks.
     /// </summary>
+    [DebuggerRange(50f, 500f, 10f)]
+    [DebuggerField]
     public float ViewRange { get; set; } = 200f;
 
     /// <summary>
     /// Gets or sets the pre-load distance for chunks.
     /// </summary>
+    [DebuggerRange(50f, 500f, 10f)]
+    [DebuggerField]
     public float GenerationRange { get; set; } = 250f;
 
     /// <summary>
     /// Gets or sets a value indicating whether frustum culling is enabled.
     /// </summary>
+    [DebuggerField]
     public bool EnableFrustumCulling { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the maximum distance for block raycasting.
     /// </summary>
+    [DebuggerRange(1f, 50f, 1f)]
+    [DebuggerField]
     public float MaxRaycastDistance { get; set; } = 10f;
 
     /// <summary>
     /// Gets or sets the visible chunks grid distance.
     /// </summary>
+    [DebuggerRange(1, 10)]
+    [DebuggerField]
     public int ChunkLoadDistance { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets the pre-load chunks grid distance.
     /// </summary>
+    [DebuggerRange(1, 15)]
+    [DebuggerField]
     public int GenerationDistance { get; set; } = 3;
 
     /// <summary>
     /// Gets or sets the vertical chunk load distance (above and below player).
     /// </summary>
+    [DebuggerRange(1, 5)]
+    [DebuggerField]
     public int VerticalChunkDistance { get; set; } = 1;
 
     /// <summary>
     /// Gets or sets the maximum number of chunk meshes to build per frame.
     /// </summary>
+    [DebuggerRange(1, 20)]
+    [DebuggerField]
     public int MaxChunkBuildsPerFrame { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets the maximum number of pending chunks to process per frame.
     /// Limiting this prevents frame drops when loading many chunks at once.
     /// </summary>
+    [DebuggerRange(1, 20)]
+    [DebuggerField]
     public int MaxChunksToProcessPerFrame { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets the maximum number of GPU uploads to perform per frame.
     /// Limiting this prevents frame drops when many meshes are ready simultaneously.
     /// </summary>
+    [DebuggerRange(1, 20)]
+    [DebuggerField]
     public int MaxGpuUploadsPerFrame { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets whether to render chunks in wireframe mode.
     /// </summary>
+    [DebuggerField]
     public bool EnableWireframe { get; set; }
 
     /// <summary>
     /// Gets or sets whether chunks should use greedy meshing during mesh generation.
     /// Greedy meshing significantly reduces vertex count by merging adjacent faces.
     /// </summary>
+    [DebuggerField]
     public bool UseGreedyMeshing { get; set; } = true;
 
     private bool _fogEnabled = true;
@@ -150,6 +173,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets whether distance fog is applied to chunks.
     /// </summary>
+    [DebuggerField]
     public bool FogEnabled
     {
         get => _fogEnabled;
@@ -171,6 +195,7 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets the fog color applied during rendering.
     /// </summary>
+    [DebuggerField]
     public Vector3 FogColor
     {
         get => _fogColor;
@@ -189,11 +214,14 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
         }
     }
 
+    [DebuggerField]
     public bool EnableFadeIn { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the distance at which fog begins.
     /// </summary>
+    [DebuggerRange(0f, 500f, 5f)]
+    [DebuggerField]
     public float FogStart
     {
         get => _fogStart;
@@ -224,6 +252,8 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
     /// <summary>
     /// Gets or sets the distance at which fog becomes fully opaque.
     /// </summary>
+    [DebuggerRange(10f, 1000f, 10f)]
+    [DebuggerField]
     public float FogEnd
     {
         get => _fogEnd;

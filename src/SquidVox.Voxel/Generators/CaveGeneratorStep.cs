@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SquidVox.Core.Attributes.Debugger;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using Microsoft.Xna.Framework;
@@ -9,15 +10,57 @@ namespace SquidVox.Voxel.Generators;
 /// <summary>
 /// Carves caves using the Perlin Worms algorithm (similar to Minecraft).
 /// </summary>
+[DebuggerHeader("🕳️ Cave Generation Settings")]
 public class CaveGeneratorStep : IGeneratorStep
 {
-    private const int WormsPerChunk = 3;
-    private const int MinWormLength = 30;
-    private const int MaxWormLength = 80;
-    private const float MinRadius = 1.5f;
-    private const float MaxRadius = 3.5f;
-    private const int MinCaveHeight = 8;
-    private const double WormSpawnChance = 0.5;
+    /// <summary>
+    /// Gets or sets the number of worm attempts per chunk.
+    /// </summary>
+    [DebuggerRange(1, 10)]
+    [DebuggerField]
+    public int WormsPerChunk { get; set; } = 3;
+
+    /// <summary>
+    /// Gets or sets the minimum length of a cave worm.
+    /// </summary>
+    [DebuggerRange(10, 150)]
+    [DebuggerField]
+    public int MinWormLength { get; set; } = 30;
+
+    /// <summary>
+    /// Gets or sets the maximum length of a cave worm.
+    /// </summary>
+    [DebuggerRange(20, 200)]
+    [DebuggerField]
+    public int MaxWormLength { get; set; } = 80;
+
+    /// <summary>
+    /// Gets or sets the minimum radius of cave tunnels.
+    /// </summary>
+    [DebuggerRange(0.5, 8.0, 0.1)]
+    [DebuggerField]
+    public float MinRadius { get; set; } = 1.5f;
+
+    /// <summary>
+    /// Gets or sets the maximum radius of cave tunnels.
+    /// </summary>
+    [DebuggerRange(1.0, 10.0, 0.1)]
+    [DebuggerField]
+    public float MaxRadius { get; set; } = 3.5f;
+
+    /// <summary>
+    /// Gets or sets the minimum height from bedrock where caves can spawn.
+    /// </summary>
+    [DebuggerRange(1, 30)]
+    [DebuggerField]
+    public int MinCaveHeight { get; set; } = 8;
+
+    /// <summary>
+    /// Gets or sets the probability (0-1) that a worm will spawn.
+    /// </summary>
+    [DebuggerRange(0.0, 1.0, 0.05)]
+    [DebuggerField]
+    public double WormSpawnChance { get; set; } = 0.5;
 
     private readonly struct WormNode
     {
@@ -70,7 +113,7 @@ public class CaveGeneratorStep : IGeneratorStep
         return Task.CompletedTask;
     }
 
-    private static List<List<WormNode>> GenerateWorms(IGeneratorContext context, Vector3 worldBase)
+    private List<List<WormNode>> GenerateWorms(IGeneratorContext context, Vector3 worldBase)
     {
         var worms = new List<List<WormNode>>();
         var chunkSize = context.ChunkSize();
@@ -113,7 +156,7 @@ public class CaveGeneratorStep : IGeneratorStep
     }
 
 
-    private static void GenerateChunkWorms(
+    private void GenerateChunkWorms(
         IGeneratorContext context,
         float worldX,
         int baseY,
@@ -179,7 +222,7 @@ public class CaveGeneratorStep : IGeneratorStep
 
     }
 
-    private static float CalculateStartHeight(Random random, int baseY, int chunkHeight)
+    private float CalculateStartHeight(Random random, int baseY, int chunkHeight)
     {
         var minY = baseY + MinCaveHeight;
         var maxY = baseY + chunkHeight - MinCaveHeight;
@@ -192,7 +235,7 @@ public class CaveGeneratorStep : IGeneratorStep
         return minY + (float)random.NextDouble() * span;
     }
 
-    private static bool CarveWorm(IGeneratorContext context, Primitives.ChunkEntity chunk, List<WormNode> worm, int chunkBaseY, int[,] heightMap)
+    private bool CarveWorm(IGeneratorContext context, Primitives.ChunkEntity chunk, List<WormNode> worm, int chunkBaseY, int[,] heightMap)
     {
         var carved = false;
         var worldBase = context.GetWorldPosition();
