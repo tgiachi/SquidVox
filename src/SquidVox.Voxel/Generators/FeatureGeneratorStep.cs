@@ -1,5 +1,4 @@
 using System;
-using SquidVox.Core.Noise;
 using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using SquidVox.Voxel.Types;
 
@@ -10,39 +9,27 @@ namespace SquidVox.Voxel.Generators;
 /// </summary>
 public class FeatureGeneratorStep : IGeneratorStep
 {
-    private const float FeatureFrequency = 0.3f;
-    private const float FlowerThreshold = 0.65f;
-    private const float TallGrassThreshold = 0.45f;
-
     private readonly struct FeatureSettings
     {
-        public FeatureSettings(float flowerDensity, float grassDensity)
+        public FeatureSettings(float flowerChance, float grassChance)
         {
-            FlowerDensity = flowerDensity;
-            GrassDensity = grassDensity;
+            FlowerChance = flowerChance;
+            GrassChance = grassChance;
         }
 
-        public float FlowerDensity { get; }
-        public float GrassDensity { get; }
+        public float FlowerChance { get; }
+        public float GrassChance { get; }
     }
 
     private static FeatureSettings GetFeatureSettings(BiomeType biome)
     {
         return biome switch
         {
-            BiomeType.Plains => new FeatureSettings(0.4f, 0.8f),
-            BiomeType.Forest => new FeatureSettings(0.3f, 0.6f),
-            BiomeType.Mountains => new FeatureSettings(0.1f, 0.2f),
+            BiomeType.Plains => new FeatureSettings(0.02f, 0.08f),
+            BiomeType.Forest => new FeatureSettings(0.015f, 0.06f),
+            BiomeType.Mountains => new FeatureSettings(0.005f, 0.02f),
             _ => new FeatureSettings(0f, 0f),
         };
-    }
-
-    private static FastNoiseLite CreateFeatureNoise(int seed)
-    {
-        var noise = new FastNoiseLite(seed + 12345); // Offset seed for feature variation
-        noise.SetNoiseType(NoiseType.OpenSimplex2);
-        noise.SetFrequency(FeatureFrequency);
-        return noise;
     }
 
     private static BiomeType[,] ResolveBiomeMap(IGeneratorContext context)
@@ -85,28 +72,16 @@ public class FeatureGeneratorStep : IGeneratorStep
         return fallback;
     }
 
-    private static bool ShouldPlaceFeature(float noiseValue, float threshold, float density)
+    private static int HashPosition(int x, int z, int seed)
     {
-        // Normalize noise value to 0-1 range
-        var normalized = (noiseValue + 1f) * 0.5f;
-        return normalized > threshold * (1f - density);
-    }
-
-    private static BlockType? SelectFeature(float noiseValue, FeatureSettings settings)
-    {
-        // Check flower first (rarer)
-        if (ShouldPlaceFeature(noiseValue, FlowerThreshold, settings.FlowerDensity))
+        // Simple hash function for deterministic random
+        unchecked
         {
-            return BlockType.Flower;
+            int hash = seed;
+            hash = hash * 31 + x;
+            hash = hash * 31 + z;
+            return hash;
         }
-
-        // Then check tall grass
-        if (ShouldPlaceFeature(noiseValue, TallGrassThreshold, settings.GrassDensity))
-        {
-            return BlockType.TallGrass;
-        }
-
-        return null;
     }
 
     /// <inheritdoc/>
@@ -123,7 +98,6 @@ public class FeatureGeneratorStep : IGeneratorStep
         var chunkBaseY = (int)MathF.Round(worldBase.Y);
         var biomeMap = ResolveBiomeMap(context);
         var heightMap = ResolveHeightMap(context);
-        var noise = CreateFeatureNoise(context.Seed);
 
         for (int x = 0; x < size; x++)
         {
@@ -133,19 +107,18 @@ public class FeatureGeneratorStep : IGeneratorStep
                 var settings = GetFeatureSettings(biome);
 
                 // Skip if this biome doesn't have features
-                if (settings.FlowerDensity == 0f && settings.GrassDensity == 0f)
+                if (settings.FlowerChance == 0f && settings.GrassChance == 0f)
                 {
                     continue;
                 }
 
-                var surfaceHeight = heightMap[x, z];
-                var localY = surfaceHeight - chunkBaseY;
-
-                // Only place features if the surface is within this chunk
-                if (localY < 0 || localY >= context.ChunkHeight())
+                var surfaceWorldY = heightMap[x, z] - 1;
+                if (surfaceWorldY < chunkBaseY || surfaceWorldY >= chunkBaseY + context.ChunkHeight())
                 {
                     continue;
                 }
+
+                var localY = surfaceWorldY - chunkBaseY;
 
                 // Check if the surface block is grass (suitable for features)
                 var surfaceBlock = chunk.GetBlock(x, localY, z);
@@ -167,15 +140,24 @@ public class FeatureGeneratorStep : IGeneratorStep
                     continue;
                 }
 
-                // Use world coordinates for noise to ensure consistency across chunks
-                var worldX = worldBase.X + x;
-                var worldZ = worldBase.Z + z;
-                var noiseValue = noise.GetNoise(worldX, worldZ);
+                // Use world coordinates for deterministic randomness
+                var worldX = (int)worldBase.X + x;
+                var worldZ = (int)worldBase.Z + z;
+                var hash = HashPosition(worldX, worldZ, context.Seed);
+                var random = new Random(hash);
+                var chance = random.NextDouble();
+                var density = (context.GetNoise().GetNoise(worldX * 0.05f, worldZ * 0.05f) + 1f) * 0.5f;
 
-                var featureType = SelectFeature(noiseValue, settings);
-                if (featureType.HasValue)
+                // Try to place flower first (rarer)
+                if (chance < settings.FlowerChance)
                 {
-                    var featureBlock = context.NewBlockEntity(featureType.Value);
+                    var featureBlock = context.NewBlockEntity(BlockType.Flower);
+                    context.SetBlock(x, featureY, z, featureBlock);
+                }
+                // Otherwise try tall grass
+                else if (density > 0.65f && chance < settings.FlowerChance + settings.GrassChance)
+                {
+                    var featureBlock = context.NewBlockEntity(BlockType.TallGrass);
                     context.SetBlock(x, featureY, z, featureBlock);
                 }
             }

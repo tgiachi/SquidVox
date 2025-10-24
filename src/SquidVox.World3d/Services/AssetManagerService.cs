@@ -343,7 +343,7 @@ public class AssetManagerService : IAssetManagerService
     /// <returns>The texture atlas if found, otherwise null.</returns>
     public Texture2DAtlas? GetTextureAtlas(string name)
     {
-        return _textureAtlases.TryGetValue(name, out var atlas) ? atlas : null;
+        return _textureAtlases.GetValueOrDefault(name);
     }
 
     /// <summary>

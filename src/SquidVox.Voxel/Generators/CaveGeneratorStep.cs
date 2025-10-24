@@ -1,52 +1,34 @@
 using System;
+using System.Collections.Generic;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Interfaces.Generation.Pipeline;
+using Microsoft.Xna.Framework;
 
 namespace SquidVox.Voxel.Generators;
 
 /// <summary>
-/// Carves subterranean cavities within generated terrain.
+/// Carves caves using the Perlin Worms algorithm (similar to Minecraft).
 /// </summary>
 public class CaveGeneratorStep : IGeneratorStep
 {
-    private const int CaveStartDepth = 8;
-    private const float CaveThreshold = 0.6f;
-    private const float VerticalAttenuation = 0.35f;
+    private const int WormsPerChunk = 3;
+    private const int MinWormLength = 30;
+    private const int MaxWormLength = 80;
+    private const float MinRadius = 1.5f;
+    private const float MaxRadius = 3.5f;
+    private const int MinCaveHeight = 8;
+    private const double WormSpawnChance = 0.5;
 
-    private static FastNoiseLite CreateCaveNoise(int seed)
+    private readonly struct WormNode
     {
-        var noise = new FastNoiseLite(seed + 1234);
-        noise.SetNoiseType(NoiseType.OpenSimplex2);
-        noise.SetFrequency(0.02f);
-        noise.SetFractalType(FractalType.FBm);
-        noise.SetFractalOctaves(4);
-        noise.SetFractalGain(0.5f);
-        noise.SetFractalLacunarity(2.0f);
-        return noise;
-    }
+        public WormNode(Vector3 position, float radius)
+        {
+            Position = position;
+            Radius = radius;
+        }
 
-    private static FastNoiseLite CreateRegionNoise(int seed)
-    {
-        var noise = new FastNoiseLite(seed + 5678);
-        noise.SetNoiseType(NoiseType.OpenSimplex2);
-        noise.SetFrequency(0.008f);
-        noise.SetFractalType(FractalType.FBm);
-        noise.SetFractalOctaves(3);
-        noise.SetFractalGain(0.5f);
-        noise.SetFractalLacunarity(2.0f);
-        return noise;
-    }
-
-    private static FastNoiseLite CreateDetailNoise(int seed)
-    {
-        var noise = new FastNoiseLite(seed + 9012);
-        noise.SetNoiseType(NoiseType.OpenSimplex2);
-        noise.SetFrequency(0.05f);
-        noise.SetFractalType(FractalType.FBm);
-        noise.SetFractalOctaves(2);
-        noise.SetFractalGain(0.5f);
-        noise.SetFractalLacunarity(2.0f);
-        return noise;
+        public Vector3 Position { get; }
+        public float Radius { get; }
     }
 
     /// <inheritdoc/>
@@ -63,69 +45,20 @@ public class CaveGeneratorStep : IGeneratorStep
             return Task.CompletedTask;
         }
 
-        var size = context.ChunkSize();
         var worldBase = context.GetWorldPosition();
-        var caveNoise = CreateCaveNoise(context.Seed);
-        var regionNoise = CreateRegionNoise(context.Seed);
-        var detailNoise = CreateDetailNoise(context.Seed);
         var chunk = context.GetChunk();
         var chunkBaseY = (int)MathF.Round(worldBase.Y);
-        var chunkTopY = chunkBaseY + context.ChunkHeight();
         var carved = false;
 
-        for (int x = 0; x < size; x++)
+        // Generate worms for this chunk
+        var worms = GenerateWorms(context, worldBase);
+
+        // Carve all worms
+        foreach (var worm in worms)
         {
-            for (int z = 0; z < size; z++)
+            if (CarveWorm(context, chunk, worm, chunkBaseY, heightMap))
             {
-                var columnHeight = heightMap[x, z];
-                var startY = Math.Max(CaveStartDepth, chunkBaseY);
-                var endY = Math.Min(columnHeight - 3, chunkTopY);
-
-                if (startY >= endY)
-                {
-                    continue;
-                }
-
-                var worldX = worldBase.X + x;
-                var worldZ = worldBase.Z + z;
-
-                for (int worldY = startY; worldY < endY; worldY++)
-                {
-                    // Calculate vertical attenuation (caves less likely near surface and bottom)
-                    var depthFromSurface = columnHeight - worldY;
-                    var normalizedDepth = (float)depthFromSurface / (columnHeight - startY);
-                    var verticalFactor = 1.0f - (MathF.Abs(normalizedDepth - 0.5f) * 2.0f * VerticalAttenuation);
-
-                    // Check if this region should have caves
-                    var regionValue = regionNoise.GetNoise(worldX, worldY, worldZ);
-                    if (regionValue < -0.3f)
-                    {
-                        continue;
-                    }
-
-                    // Get cave noise value
-                    var caveValue = caveNoise.GetNoise(worldX, worldY, worldZ);
-
-                    // Add detail
-                    var detailValue = detailNoise.GetNoise(worldX, worldY, worldZ) * 0.2f;
-
-                    // Combine values
-                    var finalValue = (caveValue + detailValue) * verticalFactor;
-
-                    // Normalize to 0-1 range
-                    var normalizedValue = (finalValue + 1f) * 0.5f;
-
-                    // Carve if above threshold
-                    if (normalizedValue > CaveThreshold)
-                    {
-                        var localY = worldY - chunkBaseY;
-                        if (localY >= 0 && localY < context.ChunkHeight())
-                        {
-                            context.SetBlock(x, localY, z, null);
-                            carved = true;
-                        }
-                    }
-                }
+                carved = true;
             }
         }
 
@@ -135,5 +68,218 @@ public class CaveGeneratorStep : IGeneratorStep
         }
 
         return Task.CompletedTask;
+    }
+
+    private static List<List<WormNode>> GenerateWorms(IGeneratorContext context, Vector3 worldBase)
+    {
+        var worms = new List<List<WormNode>>();
+        var chunkSize = context.ChunkSize();
+        var baseChunkX = (int)MathF.Floor(worldBase.X / chunkSize);
+        var baseChunkZ = (int)MathF.Floor(worldBase.Z / chunkSize);
+        var chunkBaseY = (int)MathF.Round(worldBase.Y);
+
+        var noiseX = CreateDirectionNoise(context.Seed, 1000);
+        var noiseY = CreateDirectionNoise(context.Seed, 2000);
+        var noiseZ = CreateDirectionNoise(context.Seed, 3000);
+        var noiseRadius = CreateDirectionNoise(context.Seed, 4000);
+
+        for (int offsetX = -1; offsetX <= 1; offsetX++)
+        {
+            var candidateChunkX = baseChunkX + offsetX;
+            var candidateWorldX = candidateChunkX * chunkSize;
+
+            for (int offsetZ = -1; offsetZ <= 1; offsetZ++)
+            {
+                var candidateChunkZ = baseChunkZ + offsetZ;
+                var candidateWorldZ = candidateChunkZ * chunkSize;
+
+                GenerateChunkWorms(
+                    context,
+                    candidateWorldX,
+                    chunkBaseY,
+                    candidateWorldZ,
+                    candidateChunkX,
+                    candidateChunkZ,
+                    noiseX,
+                    noiseY,
+                    noiseZ,
+                    noiseRadius,
+                    worms
+                );
+            }
+        }
+
+        return worms;
+    }
+
+
+    private static void GenerateChunkWorms(
+        IGeneratorContext context,
+        float worldX,
+        int baseY,
+        float worldZ,
+        int chunkX,
+        int chunkZ,
+        FastNoiseLite noiseX,
+        FastNoiseLite noiseY,
+        FastNoiseLite noiseZ,
+        FastNoiseLite noiseRadius,
+        List<List<WormNode>> worms
+    )
+    {
+        for (int w = 0; w < WormsPerChunk; w++)
+        {
+            var hash = HashCoords(chunkX, chunkZ, w, context.Seed);
+            var random = new Random(hash);
+
+            if (random.NextDouble() > WormSpawnChance)
+            {
+                continue;
+            }
+
+            var length = random.Next(MinWormLength, MaxWormLength);
+            var startX = worldX + (float)random.NextDouble() * context.ChunkSize();
+            var startY = CalculateStartHeight(random, baseY, context.ChunkHeight());
+            var startZ = worldZ + (float)random.NextDouble() * context.ChunkSize();
+            var position = new Vector3(startX, startY, startZ);
+
+            var worm = new List<WormNode>();
+            var direction = new Vector3(
+                (float)(random.NextDouble() * 2.0 - 1.0),
+                (float)(random.NextDouble() * 2.0 - 1.0),
+                (float)(random.NextDouble() * 2.0 - 1.0)
+            );
+            direction.Normalize();
+
+            for (int i = 0; i < length; i++)
+            {
+                var noiseScale = 0.1f;
+                var nxValue = noiseX.GetNoise(position.X * noiseScale, position.Y * noiseScale, position.Z * noiseScale);
+                var nyValue = noiseY.GetNoise(position.X * noiseScale, position.Y * noiseScale, position.Z * noiseScale);
+                var nzValue = noiseZ.GetNoise(position.X * noiseScale, position.Y * noiseScale, position.Z * noiseScale);
+
+                direction.X += nxValue * 0.3f;
+                direction.Y += nyValue * 0.2f; // Less vertical movement
+                direction.Z += nzValue * 0.3f;
+                direction.Normalize();
+
+                var radiusNoise = noiseRadius.GetNoise(position.X * 0.05f, position.Y * 0.05f, position.Z * 0.05f);
+                var radius = MathHelper.Lerp(MinRadius, MaxRadius, (radiusNoise + 1f) * 0.5f);
+
+                worm.Add(new WormNode(position, radius));
+
+                position += direction;
+            }
+
+            if (worm.Count > 0)
+            {
+                worms.Add(worm);
+            }
+        }
+
+    }
+
+    private static float CalculateStartHeight(Random random, int baseY, int chunkHeight)
+    {
+        var minY = baseY + MinCaveHeight;
+        var maxY = baseY + chunkHeight - MinCaveHeight;
+        if (maxY <= minY)
+        {
+            return minY;
+        }
+
+        var span = maxY - minY;
+        return minY + (float)random.NextDouble() * span;
+    }
+
+    private static bool CarveWorm(IGeneratorContext context, Primitives.ChunkEntity chunk, List<WormNode> worm, int chunkBaseY, int[,] heightMap)
+    {
+        var carved = false;
+        var worldBase = context.GetWorldPosition();
+        var size = context.ChunkSize();
+        var height = context.ChunkHeight();
+
+        foreach (var node in worm)
+        {
+            var radius = node.Radius;
+            var radiusSq = radius * radius;
+
+            // Calculate bounding box
+            var minX = (int)MathF.Floor(node.Position.X - radius);
+            var maxX = (int)MathF.Ceiling(node.Position.X + radius);
+            var minY = (int)MathF.Floor(node.Position.Y - radius);
+            var maxY = (int)MathF.Ceiling(node.Position.Y + radius);
+            var minZ = (int)MathF.Floor(node.Position.Z - radius);
+            var maxZ = (int)MathF.Ceiling(node.Position.Z + radius);
+
+            // Carve sphere
+            for (int worldX = minX; worldX <= maxX; worldX++)
+            {
+                for (int worldY = minY; worldY <= maxY; worldY++)
+                {
+                    for (int worldZ = minZ; worldZ <= maxZ; worldZ++)
+                    {
+                        // Check if this block is in this chunk
+                        var localX = worldX - (int)worldBase.X;
+                        var localY = worldY - chunkBaseY;
+                        var localZ = worldZ - (int)worldBase.Z;
+
+                        if (localX < 0 || localX >= size || localY < 0 || localY >= height || localZ < 0 || localZ >= size)
+                        {
+                            continue;
+                        }
+
+                        // Check if within sphere
+                        var dx = worldX - node.Position.X;
+                        var dy = worldY - node.Position.Y;
+                        var dz = worldZ - node.Position.Z;
+                        var distSq = dx * dx + dy * dy + dz * dz;
+
+                        if (distSq <= radiusSq)
+                        {
+                            // Don't carve too close to surface
+                            var surfaceHeight = heightMap[localX, localZ];
+                            if (worldY >= surfaceHeight - 3)
+                            {
+                                continue;
+                            }
+
+                            // Don't carve bedrock
+                            if (worldY <= 0)
+                            {
+                                continue;
+                            }
+
+                            context.SetBlock(localX, localY, localZ, null);
+                            carved = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return carved;
+    }
+
+    private static FastNoiseLite CreateDirectionNoise(int seed, int offset)
+    {
+        var noise = new FastNoiseLite(seed + offset);
+        noise.SetNoiseType(NoiseType.OpenSimplex2);
+        noise.SetFrequency(0.05f);
+        noise.SetFractalType(FractalType.FBm);
+        noise.SetFractalOctaves(2);
+        return noise;
+    }
+
+    private static int HashCoords(int x, int z, int index, int seed)
+    {
+        unchecked
+        {
+            int hash = seed;
+            hash = hash * 31 + x;
+            hash = hash * 31 + z;
+            hash = hash * 31 + index;
+            return hash;
+        }
     }
 }

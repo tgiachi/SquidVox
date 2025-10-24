@@ -346,11 +346,11 @@ public class SquidVoxWorld : Game
         var clouds = (new CloudsGameObject(_renderLayers.GetComponent<CameraGameObject>()));
 
         clouds.GenerateRandomClouds(
-            count: 100,
-            minPosition: new Vector3(-200, 80, -200),
+            count: 30,
+            minPosition: new Vector3(-200, 100, -200),
             maxPosition: new Vector3(200, 120, 200),
-            minSize: new Vector3(8, 4, 8),
-            maxSize: new Vector3(20, 10, 20)
+            minSize: new Vector3(4, 2, 4),
+            maxSize: new Vector3(10, 5, 10)
         );
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(skyPanorama);
