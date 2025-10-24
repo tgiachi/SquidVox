@@ -77,6 +77,7 @@ public class LuaScriptLoader : ScriptLoaderBase
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
+        name = name.Replace(".lua", string.Empty);
         var resolvedPath = ResolveModulePath(name);
         return resolvedPath != null;
     }

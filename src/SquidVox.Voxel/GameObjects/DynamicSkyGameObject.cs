@@ -27,9 +27,11 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     private int _indexCount;
     private float _timeOfDay;
     private Vector3 _sunDirection;
+    private Vector3 _moonDirection;
     private Color _ambientColor;
     private Color _directionalColor;
     private float _sunIntensity;
+    private float _moonIntensity;
 
     /// <summary>
     /// Initializes a new instance of the DynamicSkyGameObject class.
@@ -103,6 +105,11 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     /// Gets the current sun direction vector (normalized).
     /// </summary>
     public Vector3 SunDirection => _sunDirection;
+
+    /// <summary>
+    /// Gets the current moon direction vector (normalized).
+    /// </summary>
+    public Vector3 MoonDirection => _moonDirection;
 
     /// <summary>
     /// Gets the current ambient light color based on time of day.
@@ -182,7 +189,7 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     }
 
     /// <summary>
-    /// Updates sun direction and lighting colors based on time of day.
+    /// Updates sun/moon direction and lighting colors based on time of day.
     /// </summary>
     private void UpdateLighting()
     {
@@ -200,6 +207,16 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
         );
         _sunDirection = Vector3.Normalize(_sunDirection);
 
+        // Moon direction: opposite to the sun (180 degrees phase shift)
+        float moonAngle = sunAngle + MathHelper.Pi;
+        float moonHeight = MathF.Sin(moonAngle);
+        _moonDirection = new Vector3(
+            MathF.Cos(moonAngle),
+            moonHeight,
+            MathF.Sin(moonAngle) * 0.3f
+        );
+        _moonDirection = Vector3.Normalize(_moonDirection);
+
         // Calculate sun intensity (0.0 at night, 1.0 at day)
         if (sunHeight > 0.0f)
         {
@@ -208,6 +225,16 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
         else
         {
             _sunIntensity = 0.0f;
+        }
+
+        // Calculate moon intensity (visible at night)
+        if (moonHeight > 0.0f)
+        {
+            _moonIntensity = MathHelper.Clamp(moonHeight * 1.2f, 0.0f, 1.0f);
+        }
+        else
+        {
+            _moonIntensity = 0.0f;
         }
 
         // Calculate lighting colors based on sun height
@@ -289,6 +316,7 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
         _skyEffect.Parameters["View"].SetValue(_camera.View);
         _skyEffect.Parameters["Time"].SetValue(_timeOfDay);
         _skyEffect.Parameters["SunDirection"]?.SetValue(_sunDirection);
+        _skyEffect.Parameters["MoonDirection"]?.SetValue(_moonDirection);
         _skyEffect.Parameters["UseTexture"]?.SetValue(_useSkyTexture && _skyTexture != null && _textureBlend > 0f ? 1f : 0f);
         _skyEffect.Parameters["TextureStrength"]?.SetValue(_textureBlend);
 

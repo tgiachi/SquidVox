@@ -8,6 +8,7 @@ float4x4 View;        // View matrix
 float4x4 Projection;  // Projection matrix
 float Time;           // Time of day (0.0 to 1.0)
 float3 SunDirection;  // Normalized sun direction
+float3 MoonDirection; // Normalized moon direction
 float UseTexture;
 float TextureStrength;
 Texture2D SkyTexture;
@@ -158,6 +159,71 @@ float3 SampleSkyTexture(float3 direction)
     return tex2D(SkySampler, float2(u, v)).rgb;
 }
 
+// Hash function for procedural stars generation
+float hash(float3 p)
+{
+    p = frac(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return frac(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+// Renders procedural stars in the night sky
+float3 RenderStars(float3 direction, float3 sky_color)
+{
+    float3 dir = normalize(direction);
+
+    // Only show stars at night (when sun is below horizon)
+    float3 sun_dir = normalize(SunDirection);
+    if (sun_dir.y > -0.1)
+        return sky_color; // No stars during day/twilight
+
+    // Fade in stars as night progresses
+    float star_visibility = saturate((-sun_dir.y - 0.1) / 0.3);
+
+    // Create star field using hash function
+    // Scale direction to create grid cells
+    float3 scaled_dir = dir * 100.0;
+    float3 cell = floor(scaled_dir);
+
+    // Generate stars in current cell
+    float star_hash = hash(cell);
+
+    // Only some cells have stars (sparse distribution)
+    if (star_hash > 0.95)
+    {
+        // Star position within cell
+        float3 star_pos = cell + float3(
+            hash(cell + 1.0),
+            hash(cell + 2.0),
+            hash(cell + 3.0)
+        );
+
+        // Distance from current direction to star
+        float dist = length(normalize(star_pos) - dir);
+
+        // Create sharp star point
+        float star_brightness = 1.0 - smoothstep(0.0, 0.005, dist);
+
+        // Star intensity varies (some brighter than others)
+        float intensity = hash(cell + 4.0) * 0.5 + 0.5;
+        star_brightness *= intensity;
+
+        // Add twinkling effect based on time
+        float twinkle = sin(Time * 50.0 + hash(cell + 5.0) * 100.0) * 0.3 + 0.7;
+        star_brightness *= twinkle;
+
+        // Apply visibility fade
+        star_brightness *= star_visibility;
+
+        // Star color (slightly bluish-white)
+        float3 star_color = float3(0.9, 0.95, 1.0) * star_brightness;
+
+        return sky_color + star_color;
+    }
+
+    return sky_color;
+}
+
 // Renders the sun as a bright disc in the sky
 float3 RenderSun(float3 direction, float3 sky_color)
 {
@@ -206,6 +272,51 @@ float3 RenderSun(float3 direction, float3 sky_color)
     return sky_color;
 }
 
+// Renders the moon as a silver disc in the night sky
+float3 RenderMoon(float3 direction, float3 sky_color)
+{
+    float3 dir = normalize(direction);
+    float3 moon_dir = normalize(MoonDirection);
+
+    // Only render moon when it's above horizon (Y > 0)
+    if (moon_dir.y <= 0.0)
+        return sky_color;
+
+    // Calculate angular distance from moon center using dot product
+    float moon_dot = dot(dir, moon_dir);
+
+    // Moon parameters (slightly larger than sun)
+    float moon_threshold = 0.9993;     // ~2.0 degrees - main moon disc
+    float moon_glow_threshold = 0.997; // ~4.4 degrees - moon glow
+
+    // Moon disc (silvery-white)
+    if (moon_dot > moon_threshold)
+    {
+        float intensity = (moon_dot - moon_threshold) / (1.0 - moon_threshold);
+
+        // Moon surface with subtle texture (craters simulation)
+        float crater_pattern = hash(floor(dir * 1000.0)) * 0.3;
+
+        // Moon color (bluish-silver)
+        float3 moon_color = float3(0.85, 0.87, 0.9) * (0.7 + intensity * 0.3 + crater_pattern);
+
+        return lerp(sky_color, moon_color, 0.95);
+    }
+    // Moon glow (subtle halo)
+    else if (moon_dot > moon_glow_threshold)
+    {
+        float glow_factor = (moon_dot - moon_glow_threshold) / (moon_threshold - moon_glow_threshold);
+        glow_factor = pow(abs(glow_factor), 2.0);
+
+        // Soft bluish-white glow
+        float3 moon_glow_color = float3(0.7, 0.75, 0.85);
+
+        return lerp(sky_color, moon_glow_color, glow_factor * 0.3);
+    }
+
+    return sky_color;
+}
+
 // Pixel Shader
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
@@ -217,7 +328,13 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     float blend = saturate(TextureStrength * UseTexture);
     float3 sky_color = lerp(procedural_color, texture_color, blend);
 
-    // Add the sun (uses SunDirection from C#)
+    // Add stars (rendered first, behind everything)
+    sky_color = RenderStars(input.TexCoords, sky_color);
+
+    // Add the moon (visible at night)
+    sky_color = RenderMoon(input.TexCoords, sky_color);
+
+    // Add the sun (visible during day)
     sky_color = RenderSun(input.TexCoords, sky_color);
 
     return float4(sky_color, 1.0);
