@@ -297,11 +297,15 @@ public class SquidVoxWorld : Game
                 )
             );
 
+//        _container.Resolve<IChunkGeneratorService>().GenerateInitialChunksAsync().GetAwaiter().GetResult();
 
         var worldManager = new WorldGameObject(_renderLayers.GetComponent<CameraGameObject>());
 
-        worldManager.ChunkGenerator =
-            _container.Resolve<IChunkGeneratorService>().GetChunkByWorldPosition; //CreateFlatChunkAsync;
+        // worldManager.ChunkGenerator =
+        //     _container.Resolve<IChunkGeneratorService>().GetChunkByWorldPosition; //CreateFlatChunkAsync;
+
+        worldManager.ChunkGenerator = CreateFlatChunkAsync;
+
         worldManager.EnableWireframe = false;
         worldManager.UseGreedyMeshing = true;
 
@@ -625,7 +629,6 @@ public class SquidVoxWorld : Game
                     return chunk;
                 }
 
-                long id = (chunkX * 1000000L) + (chunkZ * 1000L) + 1;
 
                 var random = new Random((chunkX * 73856093) ^ (chunkZ * 19349663));
 

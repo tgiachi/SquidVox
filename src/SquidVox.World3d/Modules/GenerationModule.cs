@@ -1,5 +1,7 @@
 using SquidVox.Core.Attributes.Scripts;
+using SquidVox.Voxel.Contexts;
 using SquidVox.Voxel.Generations;
+using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using SquidVox.Voxel.Interfaces.Services;
 
 namespace SquidVox.World3d.Modules;
@@ -15,12 +17,12 @@ public class GenerationModule
     }
 
     [ScriptFunction(helpText: "Adds a new generation step to the chunk generation pipeline.")]
-    public void AddStep(string name, Action<object> step)
+    public void AddStep(string name, Action<IGeneratorContext> step)
     {
         _chunkGeneratorService.AddGeneratorStep(
             new ScriptGenerationStep(
                 name,
-                context => { step(context); }
+                step
             )
         );
     }

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Primitives;
+using SquidVox.Voxel.Types;
 
 namespace SquidVox.Voxel.Interfaces.Generation.Pipeline;
 
@@ -33,4 +34,15 @@ public interface IGeneratorContext
     /// Gets or sets custom data that can be shared between pipeline steps.
     /// </summary>
     IDictionary<string, object> CustomData { get; }
+
+    int ChunkSize();
+    int ChunkHeight();
+
+    BlockEntity NewBlockEntity(BlockType type);
+
+    ChunkEntity GetChunk();
+
+    Vector3 GetWorldPosition();
+
+    FastNoiseLite GetNoise();
 }

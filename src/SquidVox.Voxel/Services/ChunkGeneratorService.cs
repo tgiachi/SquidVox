@@ -119,7 +119,7 @@ public class ChunkGeneratorService : IChunkGeneratorService, IDisposable
             chunkY * ChunkEntity.Size,
             chunkZ * ChunkEntity.Size
         );
-        return GetChunkByWorldPosition(position);
+        return GetChunkByWorldPosition(new Vector3(chunkX, chunkY, chunkZ));
     }
 
     public async Task<IEnumerable<ChunkEntity>> GetChunksByPositions(IEnumerable<Vector3> positions)

@@ -21,7 +21,7 @@ public static class TypeScriptDocumentationGenerator
     private static readonly StringBuilder _interfacesBuilder = new();
     private static readonly StringBuilder _constantsBuilder = new();
     private static readonly StringBuilder _enumsBuilder = new();
-    private static readonly List<Type> _interfaceTypesToGenerate = new(32);
+    private static readonly List<Type> _interfaceTypesToGenerate = new();
     private static readonly Dictionary<Type, bool> _recordTypeCache = new();
     private static readonly HashSet<string> _typescriptReservedWords =
     [
@@ -101,7 +101,7 @@ public static class TypeScriptDocumentationGenerator
         _interfacesBuilder.Clear();
         _constantsBuilder.Clear();
         _enumsBuilder.Clear();
-        _interfaceTypesToGenerate.Clear();
+     //   _interfaceTypesToGenerate.Clear();
 
         var distinctConstants = constants
             .GroupBy(kvp => kvp.Key)
@@ -133,6 +133,34 @@ public static class TypeScriptDocumentationGenerator
 
             sb.AppendLine("     */");
             sb.AppendLine(CultureInfo.InvariantCulture, $"    const {moduleName}: {{");
+
+            // Include public properties as readonly/assignable members
+            var properties = module.ModuleType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.GetMethod is not null && p.GetIndexParameters().Length == 0)
+                .ToArray();
+
+            foreach (var property in properties)
+            {
+                var resolvedPropertyName = _nameResolver(property.Name);
+                var sanitizedPropertyName = SanitizeIdentifier(resolvedPropertyName, property.Name);
+                var propertyType = ConvertToTypeScriptType(property.PropertyType);
+                var description = GetPropertyDescription(property, propertyType, sanitizedPropertyName);
+                var modifier = property.CanWrite ? string.Empty : "readonly ";
+
+                sb.AppendLine("        /**");
+                sb.AppendLine(CultureInfo.InvariantCulture, $"         * {description}");
+                sb.AppendLine("         */");
+                sb.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"        {modifier}{sanitizedPropertyName}: {propertyType};"
+                );
+            }
+
+            if (properties.Length > 0)
+            {
+                sb.AppendLine();
+            }
 
             // Get all methods with ScriptFunction attribute
             var methods = module.ModuleType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
@@ -949,6 +977,22 @@ public static class TypeScriptDocumentationGenerator
         }
 
         return description;
+    }
+
+    /// <summary>
+    ///     Builds a descriptive text for TypeScript property documentation.
+    /// </summary>
+    private static string GetPropertyDescription(PropertyInfo property, string typeScriptType, string displayName)
+    {
+        var verb = property.CanWrite ? "Gets or sets" : "Gets";
+        var friendlyName = displayName.Replace('_', ' ');
+        var typeHint = typeScriptType.Contains("number", StringComparison.OrdinalIgnoreCase)
+            ? "numeric value"
+            : typeScriptType.Contains("string", StringComparison.OrdinalIgnoreCase)
+                ? "string value"
+                : "value";
+
+        return $"{verb} the {typeHint} of {friendlyName}.";
     }
 
     /// <summary>

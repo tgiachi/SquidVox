@@ -2,14 +2,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Reflection;
 using DryIoc;
 using Jint;
 using Jint.Native;
 using Jint.Runtime;
 using Jint.Runtime.Interop;
-using Microsoft.Xna.Framework.Graphics;
 using Serilog;
 using SquidVox.Core.Attributes.Scripts;
 using SquidVox.Core.Data.Directories;
@@ -403,16 +401,17 @@ public class JsScriptEngineService : IScriptEngineService, IDisposable
 
                 options.AllowClr(GetType().Assembly);
 
+
                 options.SetTypeResolver(typeResolver);
 
-                options.Strict();
+                //options.Strict();
 
                 // Use configurable limits
-                options.LimitMemory(_scriptEngineConfig.MaxMemoryBytes);
+                //options.LimitMemory(_scriptEngineConfig.MaxMemoryBytes);
 
-                options.TimeoutInterval(TimeSpan.FromSeconds(_scriptEngineConfig.TimeoutSeconds));
+//                options.TimeoutInterval(TimeSpan.FromSeconds(_scriptEngineConfig.TimeoutSeconds));
 
-                options.MaxStatements(_scriptEngineConfig.MaxStatements);
+           //     options.MaxStatements(_scriptEngineConfig.MaxStatements);
 
                 options.DebugMode(_scriptEngineConfig.EnableDebugMode);
 

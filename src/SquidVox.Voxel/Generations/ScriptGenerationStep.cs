@@ -23,7 +23,7 @@ public class ScriptGenerationStep : IGeneratorStep
     {
         try
         {
-            await Task.Run(() => _contextAction(context));
+            _contextAction(context);
         }
         catch (JavaScriptException jsEx)
         {

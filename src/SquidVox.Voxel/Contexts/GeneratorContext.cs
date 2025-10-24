@@ -3,6 +3,7 @@ using SquidVox.Core.Data.Primitives;
 using SquidVox.Core.Noise;
 using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using SquidVox.Voxel.Primitives;
+using SquidVox.Voxel.Types;
 
 namespace SquidVox.Voxel.Contexts;
 
@@ -15,7 +16,6 @@ public class GeneratorContext : IGeneratorContext
     public ChunkEntity Chunk { get; }
 
     public Vector3 WorldPosition { get; }
-
     /// <inheritdoc/>
     public FastNoiseLite NoiseGenerator { get; }
 
@@ -25,6 +25,10 @@ public class GeneratorContext : IGeneratorContext
     /// <inheritdoc/>
     public IDictionary<string, object> CustomData { get; }
 
+
+    public int ChunkSize() => ChunkEntity.Size;
+
+    public int ChunkHeight() => ChunkEntity.Height;
 
     public List<PositionAndSize> CloudAreas { get; } = [];
 
@@ -43,6 +47,20 @@ public class GeneratorContext : IGeneratorContext
         Seed = seed;
         CustomData = new Dictionary<string, object>();
     }
+
+
+    public ChunkEntity GetChunk() => Chunk;
+
+    public Vector3 GetWorldPosition() => WorldPosition;
+
+    public FastNoiseLite GetNoise() => NoiseGenerator;
+
+
+    public BlockEntity NewBlockEntity(BlockType type)
+    {
+        return new BlockEntity(type);
+    }
+
 
     public void AddCustomData(string key, object value)
     {
@@ -68,4 +86,10 @@ public class GeneratorContext : IGeneratorContext
     {
         CloudAreas.Add(new PositionAndSize(new Vector3(x, y, z), new Vector3(sizeX, sizeY, sizeZ)));
     }
+
+    public override string ToString()
+    {
+        return $"GeneratorContext(Chunk: {Chunk}, WorldPosition: {WorldPosition}, Seed: {Seed}, CustomDataCount: {CustomData.Count})";
+    }
+
 }

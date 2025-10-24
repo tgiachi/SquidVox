@@ -12,6 +12,8 @@ using SquidVox.Core.Json;
 using SquidVox.JS.Scripting.Configs;
 using SquidVox.JS.Scripting.Extensions.Scripts;
 using SquidVox.JS.Scripting.Services;
+using SquidVox.JS.Scripting.Utils;
+using SquidVox.Voxel.Interfaces.Generation.Pipeline;
 using SquidVox.Voxel.Interfaces.Services;
 using SquidVox.Voxel.Json;
 using SquidVox.Voxel.Modules;
@@ -67,6 +69,8 @@ await ConsoleApp.RunAsync(
             .AddScriptModule<GenerationModule>()
             .AddScriptModule<CameraModule>()
             ;
+
+        TypeScriptDocumentationGenerator.AddInterfaceToGenerate(typeof(IGeneratorContext));
 
         container.RegisterInstance(new ScriptEngineConfig());
 

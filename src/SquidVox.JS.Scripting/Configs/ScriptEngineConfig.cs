@@ -32,7 +32,7 @@ public class ScriptEngineConfig
     /// <summary>
     ///     Enable debug mode for script execution (default: false)
     /// </summary>
-    public bool EnableDebugMode { get; set; } = false;
+    public bool EnableDebugMode { get; set; }
 
     /// <summary>
     ///     Enable script caching for improved performance (default: true)
@@ -42,7 +42,7 @@ public class ScriptEngineConfig
     /// <summary>
     ///     Enable source map support for TypeScript debugging (default: false)
     /// </summary>
-    public bool EnableSourceMaps { get; set; } = false;
+    public bool EnableSourceMaps { get; set; }
 
     /// <summary>
     ///     Path to source maps directory (default: "scripts/maps")
