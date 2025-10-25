@@ -84,6 +84,8 @@ public sealed class ChunkLightingManager : IDisposable
 
     /// <summary>
     /// Calculates the color for a block face including lighting and ambient occlusion.
+    /// For each face, samples the light level from the ADJACENT BLOCK (not the block itself).
+    /// This ensures faces receive light from the exposed side, not from solid blocks.
     /// </summary>
     /// <param name="chunk">The chunk containing the block.</param>
     /// <param name="x">Local X coordinate.</param>
@@ -116,12 +118,52 @@ public sealed class ChunkLightingManager : IDisposable
         var lightLevel = 0.2f;
         var lightColor = Vector3.One;
 
-        if (chunk != null && chunk.IsInBounds(x, y, z))
+        if (chunk != null)
         {
-            var block = chunk.GetBlock(x, y, z);
-            var rawLight = block.LightLevel;
-            lightLevel = Math.Max(0.2f, rawLight / 15f);
-            lightColor = block.LightColor;
+            // Get the adjacent block in the direction of the face
+            // This ensures we sample light from the exposed side, not the solid block itself
+            int adjX = x;
+            int adjY = y;
+            int adjZ = z;
+
+            switch (side)
+            {
+                case BlockSide.Top:
+                    adjY += 1;
+                    break;
+                case BlockSide.Bottom:
+                    adjY -= 1;
+                    break;
+                case BlockSide.North:
+                    adjZ -= 1;
+                    break;
+                case BlockSide.South:
+                    adjZ += 1;
+                    break;
+                case BlockSide.East:
+                    adjX += 1;
+                    break;
+                case BlockSide.West:
+                    adjX -= 1;
+                    break;
+            }
+
+            // If adjacent block is in bounds, sample its light
+            if (chunk.IsInBounds(adjX, adjY, adjZ))
+            {
+                var adjacentBlock = chunk.GetBlock(adjX, adjY, adjZ);
+                var rawLight = adjacentBlock.LightLevel;
+                lightLevel = Math.Max(0.2f, rawLight / 15f);
+                lightColor = adjacentBlock.LightColor;
+            }
+            // Otherwise use block's own light as fallback
+            else if (chunk.IsInBounds(x, y, z))
+            {
+                var block = chunk.GetBlock(x, y, z);
+                var rawLight = block.LightLevel;
+                lightLevel = Math.Max(0.2f, rawLight / 15f);
+                lightColor = block.LightColor;
+            }
         }
 
         var finalBrightness = ambientOcclusion * lightLevel;
