@@ -76,6 +76,7 @@ struct VertexShaderOutput
     float2 TileBase : TEXCOORD3;
     float2 TileSize : TEXCOORD4;
     float3 BlockCoord : TEXCOORD5;
+    float3 VertexLight : TEXCOORD6;
 };
 
 // Vertex Shader
@@ -91,6 +92,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.TileBase = input.TileBase;
     output.TileSize = input.TileSize;
     output.BlockCoord = input.BlockCoord;
+    output.VertexLight = input.Color.rgb / 255.0f;
 
     // Extract direction from color.a and use it to get normal
     int direction = int(round(input.Color.a * 255.0f));
@@ -125,8 +127,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     float diff = max(dot(input.Normal, lightDir), 0.0);
     float3 diffuse = diff * float3(1.0, 1.0, 1.0);
 
-    float lightFactor = 1.0f;
-
+    float3 vertexLight = input.VertexLight;
+    float lightFactor = max(max(vertexLight.r, vertexLight.g), vertexLight.b);
+    lightFactor = lerp(0.55f, 1.0f, saturate(lightFactor));
     float3 color = texResult.rgb * (ambient + diffuse) * lightFactor;
     
     // Apply fog
