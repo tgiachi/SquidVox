@@ -93,7 +93,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.BlockCoord = input.BlockCoord;
 
     // Extract direction from color.a and use it to get normal
-    int direction = int(input.Color.a);
+    int direction = int(round(input.Color.a * 255.0f));
     output.Normal = normals[clamp(direction, 0, 6)];
 
     // Calculate fog
@@ -121,14 +121,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     if (texResult.a == 0.0)
         discard;
 
-    float3 lightDir = normalize(-lightDirection);
+    float3 lightDir = normalize(lightDirection);
     float diff = max(dot(input.Normal, lightDir), 0.0);
     float3 diffuse = diff * float3(1.0, 1.0, 1.0);
 
-    float3 blockCoord = clamp(input.BlockCoord + 0.5f, 0.0f, ChunkDimensions - 0.5f);
-    float3 samplePos = blockCoord / ChunkDimensions;
-    float lightValue = tex3D(BlockLightSampler, samplePos).r;
-    float lightFactor = max(lightValue, 0.1f);
+    float lightFactor = 1.0f;
 
     float3 color = texResult.rgb * (ambient + diffuse) * lightFactor;
     
