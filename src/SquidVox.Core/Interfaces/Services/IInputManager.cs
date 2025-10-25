@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using SquidVox.Core.Data.Input;
 using SquidVox.Core.Enums;
 using SquidVox.Core.Interfaces.GameObjects;
+using SquidVox.Core.Interfaces.Services;
 
 namespace SquidVox.Core.Interfaces.Services;
 
@@ -166,60 +167,4 @@ public interface IInputManager : IDisposable
     event EventHandler<InputContextChangedEventArgs>? ContextChanged;
 }
 
-/// <summary>
-/// Mouse button enumeration.
-/// </summary>
-public enum MouseButton
-{
-    /// <summary>
-    /// Left mouse button.
-    /// </summary>
-    Left,
 
-    /// <summary>
-    /// Right mouse button.
-    /// </summary>
-    Right,
-
-    /// <summary>
-    /// Middle mouse button.
-    /// </summary>
-    Middle,
-
-    /// <summary>
-    /// Extra button 1.
-    /// </summary>
-    XButton1,
-
-    /// <summary>
-    /// Extra button 2.
-    /// </summary>
-    XButton2
-}
-
-/// <summary>
-/// Event arguments for input context changes.
-/// </summary>
-public class InputContextChangedEventArgs : EventArgs
-{
-    /// <summary>
-    /// Gets the previous input context.
-    /// </summary>
-    public InputContext OldContext { get; }
-
-    /// <summary>
-    /// Gets the new input context.
-    /// </summary>
-    public InputContext NewContext { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the InputContextChangedEventArgs class.
-    /// </summary>
-    /// <param name="oldContext">The previous context.</param>
-    /// <param name="newContext">The new context.</param>
-    public InputContextChangedEventArgs(InputContext oldContext, InputContext newContext)
-    {
-        OldContext = oldContext;
-        NewContext = newContext;
-    }
-}
