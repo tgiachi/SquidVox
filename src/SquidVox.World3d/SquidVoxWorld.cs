@@ -354,7 +354,7 @@ public class SquidVoxWorld : Game
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
 
         _renderLayers.GetLayer<GameObject3dRenderLayer>()
-                     .AddGameObject(new TimeAndLightGameObject(worldManager, skyPanorama));
+                     .AddGameObject(new TimeAndLightGameObject(worldManager, skyPanorama, clouds));
 
         // _renderLayers.GetLayer<GameObject3dRenderLayer>()
         //     .AddGameObject(

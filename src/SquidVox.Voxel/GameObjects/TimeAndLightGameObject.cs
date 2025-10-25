@@ -14,14 +14,16 @@ public class TimeAndLightGameObject : Base3dGameObject
     private readonly ILogger _logger = Log.ForContext<TimeAndLightGameObject>();
     private readonly WorldGameObject _world;
     private readonly DynamicSkyGameObject _sky;
+    private readonly CloudsGameObject? _clouds;
     private Vector3 _lastAmbientLight = Vector3.Zero;
     private Vector3 _lastLightDirection = Vector3.Zero;
     private int _logFrameCounter = 0;
 
-    public TimeAndLightGameObject(WorldGameObject world, DynamicSkyGameObject sky)
+    public TimeAndLightGameObject(WorldGameObject world, DynamicSkyGameObject sky, CloudsGameObject? clouds = null)
     {
         _world = world ?? throw new ArgumentNullException(nameof(world));
         _sky = sky ?? throw new ArgumentNullException(nameof(sky));
+        _clouds = clouds;
     }
 
     public override void Update(GameTime gameTime)
@@ -43,7 +45,15 @@ public class TimeAndLightGameObject : Base3dGameObject
 
         // Update world lighting
         _world.AmbientLight = newAmbientLight;
+        _world.FogColor = newAmbientLight;
         _world.LightDirection = newLightDirection;
+
+        // Update cloud lighting
+        if (_clouds != null)
+        {
+            _clouds.AmbientLight = newAmbientLight;
+            _clouds.LightDirection = newLightDirection;
+        }
 
         // Log changes periodically (every 60 frames = ~1 second at 60fps)
         _logFrameCounter++;

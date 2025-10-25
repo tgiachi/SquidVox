@@ -47,27 +47,18 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
     float3 cloudColor = float3(1.0, 1.0, 1.0);
     float3 norm = normalize(input.Normal);
-    
-    float faceShading = 1.0;
-    
-    // Top/bottom faces (Y axis)
-    if (abs(norm.y) > 0.9)
-    {
-        faceShading = 1.0;
-    }
-    // Left/right faces (X axis)
-    else if (abs(norm.x) > 0.9)
-    {
-        faceShading = 0.85;
-    }
-    // Front/back faces (Z axis)
-    else
-    {
-        faceShading = 0.7;
-    }
-    
-    cloudColor *= faceShading;
-    
+
+    // Calculate directional lighting
+    float3 lightDir = normalize(-lightDirection);
+    float diff = max(dot(norm, lightDir), 0.0);
+    float3 diffuse = diff * float3(1.0, 1.0, 1.0);
+
+    // Combine ambient and diffuse lighting
+    float3 lighting = ambient + diffuse;
+
+    // Apply lighting to cloud color
+    cloudColor *= lighting;
+
     return float4(cloudColor, 0.75);
 }
 

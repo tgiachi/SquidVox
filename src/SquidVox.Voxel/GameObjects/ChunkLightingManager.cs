@@ -148,21 +148,45 @@ public sealed class ChunkLightingManager : IDisposable
                     break;
             }
 
-            // If adjacent block is in bounds, sample its light
-            if (chunk.IsInBounds(adjX, adjY, adjZ))
+            var sampleX = adjX;
+            var sampleY = adjY;
+            var sampleZ = adjZ;
+
+            // Check if adjacent block is out of bounds in a way that means "exposed to sky/void"
+            bool isOutOfBoundsAbove = (adjY >= ChunkEntity.Height); // Top face exposed to sky
+            bool isOutOfBoundsBelow = (adjY < 0); // Bottom face exposed to void
+            bool isOutOfBoundsSide = (adjX < 0 || adjX >= ChunkEntity.Size || adjZ < 0 || adjZ >= ChunkEntity.Size);
+
+            var hasSample = false;
+            if (isOutOfBoundsAbove)
             {
-                var adjacentBlock = chunk.GetBlock(adjX, adjY, adjZ);
-                var rawLight = adjacentBlock.LightLevel;
-                lightLevel = Math.Max(0.2f, rawLight / 15f);
-                lightColor = adjacentBlock.LightColor;
+                // Top faces exposed to sky = full light from above
+                lightLevel = 1.0f;
+                hasSample = true;
             }
-            // Otherwise use block's own light as fallback
-            else if (chunk.IsInBounds(x, y, z))
+            else if (chunk.IsInBounds(adjX, adjY, adjZ))
             {
-                var block = chunk.GetBlock(x, y, z);
-                var rawLight = block.LightLevel;
-                lightLevel = Math.Max(0.2f, rawLight / 15f);
+                // Adjacent block is in bounds - sample its light
+                var adjacentBlock = chunk.GetBlock(adjX, adjY, adjZ);
+                if (adjacentBlock.BlockType != BlockType.Air)
+                {
+                    lightColor = adjacentBlock.LightColor;
+                    var rawLight = chunk.GetLightLevel(adjX, adjY, adjZ);
+                    lightLevel = Math.Max(0.2f, rawLight / 15f);
+                    hasSample = true;
+                }
+            }
+
+            // If still no sample, fall back to the source block itself
+            if (!hasSample && chunk.IsInBounds(x, y, z))
+            {
+                sampleX = x;
+                sampleY = y;
+                sampleZ = z;
+                var block = chunk.GetBlock(sampleX, sampleY, sampleZ);
                 lightColor = block.LightColor;
+                var rawLight = chunk.GetLightLevel(sampleX, sampleY, sampleZ);
+                lightLevel = Math.Max(0.2f, rawLight / 15f);
             }
         }
 

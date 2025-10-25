@@ -37,6 +37,7 @@ static const float3 normal = float3(0, -1, 0);
 struct VertexShaderInput
 {
     float3 Position : POSITION0;
+    float4 Color : COLOR0;
     float2 TexCoords : TEXCOORD0;
 };
 
@@ -45,6 +46,7 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
     float2 TexCoord : TEXCOORD0;
+    float4 Color : COLOR0;
     float FogFactor : TEXCOORD1;
 };
 
@@ -58,6 +60,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     output.Position = mul(viewPosition, projection);
 
     output.TexCoord = input.TexCoords * texMultiplier;
+    output.Color = input.Color;
 
     if (fogEnabled)
     {
@@ -84,7 +87,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float4 lighting = float4(ambient + diffuse, 1.0);
 
-    float4 finalColor = texResult * lighting;
+    float4 finalColor = texResult * input.Color * lighting;
 
     if (fogEnabled)
     {

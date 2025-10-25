@@ -79,6 +79,16 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
     public int CloudCount => _clouds.Count;
 
     /// <summary>
+    /// Gets or sets the ambient light color for cloud rendering.
+    /// </summary>
+    public Vector3 AmbientLight { get; set; } = Vector3.One;
+
+    /// <summary>
+    /// Gets or sets the light direction for cloud rendering.
+    /// </summary>
+    public Vector3 LightDirection { get; set; } = Vector3.Zero;
+
+    /// <summary>
     /// Generates random clouds in a given area.
     /// </summary>
     /// <param name="count">Number of clouds to generate.</param>
@@ -147,6 +157,10 @@ public class CloudsGameObject : Base3dGameObject, IDisposable
 
         _cloudEffect.Parameters["View"].SetValue(_camera.View);
         _cloudEffect.Parameters["Projection"].SetValue(_camera.Projection);
+
+        // Set dynamic lighting parameters
+        _cloudEffect.Parameters["ambient"]?.SetValue(AmbientLight);
+        _cloudEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
 
         foreach (var cloud in _clouds)
         {

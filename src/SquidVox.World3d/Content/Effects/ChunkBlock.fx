@@ -120,11 +120,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
     // Discard transparent pixels
     if (texResult.a == 0.0)
         discard;
-    
+
     float3 lightDir = normalize(-lightDirection);
     float diff = max(dot(input.Normal, lightDir), 0.0);
     float3 diffuse = diff * float3(1.0, 1.0, 1.0);
-    
+
     float3 blockCoord = clamp(input.BlockCoord + 0.5f, 0.0f, ChunkDimensions - 0.5f);
     float3 samplePos = blockCoord / ChunkDimensions;
     float lightValue = tex3D(BlockLightSampler, samplePos).r;

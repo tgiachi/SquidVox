@@ -236,6 +236,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
     public void SetChunk(ChunkEntity chunk)
     {
         _chunk = chunk ?? throw new ArgumentNullException(nameof(chunk));
+        _chunk.IsLightingDirty = true;
         Position = new Vector3(chunk.Position.X, chunk.Position.Y, chunk.Position.Z);
         _customCameraTarget = null; // Reset to automatic center tracking
         InvalidateGeometry();
@@ -450,23 +451,9 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 _blockEffect.Parameters["BlockLightTexture"]?.SetValue(_lightingManager.LightTexture);
             }
 
-            if (_blockEffect.Parameters["ambient"] != null)
-            {
-                _blockEffect.Parameters["ambient"].SetValue(AmbientLight);
-            }
-            else
-            {
-                _logger.Warning("ambient parameter not found in block effect");
-            }
-
-            if (_blockEffect.Parameters["lightDirection"] != null)
-            {
-                _blockEffect.Parameters["lightDirection"].SetValue(LightDirection);
-            }
-            else
-            {
-                _logger.Warning("lightDirection parameter not found in block effect");
-            }
+            // Set dynamic lighting parameters
+            _blockEffect.Parameters["ambient"]?.SetValue(AmbientLight);
+            _blockEffect.Parameters["lightDirection"]?.SetValue(LightDirection);
 
             foreach (var pass in _blockEffect.CurrentTechnique.Passes)
             {
