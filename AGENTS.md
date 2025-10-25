@@ -120,7 +120,7 @@ This allows injecting services where needed, keeping the code decoupled.
 
 ### Registered Custom Commands
 - **/format**: Comments C# files lacking standard /// comments in English (adds missing XML comments to classes, methods, etc.).
-- **/csfix**: Checks that each C# file contains exactly one class, struct, or record (reports violations).
+- **/csfix**: Checks that each C# file contains exactly one class, struct, record, or enum (reports violations).
 - **/go**: Runs /format and /csfix in parallel on all project files.
 
 ## Code Style Guidelines

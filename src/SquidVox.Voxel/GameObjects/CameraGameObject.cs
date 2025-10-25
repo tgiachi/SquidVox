@@ -92,16 +92,18 @@ public sealed class CameraGameObject : Base3dGameObject
 
     /// <summary>
     /// Gets or sets the horizontal rotation in degrees (default: -90°).
+    /// Wraps around at 360° for unlimited rotation.
     /// </summary>
-    ///
     [DebuggerField]
-    [DebuggerRange(-90, 90)]
+    [DebuggerRange(-180, 180)]
     public float Yaw
     {
         get => _yaw;
         set
         {
-            _yaw = value;
+            _yaw = value % 360f;
+            if (_yaw < -180f)
+                _yaw += 360f;
             UpdateCameraVectors();
         }
     }
@@ -519,7 +521,21 @@ public sealed class CameraGameObject : Base3dGameObject
     /// Gets or sets the movement speed of the camera.
     /// </summary>
     [DebuggerField]
+    [DebuggerRange(10, 50)]
     public float MoveSpeed { get; set; } = 20f;
+
+    /// <summary>
+    /// Gets or sets the sprint/run speed of the camera (SHIFT+W).
+    /// </summary>
+    [DebuggerField]
+    [DebuggerRange(25, 60)]
+    public float SprintSpeed { get; set; } = 35f;
+
+    /// <summary>
+    /// Gets a value indicating whether the camera is currently sprinting.
+    /// </summary>
+    [DebuggerField]
+    public bool IsSprinting { get; private set; }
 
     /// <summary>
     /// Gets or sets the mouse look sensitivity.
@@ -598,7 +614,13 @@ public sealed class CameraGameObject : Base3dGameObject
                 rightFlat.Normalize();
             }
 
-            var moveDistance = MoveSpeed * deltaTime;
+            // Check for sprint (SHIFT + W)
+            var isSprinting = (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
+                && keyboardState.IsKeyDown(Keys.W);
+            IsSprinting = isSprinting;
+
+            var currentSpeed = isSprinting ? SprintSpeed : MoveSpeed;
+            var moveDistance = currentSpeed * deltaTime;
 
             if (keyboardState.IsKeyDown(Keys.W))
             {
@@ -629,6 +651,8 @@ public sealed class CameraGameObject : Base3dGameObject
         }
         else
         {
+            IsSprinting = false;
+
             var moveDistance = MoveSpeed * deltaTime;
 
             if (keyboardState.IsKeyDown(Keys.W))
@@ -707,43 +731,55 @@ public sealed class CameraGameObject : Base3dGameObject
         _verticalVelocity = MathHelper.Clamp(_verticalVelocity, -TerminalVelocity, TerminalVelocity);
 
         var verticalMovement = _verticalVelocity * deltaTime;
-        var newPos = Position + new Vector3(0, verticalMovement, 0);
 
-        if (verticalMovement < 0)
+        // Use stepped collision for frame-rate independent movement
+        const float MaxStep = 0.1f;
+        var stepsNeeded = MathF.Ceiling(MathF.Abs(verticalMovement) / MaxStep);
+        var stepSize = verticalMovement / stepsNeeded;
+
+        _isOnGround = false;
+
+        for (int i = 0; i < stepsNeeded; i++)
         {
-            if (CheckGroundCollision(newPos))
+            var testPos = Position + new Vector3(0, stepSize, 0);
+
+            if (stepSize < 0)
             {
-                var pos = Position;
-                pos.Y = MathF.Floor(Position.Y - BoundingBoxSize.Y / 2) + BoundingBoxSize.Y / 2 + 0.01f;
-                Position = pos;
-                _verticalVelocity = 0;
-                _isOnGround = true;
-                _viewDirty = true;
+                // Falling down - check for ground collision
+                if (CheckGroundCollision(testPos))
+                {
+                    // Snap to ground and stop falling
+                    var pos = Position;
+                    pos.Y = MathF.Floor(Position.Y - BoundingBoxSize.Y / 2) + BoundingBoxSize.Y / 2 + 0.001f;
+                    Position = pos;
+                    _verticalVelocity = 0;
+                    _isOnGround = true;
+                    _viewDirty = true;
+                    break; // Stop stepping
+                }
+                else
+                {
+                    // No collision, move down
+                    Position = testPos;
+                }
             }
             else
             {
-                var pos = Position;
-                pos.Y = newPos.Y;
-                Position = pos;
-                _isOnGround = false;
-                _viewDirty = true;
+                // Moving up - check for ceiling collision
+                if (!CheckCollision(testPos))
+                {
+                    Position = testPos;
+                }
+                else
+                {
+                    // Hit ceiling, stop upward movement
+                    _verticalVelocity = 0;
+                    break; // Stop stepping
+                }
             }
         }
-        else
-        {
-            if (!CheckCollision(newPos))
-            {
-                var pos = Position;
-                pos.Y = newPos.Y;
-                Position = pos;
-                _isOnGround = false;
-                _viewDirty = true;
-            }
-            else
-            {
-                _verticalVelocity = 0;
-            }
-        }
+
+        _viewDirty = true;
     }
 
     private bool CheckCollision(Vector3 position)

@@ -117,10 +117,11 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
 
     /// <summary>
     /// Gets or sets the pre-load chunks grid distance.
+    /// Reduced from 3 to 2 to minimize stuttering (25 chunks instead of 49 per level).
     /// </summary>
     [DebuggerRange(1, 15)]
     [DebuggerField]
-    public int GenerationDistance { get; set; } = 3;
+    public int GenerationDistance { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets the vertical chunk load distance (above and below player).
@@ -131,26 +132,29 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
 
     /// <summary>
     /// Gets or sets the maximum number of chunk meshes to build per frame.
+    /// Increased default from 2 to 6 for better pipeline throughput.
     /// </summary>
     [DebuggerRange(1, 20)]
     [DebuggerField]
-    public int MaxChunkBuildsPerFrame { get; set; } = 2;
+    public int MaxChunkBuildsPerFrame { get; set; } = 6;
 
     /// <summary>
     /// Gets or sets the maximum number of pending chunks to process per frame.
     /// Limiting this prevents frame drops when loading many chunks at once.
+    /// Increased from 2 to 6 to reduce stuttering during initial chunk load.
     /// </summary>
     [DebuggerRange(1, 20)]
     [DebuggerField]
-    public int MaxChunksToProcessPerFrame { get; set; } = 2;
+    public int MaxChunksToProcessPerFrame { get; set; } = 6;
 
     /// <summary>
     /// Gets or sets the maximum number of GPU uploads to perform per frame.
     /// Limiting this prevents frame drops when many meshes are ready simultaneously.
+    /// Increased default from 2 to 12 to reduce stuttering during chunk generation.
     /// </summary>
     [DebuggerRange(1, 20)]
     [DebuggerField]
-    public int MaxGpuUploadsPerFrame { get; set; } = 2;
+    public int MaxGpuUploadsPerFrame { get; set; } = 12;
 
     /// <summary>
     /// Gets or sets whether to render chunks in wireframe mode.
@@ -520,9 +524,10 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
             built++;
         }
 
-        if (_meshBuildQueue.Count > 0)
+        // Minimal logging - only periodically if there's significant backlog
+        if (_meshBuildQueue.Count > 4 && Environment.TickCount % 1000 < 17)
         {
-            _logger.Verbose("Mesh build queue: {Remaining} chunks remaining", _meshBuildQueue.Count);
+            _logger.Debug("Mesh build queue backlog: {Remaining} chunks remaining", _meshBuildQueue.Count);
         }
     }
 
@@ -540,16 +545,15 @@ public sealed class WorldGameObject : Base3dGameObject, IDisposable
             uploaded++;
         }
 
-        if (uploaded > 0)
+        // Minimal logging to avoid frame time impact
+        // Only log every 60 frames (1 second at 60fps) if there's a backlog
+        if (uploaded > 0 && Environment.TickCount % 1000 < 17)
         {
-            _logger.Verbose("GPU uploads: {Uploaded} meshes uploaded this frame", uploaded);
-        }
-
-        // Count remaining uploads
-        var remaining = _chunks.Values.Count(c => c.HasPendingGpuUpload);
-        if (remaining > 0)
-        {
-            _logger.Verbose("GPU upload queue: {Remaining} meshes remaining", remaining);
+            var remaining = _chunks.Values.Count(c => c.HasPendingGpuUpload);
+            if (remaining > 2)
+            {
+                _logger.Debug("GPU upload queue backlog: {Remaining} meshes pending", remaining);
+            }
         }
     }
 
