@@ -113,7 +113,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 // Pixel Shader
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-    float2 tiledCoord = frac(input.TileCoord);
+    float2 tiledCoord = frac(float2(input.TileCoord.x, 1.0 - input.TileCoord.y));
     float2 atlasCoord = input.TileBase + tiledCoord * input.TileSize;
     float4 texResult = tex2D(texSampler, atlasCoord * texMultiplier);
     

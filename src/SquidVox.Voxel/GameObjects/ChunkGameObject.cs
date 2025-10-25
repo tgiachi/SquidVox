@@ -1097,7 +1097,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             {
                 CreateVertex(
                     new Vector3(x, y1, z),
-                    new Vector2(0f, 0f),
+                    new Vector2(0f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1105,7 +1105,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x, y1, z1),
-                    new Vector2(0f, 1f),
+                    new Vector2(0f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1113,7 +1113,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y1, z1),
-                    new Vector2(1f, 1f),
+                    new Vector2(1f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1121,7 +1121,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y1, z),
-                    new Vector2(1f, 0f),
+                    new Vector2(1f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1131,6 +1131,14 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             BlockSide.Bottom => new[]
             {
                 CreateVertex(
+                    new Vector3(x, y, z),
+                    new Vector2(0f, 1f),
+                    tileBase,
+                    tileSize,
+                    colorWithDir,
+                    new Vector3(blockX, blockY, blockZ)
+                ),
+                CreateVertex(
                     new Vector3(x, y, z1),
                     new Vector2(0f, 0f),
                     tileBase,
@@ -1139,12 +1147,12 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     new Vector3(blockX, blockY, blockZ + 1)
                 ),
                 CreateVertex(
-                    new Vector3(x, y, z),
-                    new Vector2(0f, 1f),
+                    new Vector3(x1, y, z1),
+                    new Vector2(1f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
-                    new Vector3(blockX, blockY, blockZ)
+                    new Vector3(blockX + 1, blockY, blockZ + 1)
                 ),
                 CreateVertex(
                     new Vector3(x1, y, z),
@@ -1153,21 +1161,13 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                     tileSize,
                     colorWithDir,
                     new Vector3(blockX + 1, blockY, blockZ)
-                ),
-                CreateVertex(
-                    new Vector3(x1, y, z1),
-                    new Vector2(1f, 0f),
-                    tileBase,
-                    tileSize,
-                    colorWithDir,
-                    new Vector3(blockX + 1, blockY, blockZ + 1)
                 )
             },
             BlockSide.North => new[]
             {
                 CreateVertex(
                     new Vector3(x, y1, z),
-                    new Vector2(0f, 0f),
+                    new Vector2(0f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1175,7 +1175,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x, y, z),
-                    new Vector2(0f, 1f),
+                    new Vector2(0f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1183,7 +1183,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y, z),
-                    new Vector2(1f, 1f),
+                    new Vector2(1f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1191,7 +1191,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y1, z),
-                    new Vector2(1f, 0f),
+                    new Vector2(1f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1202,7 +1202,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             {
                 CreateVertex(
                     new Vector3(x1, y1, z1),
-                    new Vector2(0f, 0f),
+                    new Vector2(0f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1210,7 +1210,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y, z1),
-                    new Vector2(0f, 1f),
+                    new Vector2(0f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1218,7 +1218,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x, y, z1),
-                    new Vector2(1f, 1f),
+                    new Vector2(1f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1226,7 +1226,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x, y1, z1),
-                    new Vector2(1f, 0f),
+                    new Vector2(1f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1237,7 +1237,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             {
                 CreateVertex(
                     new Vector3(x1, y1, z),
-                    new Vector2(0f, 0f),
+                    new Vector2(0f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1245,7 +1245,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y, z),
-                    new Vector2(0f, 1f),
+                    new Vector2(0f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1253,7 +1253,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y, z1),
-                    new Vector2(1f, 1f),
+                    new Vector2(1f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1261,7 +1261,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x1, y1, z1),
-                    new Vector2(1f, 0f),
+                    new Vector2(1f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1272,7 +1272,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
             {
                 CreateVertex(
                     new Vector3(x, y1, z1),
-                    new Vector2(0f, 0f),
+                    new Vector2(0f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1280,7 +1280,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x, y, z1),
-                    new Vector2(0f, 1f),
+                    new Vector2(0f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1288,7 +1288,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x, y, z),
-                    new Vector2(1f, 1f),
+                    new Vector2(1f, 0f),
                     tileBase,
                     tileSize,
                     colorWithDir,
@@ -1296,7 +1296,7 @@ public sealed class ChunkGameObject : Base3dGameObject, IDisposable
                 ),
                 CreateVertex(
                     new Vector3(x, y1, z),
-                    new Vector2(1f, 0f),
+                    new Vector2(1f, 1f),
                     tileBase,
                     tileSize,
                     colorWithDir,
