@@ -147,7 +147,6 @@ public class SquidVoxWorld : Game
         imguiLayer.AddDebugger(new ThemeSelectorDebugger(imguiLayer));
         imguiLayer.AddDebugger(gameObjectTreeDebugger);
 
-
         _console = new QuakeConsoleGameObject();
         _console.WelcomeLines.Add("SquidVox console ready.");
         _console.WelcomeLines.Add("Type 'help' for available commands.");
@@ -353,6 +352,9 @@ public class SquidVoxWorld : Game
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(skyPanorama);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(worldManager);
         _renderLayers.GetLayer<GameObject3dRenderLayer>().AddGameObject(clouds);
+
+        _renderLayers.GetLayer<GameObject3dRenderLayer>()
+                     .AddGameObject(new TimeAndLightGameObject(worldManager, skyPanorama));
 
         // _renderLayers.GetLayer<GameObject3dRenderLayer>()
         //     .AddGameObject(

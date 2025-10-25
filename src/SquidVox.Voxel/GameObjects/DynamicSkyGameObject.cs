@@ -34,6 +34,7 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
     private Color _directionalColor;
     private float _sunIntensity;
     private float _moonIntensity;
+    private int _debugUpdateLightingCounter = 0;
 
     /// <summary>
     /// Initializes a new instance of the DynamicSkyGameObject class.
@@ -266,6 +267,12 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
         float sunAngle = _timeOfDay * MathHelper.TwoPi;
         float sunHeight = MathF.Sin(sunAngle);
 
+        // Debug logging every 30 frames
+        if (_debugUpdateLightingCounter++ % 30 == 0)
+        {
+            _logger.Information("DynamicSky UpdateLighting: TimeOfDay={TimeOfDay:F3}, sunAngle={SunAngle:F3}, sunHeight={SunHeight:F3}", _timeOfDay, sunAngle, sunHeight);
+        }
+
         // Sun direction: rotates from east to west
         // At noon (0.5), sun is at zenith (0, 1, 0)
         // At sunrise/sunset, sun is on horizon
@@ -342,6 +349,14 @@ public class DynamicSkyGameObject : Base3dGameObject, IDisposable
             // Full night
             _ambientColor = new Color(20, 20, 40);
             _directionalColor = new Color(40, 50, 80);
+        }
+
+        // Debug logging for colors every 30 frames
+        if (_debugUpdateLightingCounter % 30 == 1)
+        {
+            _logger.Information("DynamicSky Colors: Ambient=({R}, {G}, {B}), Directional=({DR}, {DG}, {DB})",
+                _ambientColor.R, _ambientColor.G, _ambientColor.B,
+                _directionalColor.R, _directionalColor.G, _directionalColor.B);
         }
     }
 
